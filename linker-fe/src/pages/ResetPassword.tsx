@@ -1,13 +1,36 @@
-import { type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
 import AuthLayout from '../components/layouts/AuthLayout'
 import PasswordInput from '../components/ui/PasswordInput'
 
+const schema = yup.object({
+  password: yup
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .required('Password is required'),
+  confirmPassword: yup
+    .string()
+    .oneOf([yup.ref('password')], 'Passwords do not match')
+    .required('Please confirm your password'),
+})
+
+type ResetPasswordFormData = yup.InferType<typeof schema>
+
 export default function ResetPassword() {
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
+  const navigate = useNavigate()
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<ResetPasswordFormData>({ resolver: yupResolver(schema) })
+
+  async function onSubmit(_data: ResetPasswordFormData) {
     // TODO: wire up to auth service
+    navigate('/login')
   }
 
   return (
@@ -16,7 +39,6 @@ export default function ResetPassword() {
       <div className="mb-8 text-center lg:text-left">
         <h1
           className="text-3xl font-bold text-foreground mb-2"
-          style={{ fontFamily: 'var(--font-headings)' }}
         >
           Set new password
         </h1>
@@ -26,7 +48,7 @@ export default function ResetPassword() {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="mb-8">
+      <form onSubmit={handleSubmit(onSubmit)} className="mb-8">
         {/* New Password */}
         <div className="flex flex-col gap-2 mb-6">
           <label htmlFor="password" className="text-sm font-bold text-foreground">
@@ -34,8 +56,9 @@ export default function ResetPassword() {
           </label>
           <PasswordInput
             id="password"
-            name="password"
             autoComplete="new-password"
+            error={errors.password?.message}
+            {...register('password')}
           />
         </div>
 
@@ -49,17 +72,19 @@ export default function ResetPassword() {
           </label>
           <PasswordInput
             id="confirmPassword"
-            name="confirmPassword"
             autoComplete="new-password"
+            error={errors.confirmPassword?.message}
+            {...register('confirmPassword')}
           />
         </div>
 
         {/* Submit */}
         <button
           type="submit"
-          className="w-full px-4 py-3 bg-primary text-primary-foreground font-bold text-sm rounded-xl shadow-sm hover:opacity-90 transition-opacity cursor-pointer mt-2"
+          disabled={isSubmitting}
+          className="w-full px-4 py-3 bg-primary text-primary-foreground font-bold text-sm rounded-xl shadow-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed mt-2"
         >
-          Reset Password
+          {isSubmitting ? 'Resetting...' : 'Reset Password'}
         </button>
       </form>
 

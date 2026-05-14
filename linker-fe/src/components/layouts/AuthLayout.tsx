@@ -27,7 +27,6 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
         <div className="relative z-10 max-w-md mt-auto">
           <h2
             className="text-4xl font-bold mb-4 leading-tight"
-            style={{ fontFamily: 'var(--font-headings)' }}
           >
             Organize your digital life with ease.
           </h2>

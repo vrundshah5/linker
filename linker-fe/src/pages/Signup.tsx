@@ -1,16 +1,40 @@
-import { useState, type FormEvent } from 'react'
+import { useState } from 'react'
 import { Globe, User, Mail, Check } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
 import AuthLayout from '../components/layouts/AuthLayout'
 import InputField from '../components/ui/InputField'
 import PasswordInput from '../components/ui/PasswordInput'
 
+const schema = yup.object({
+  fullName: yup
+    .string()
+    .min(2, 'Name must be at least 2 characters')
+    .required('Full name is required'),
+  email: yup.string().email('Enter a valid email address').required('Email is required'),
+  password: yup
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .required('Password is required'),
+})
+
+type SignupFormData = yup.InferType<typeof schema>
+
 export default function Signup() {
+  const navigate = useNavigate()
   const [agreed, setAgreed] = useState(false)
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<SignupFormData>({ resolver: yupResolver(schema) })
+
+  async function onSubmit(_data: SignupFormData) {
     // TODO: wire up to auth service
+    navigate('/onboard')
   }
 
   return (
@@ -19,7 +43,6 @@ export default function Signup() {
       <div className="mb-8 text-center lg:text-left">
         <h1
           className="text-3xl font-bold text-foreground mb-2"
-          style={{ fontFamily: 'var(--font-headings)' }}
         >
           Create an account
         </h1>
@@ -49,7 +72,7 @@ export default function Signup() {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         {/* Full Name */}
         <div className="flex flex-col gap-2 mb-6">
           <label htmlFor="fullName" className="text-sm font-bold text-foreground">
@@ -57,11 +80,12 @@ export default function Signup() {
           </label>
           <InputField
             id="fullName"
-            name="fullName"
             type="text"
             placeholder="Enter your full name"
             autoComplete="name"
             icon={<User className="size-5" />}
+            error={errors.fullName?.message}
+            {...register('fullName')}
           />
         </div>
 
@@ -72,11 +96,12 @@ export default function Signup() {
           </label>
           <InputField
             id="email"
-            name="email"
             type="email"
             placeholder="Enter your email"
             autoComplete="email"
             icon={<Mail className="size-5" />}
+            error={errors.email?.message}
+            {...register('email')}
           />
         </div>
 
@@ -87,9 +112,10 @@ export default function Signup() {
           </label>
           <PasswordInput
             id="password"
-            name="password"
             placeholder="Create a password"
             autoComplete="new-password"
+            error={errors.password?.message}
+            {...register('password')}
           />
         </div>
 
@@ -124,9 +150,10 @@ export default function Signup() {
         {/* Submit */}
         <button
           type="submit"
-          className="w-full px-4 py-3 bg-primary text-primary-foreground font-bold text-sm rounded-xl shadow-sm hover:opacity-90 transition-opacity cursor-pointer"
+          disabled={isSubmitting}
+          className="w-full px-4 py-3 bg-primary text-primary-foreground font-bold text-sm rounded-xl shadow-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          Create Account
+          {isSubmitting ? 'Creating account...' : 'Create Account'}
         </button>
       </form>
 

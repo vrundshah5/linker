@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import 'dotenv/config';
+import authRoutes from './routes/auth.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -12,6 +13,9 @@ app.use(express.json());
 app.get('/', (_req, res) => {
   res.json({ message: 'Linker API is running' });
 });
+
+// Auth routes
+app.use('/api/auth', authRoutes);
 
 mongoose
   .connect(MONGO_URI)

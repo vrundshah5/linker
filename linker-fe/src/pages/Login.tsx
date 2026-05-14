@@ -1,16 +1,37 @@
-import { useState, type FormEvent } from 'react'
+import { useState } from 'react'
 import { Globe, Mail, Check } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
 import AuthLayout from '../components/layouts/AuthLayout'
 import InputField from '../components/ui/InputField'
 import PasswordInput from '../components/ui/PasswordInput'
 
+const schema = yup.object({
+  email: yup.string().email('Enter a valid email address').required('Email is required'),
+  password: yup
+    .string()
+    .min(6, 'Password must be at least 6 characters')
+    .required('Password is required'),
+})
+
+type LoginFormData = yup.InferType<typeof schema>
+
 export default function Login() {
+  const navigate = useNavigate()
   const [rememberMe, setRememberMe] = useState(false)
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormData>({ resolver: yupResolver(schema) })
+
+  async function onSubmit(_data: LoginFormData): Promise<void> {
+    void _data
     // TODO: wire up to auth service
+    navigate('/dashboard')
   }
 
   return (
@@ -19,7 +40,6 @@ export default function Login() {
       <div className="mb-8 text-center lg:text-left">
         <h1
           className="text-3xl font-bold text-foreground mb-2"
-          style={{ fontFamily: 'var(--font-headings)' }}
         >
           Welcome back
         </h1>
@@ -49,7 +69,7 @@ export default function Login() {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         {/* Email */}
         <div className="flex flex-col gap-2 mb-6">
           <label
@@ -60,11 +80,12 @@ export default function Login() {
           </label>
           <InputField
             id="email"
-            name="email"
             type="email"
             placeholder="Enter your email"
             autoComplete="email"
             icon={<Mail className="size-5" />}
+            error={errors.email?.message}
+            {...register('email')}
           />
         </div>
 
@@ -78,8 +99,9 @@ export default function Login() {
           </label>
           <PasswordInput
             id="password"
-            name="password"
             autoComplete="current-password"
+            error={errors.password?.message}
+            {...register('password')}
           />
         </div>
 
@@ -117,9 +139,10 @@ export default function Login() {
         {/* Submit */}
         <button
           type="submit"
-          className="w-full px-4 py-3 bg-primary text-primary-foreground font-bold text-sm rounded-xl shadow-sm hover:opacity-90 transition-opacity cursor-pointer"
+          disabled={isSubmitting}
+          className="w-full px-4 py-3 bg-primary text-primary-foreground font-bold text-sm rounded-xl shadow-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          Sign In
+          {isSubmitting ? 'Signing in...' : 'Sign In'}
         </button>
       </form>
 

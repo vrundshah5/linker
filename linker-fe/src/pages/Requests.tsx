@@ -106,6 +106,7 @@ export default function Requests() {
 
   return (
     <AppLayout>
+      <div className="h-full flex flex-col overflow-hidden">
       {/* Top bar */}
       <div className="sticky top-0 z-10 bg-background border-b border-border px-8 py-4 flex items-center justify-between gap-4">
         <div className="min-w-0">
@@ -118,7 +119,6 @@ export default function Requests() {
           </div>
           <h1
             className="text-2xl font-bold text-foreground leading-tight"
-            style={{ fontFamily: 'var(--font-headings)' }}
           >
             Chat Requests
           </h1>
@@ -154,7 +154,7 @@ export default function Requests() {
       </div>
 
       {/* Body */}
-      <div className="px-8 py-7">
+      <div className="flex-1 overflow-y-auto px-8 py-7">
         {/* Underline tabs */}
         <div className="flex items-center border-b border-border mb-6 gap-2">
           {TABS.map(({ key, label, count }) => (
@@ -274,6 +274,7 @@ export default function Requests() {
             </p>
           )}
         </div>
+      </div>
       </div>
     </AppLayout>
   )

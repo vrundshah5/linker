@@ -1,8 +1,21 @@
-import { useState, useRef, type FormEvent, type ChangeEvent } from 'react'
+import { useState, useRef, type ChangeEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, Bell, Folder, ImagePlus } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
 import AppLayout from '../components/layouts/AppLayout'
 import { createCategory } from '../services/categoryService'
+
+const schema = yup.object({
+  name: yup
+    .string()
+    .min(2, 'Category name must be at least 2 characters')
+    .required('Category name is required'),
+  description: yup.string().optional(),
+})
+
+type CategoryFormData = yup.InferType<typeof schema>
 
 const PRESET_COLORS = ['#6c5dd3', '#3eac68', '#ff9b26', '#ff6a55']
 
@@ -10,13 +23,16 @@ export default function CreateCategory() {
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
   const [themeColor, setThemeColor] = useState(PRESET_COLORS[0])
   const [customColor, setCustomColor] = useState('')
   const [iconPreview, setIconPreview] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<CategoryFormData>({ resolver: yupResolver(schema) })
 
   function handleIconChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -26,39 +42,29 @@ export default function CreateCategory() {
     reader.readAsDataURL(file)
   }
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setError(null)
-
-    if (!name.trim()) {
-      setError('Category name is required')
-      return
-    }
-
-    setIsSubmitting(true)
+  async function onSubmit(data: CategoryFormData) {
+    setSubmitError(null)
     try {
       await createCategory({
-        name: name.trim(),
-        description: description.trim() || undefined,
+        name: data.name.trim(),
+        description: data.description?.trim() || undefined,
         themeColor,
         icon: iconPreview ?? undefined,
       })
       navigate('/dashboard')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong')
-    } finally {
-      setIsSubmitting(false)
+      setSubmitError(err instanceof Error ? err.message : 'Something went wrong')
     }
   }
 
   return (
     <AppLayout>
+      <div className="h-full flex flex-col overflow-hidden">
       {/* Top bar */}
       <div className="sticky top-0 z-10 bg-background border-b border-border px-8 py-4 flex items-center justify-between">
         <div>
           <h1
             className="text-2xl font-bold text-foreground"
-            style={{ fontFamily: 'var(--font-headings)' }}
           >
             Create New Category
           </h1>
@@ -89,8 +95,8 @@ export default function CreateCategory() {
       </div>
 
       {/* Form */}
-      <div className="px-8 py-8">
-        <form onSubmit={handleSubmit} noValidate>
+      <div className="flex-1 overflow-y-auto px-8 py-8">
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <div className="bg-surface border border-border rounded-2xl p-8 max-w-2xl">
 
             {/* Category Icon */}
@@ -135,19 +141,21 @@ export default function CreateCategory() {
               </label>
               <div
                 className={`flex items-center gap-3 px-4 py-3 bg-input border rounded-xl text-sm transition-colors focus-within:border-primary ${
-                  error && !name.trim() ? 'border-danger' : 'border-border'
+                  errors.name ? 'border-danger' : 'border-border'
                 }`}
               >
                 <Folder className="size-4 text-muted-foreground shrink-0" />
                 <input
                   id="category-name"
                   type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Design Inspiration"
+                  {...register('name')}
                   className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground min-w-0"
                 />
               </div>
+              {errors.name && (
+                <p className="text-xs text-danger font-medium mt-1.5">{errors.name.message}</p>
+              )}
             </div>
 
             {/* Description */}
@@ -157,10 +165,9 @@ export default function CreateCategory() {
               </label>
               <textarea
                 id="category-description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
                 placeholder="What kind of links will be stored here?"
                 rows={4}
+                {...register('description')}
                 className="w-full px-4 py-3 bg-input border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground outline-none resize-none focus:border-primary transition-colors"
               />
             </div>
@@ -206,8 +213,8 @@ export default function CreateCategory() {
             </div>
 
             {/* Error */}
-            {error && (
-              <p className="text-sm text-danger mb-5">{error}</p>
+            {submitError && (
+              <p className="text-sm text-danger mb-5">{submitError}</p>
             )}
 
             {/* Actions */}
@@ -229,6 +236,7 @@ export default function CreateCategory() {
             </div>
           </div>
         </form>
+      </div>
       </div>
     </AppLayout>
   )

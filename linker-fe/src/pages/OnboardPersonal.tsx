@@ -76,7 +76,6 @@ export default function OnboardPersonal() {
 
         <h1
           className="text-3xl font-bold text-foreground mb-2"
-          style={{ fontFamily: 'var(--font-headings)' }}
         >
           Select Global Categories
         </h1>

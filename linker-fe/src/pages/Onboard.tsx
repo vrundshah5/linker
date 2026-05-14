@@ -52,7 +52,6 @@ export default function Onboard() {
       <div className="w-full max-w-4xl flex flex-col items-center">
         <h1
           className="text-4xl font-bold text-foreground mb-4 text-center"
-          style={{ fontFamily: 'var(--font-headings)' }}
         >
           How are you planning to use Linker?
         </h1>

@@ -90,6 +90,7 @@ export default function CategoryDetail() {
 
   return (
     <AppLayout>
+      <div className="h-full flex flex-col overflow-hidden">
       {/* Top bar */}
       <div className="sticky top-0 z-10 bg-background border-b border-border px-8 py-4 flex items-center justify-between gap-4">
         {/* Breadcrumb + title */}
@@ -103,7 +104,6 @@ export default function CategoryDetail() {
           </div>
           <h1
             className="text-2xl font-bold text-foreground leading-tight truncate"
-            style={{ fontFamily: 'var(--font-headings)' }}
           >
             {categoryName}
           </h1>
@@ -141,7 +141,7 @@ export default function CategoryDetail() {
       </div>
 
       {/* Body */}
-      <div className="px-8 py-7">
+      <div className="flex-1 overflow-y-auto px-8 py-7">
         {/* Tabs */}
         <div className="inline-flex items-center bg-surface border border-border rounded-full p-1 mb-6">
           {TABS.map(({ key, label, count }) => (
@@ -248,6 +248,7 @@ export default function CategoryDetail() {
             </p>
           )}
         </div>
+      </div>
       </div>
     </AppLayout>
   )

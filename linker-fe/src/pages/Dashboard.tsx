@@ -79,13 +79,13 @@ export default function Dashboard() {
   const navigate = useNavigate()
   return (
     <AppLayout>
+      <div className="h-full overflow-y-auto">
       <div className="p-8">
         {/* Page header */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1
               className="text-2xl font-bold text-foreground"
-              style={{ fontFamily: 'var(--font-headings)' }}
             >
               Dashboard
             </h1>
@@ -131,7 +131,6 @@ export default function Dashboard() {
 
           <h2
             className="text-2xl font-bold text-primary-foreground mb-2 max-w-xs leading-tight"
-            style={{ fontFamily: 'var(--font-headings)' }}
           >
             Organize your digital life with Linker Pro
           </h2>
@@ -161,7 +160,6 @@ export default function Dashboard() {
         <div className="flex items-center justify-between mb-5">
           <h2
             className="text-lg font-bold text-foreground"
-            style={{ fontFamily: 'var(--font-headings)' }}
           >
             Your Categories
           </h2>
@@ -261,6 +259,7 @@ export default function Dashboard() {
             </div>
           ))}
         </div>
+      </div>
       </div>
     </AppLayout>
   )

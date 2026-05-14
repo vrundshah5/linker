@@ -13,11 +13,14 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "mongoose": "^9.6.2"
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^9.6.2",
+    "nodemailer": "^6.9.16"
   },
   "devDependencies": {
-    "dotenv": "^17.4.2",
     "nodemon": "^3.1.14"
   }
 }

@@ -8,13 +8,16 @@ import {
   Settings,
   ChevronDown,
   Folder,
+  Archive,
 } from 'lucide-react'
+import UserMenuPopover from '../ui/UserMenuPopover'
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/categories', label: 'Categories', icon: Folder, end: false },
+  { to: '/dashboard', label: 'Categories', icon: Folder, end: true },
   { to: '/messages', label: 'Messages', icon: MessageSquare, end: true },
   { to: '/requests', label: 'Requests', icon: Users, end: true },
+  { to: '/archived', label: 'Archived Links', icon: Archive, end: true },
   { to: '/settings', label: 'Settings', icon: Settings, end: true },
 ]
 
@@ -68,21 +71,28 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
         {/* User */}
         <div className="p-3 border-t border-border">
-          <button className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors cursor-pointer text-left">
-            <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <span className="text-xs font-bold text-primary">JD</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-muted-foreground">Personal</p>
-              <p className="text-sm font-bold text-foreground truncate">Jason Doe</p>
-            </div>
-            <ChevronDown className="size-4 text-muted-foreground shrink-0" />
-          </button>
+          <UserMenuPopover accentClass="text-primary" accentBg="bg-primary/10">
+            {(open) => (
+              <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors text-left">
+                <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <span className="text-xs font-bold text-primary">JD</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-muted-foreground">Personal</p>
+                  <p className="text-sm font-bold text-foreground truncate">Jason Doe</p>
+                </div>
+                {open
+                  ? <ChevronDown className="size-4 text-muted-foreground shrink-0 rotate-180 transition-transform" />
+                  : <ChevronDown className="size-4 text-muted-foreground shrink-0 transition-transform" />
+                }
+              </div>
+            )}
+          </UserMenuPopover>
         </div>
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto bg-background">
+      <main className="flex-1 overflow-hidden bg-background">
         {children}
       </main>
     </div>

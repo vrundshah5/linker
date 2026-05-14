@@ -1,5 +1,19 @@
-import { useState, type FormEvent } from 'react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Link, Mail, Link2, Plus, Trash2, X, User } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
+
+const schema = yup.object({
+  projectName: yup
+    .string()
+    .min(2, 'Project name must be at least 2 characters')
+    .required('Project name is required'),
+  description: yup.string().optional(),
+})
+
+type ProfessionalFormData = yup.InferType<typeof schema>
 
 interface InvitedMember {
   id: string
@@ -29,10 +43,20 @@ const INITIAL_RESOURCES: Resource[] = [
 ]
 
 export default function OnboardProfessional() {
+  const navigate = useNavigate()
   const [inviteEmail, setInviteEmail] = useState('')
   const [members, setMembers] = useState<InvitedMember[]>(INITIAL_MEMBERS)
   const [resources, setResources] = useState<Resource[]>(INITIAL_RESOURCES)
   const [newResourceUrl, setNewResourceUrl] = useState('')
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<ProfessionalFormData>({
+    resolver: yupResolver(schema),
+    defaultValues: { projectName: 'Acme Corp Redesign' },
+  })
 
   function handleInvite() {
     const email = inviteEmail.trim()
@@ -65,9 +89,9 @@ export default function OnboardProfessional() {
     setResources((prev) => prev.filter((r) => r.id !== id))
   }
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
+  async function onSubmit(_data: ProfessionalFormData) {
     // TODO: wire up to onboarding service
+    navigate('/dashboard')
   }
 
   return (
@@ -96,7 +120,6 @@ export default function OnboardProfessional() {
 
         <h1
           className="text-3xl font-bold text-foreground mb-2"
-          style={{ fontFamily: 'var(--font-headings)' }}
         >
           Set up your Professional Workspace
         </h1>
@@ -105,7 +128,7 @@ export default function OnboardProfessional() {
           with your team.
         </p>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8">
           {/* Project Details */}
           <div>
             <h3 className="text-lg font-bold text-foreground mb-4 border-b border-border pb-2">
@@ -121,11 +144,15 @@ export default function OnboardProfessional() {
                 </label>
                 <input
                   id="projectName"
-                  name="projectName"
                   type="text"
-                  defaultValue="Acme Corp Redesign"
-                  className="w-full bg-input border border-border rounded-xl px-4 py-3 text-sm text-foreground outline-none focus:border-primary transition-colors"
+                  {...register('projectName')}
+                  className={`w-full bg-input border rounded-xl px-4 py-3 text-sm text-foreground outline-none focus:border-primary transition-colors ${
+                    errors.projectName ? 'border-danger' : 'border-border'
+                  }`}
                 />
+                {errors.projectName && (
+                  <p className="text-xs text-danger font-medium">{errors.projectName.message}</p>
+                )}
               </div>
               <div className="flex flex-col gap-2">
                 <label
@@ -136,9 +163,9 @@ export default function OnboardProfessional() {
                 </label>
                 <textarea
                   id="description"
-                  name="description"
                   rows={3}
                   placeholder="Briefly describe what this project is about..."
+                  {...register('description')}
                   className="w-full bg-input border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary transition-colors resize-none"
                 />
               </div>
@@ -291,9 +318,10 @@ export default function OnboardProfessional() {
             </button>
             <button
               type="submit"
-              className="px-8 py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-sm hover:opacity-90 transition-opacity cursor-pointer"
+              disabled={isSubmitting}
+              className="px-8 py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Create Workspace
+              {isSubmitting ? 'Creating...' : 'Create Workspace'}
             </button>
           </div>
         </form>

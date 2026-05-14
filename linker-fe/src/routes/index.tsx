@@ -12,6 +12,18 @@ const Dashboard = lazy(() => import('../pages/Dashboard'))
 const CreateCategory = lazy(() => import('../pages/CreateCategory'))
 const CategoryDetail = lazy(() => import('../pages/CategoryDetail'))
 const Requests = lazy(() => import('../pages/Requests'))
+const Messages = lazy(() => import('../pages/Messages'))
+const ArchivedLinks = lazy(() => import('../pages/ArchivedLinks'))
+const ProfessionalDashboard = lazy(() => import('../pages/ProfessionalDashboard'))
+const ProjectResources = lazy(() => import('../pages/ProjectResources'))
+const ProjectTeamMembers = lazy(() => import('../pages/ProjectTeamMembers'))
+const ProjectSettings = lazy(() => import('../pages/ProjectSettings'))
+const AdminOverview = lazy(() => import('../pages/AdminOverview'))
+const AdminGlobalCategories = lazy(() => import('../pages/AdminGlobalCategories'))
+const AdminManageUsers = lazy(() => import('../pages/AdminManageUsers'))
+const AdminSystemReports = lazy(() => import('../pages/AdminSystemReports'))
+const AdminPlatformSettings = lazy(() => import('../pages/AdminPlatformSettings'))
+const Profile = lazy(() => import('../pages/Profile'))
 
 export const routes: RouteObject[] = [
   // Auth
@@ -27,10 +39,22 @@ export const routes: RouteObject[] = [
 
   // App
   { path: '/dashboard', element: <Dashboard /> },
+  { path: '/messages', element: <Messages /> },
   { path: '/categories', element: <Navigate to="/dashboard" replace /> },
   { path: '/categories/new', element: <CreateCategory /> },
   { path: '/categories/:id', element: <CategoryDetail /> },
   { path: '/requests', element: <Requests /> },
+  { path: '/archived', element: <ArchivedLinks /> },
+  { path: '/professional-dashboard', element: <ProfessionalDashboard /> },
+  { path: '/projects/acme-corp-redesign/resources', element: <ProjectResources /> },
+  { path: '/projects/acme-corp-redesign/members', element: <ProjectTeamMembers /> },
+  { path: '/projects/acme-corp-redesign/settings', element: <ProjectSettings /> },
+  { path: '/admin/overview', element: <AdminOverview /> },
+  { path: '/admin/categories', element: <AdminGlobalCategories /> },
+  { path: '/admin/users', element: <AdminManageUsers /> },
+  { path: '/admin/reports', element: <AdminSystemReports /> },
+  { path: '/admin/settings', element: <AdminPlatformSettings /> },
+  { path: '/profile', element: <Profile /> },
 
   // Fallback
   { path: '*', element: <Navigate to="/login" replace /> },
