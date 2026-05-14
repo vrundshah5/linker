@@ -9,6 +9,7 @@ import {
   ChevronDown,
 } from 'lucide-react'
 import UserMenuPopover from '../ui/UserMenuPopover'
+import { useCurrentUser } from '../../hooks/useCurrentUser'
 
 const PROJECT_NAV = [
   { to: '/projects/acme-corp-redesign/resources', label: 'Resources', icon: Briefcase, end: true },
@@ -22,6 +23,7 @@ interface ProjectLayoutProps {
 }
 
 export default function ProjectLayout({ children }: ProjectLayoutProps) {
+  const user = useCurrentUser()
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       {/* Sidebar */}
@@ -85,12 +87,12 @@ export default function ProjectLayout({ children }: ProjectLayoutProps) {
             {(open) => (
               <div className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-muted transition-colors text-left">
                 <div className="size-8 rounded-full bg-warning/10 flex items-center justify-center shrink-0 relative">
-                  <span className="text-xs font-bold text-warning">JD</span>
+                  <span className="text-xs font-bold text-warning">{user.initials}</span>
                   <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-warning border-2 border-surface" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-foreground truncate leading-tight">Acme Corp</p>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Jason Doe</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">{user.name}</p>
                 </div>
                 {open
                   ? <ChevronDown className="size-4 text-muted-foreground shrink-0 rotate-180 transition-transform" />

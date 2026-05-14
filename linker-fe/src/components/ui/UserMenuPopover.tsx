@@ -36,7 +36,7 @@ export default function UserMenuPopover({ children, accentClass, accentBg, switc
 
       {/* Dropdown — pops upward */}
       {open && (
-        <div className="absolute bottom-full left-0 right-0 mb-2 bg-surface border border-border rounded-2xl shadow-lg z-50 overflow-hidden">
+        <div className="absolute bottom-full left-0 mb-2 w-56 bg-surface border border-border rounded-2xl shadow-lg z-50 overflow-hidden">
           {/* Profile option */}
           <button
             type="button"

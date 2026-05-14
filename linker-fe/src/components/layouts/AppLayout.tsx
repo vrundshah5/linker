@@ -9,6 +9,7 @@ import {
   ChevronDown,
 } from 'lucide-react'
 import UserMenuPopover from '../ui/UserMenuPopover'
+import { useCurrentUser } from '../../hooks/useCurrentUser'
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -22,6 +23,7 @@ interface AppLayoutProps {
 }
 
 export default function AppLayout({ children }: AppLayoutProps) {
+  const user = useCurrentUser()
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       {/* Sidebar */}
@@ -75,11 +77,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
             {(open) => (
               <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors text-left">
                 <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <span className="text-xs font-bold text-primary">JD</span>
+                  <span className="text-xs font-bold text-primary">{user.initials}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-muted-foreground">Personal</p>
-                  <p className="text-sm font-bold text-foreground truncate">Jason Doe</p>
+                  <p className="text-sm font-bold text-foreground truncate">{user.name}</p>
                 </div>
                 {open
                   ? <ChevronDown className="size-4 text-muted-foreground shrink-0 rotate-180 transition-transform" />

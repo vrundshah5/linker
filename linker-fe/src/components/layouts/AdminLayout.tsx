@@ -10,6 +10,7 @@ import {
   ChevronDown,
 } from 'lucide-react'
 import UserMenuPopover from '../ui/UserMenuPopover'
+import { useCurrentUser } from '../../hooks/useCurrentUser'
 
 const NAV_ITEMS = [
   { to: '/admin/overview', label: 'Overview', icon: LayoutDashboard, end: true },
@@ -24,6 +25,7 @@ interface AdminLayoutProps {
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
+  const user = useCurrentUser()
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       {/* Sidebar */}
@@ -79,10 +81,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             {(open) => (
               <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors text-left">
                 <div className="size-8 rounded-full bg-danger/10 flex items-center justify-center shrink-0">
-                  <span className="text-xs font-bold text-danger">AR</span>
+                  <span className="text-xs font-bold text-danger">{user.initials}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-foreground truncate leading-tight">Admin Root</p>
+                  <p className="text-sm font-bold text-foreground truncate leading-tight">{user.name}</p>
                   <p className="text-xs text-muted-foreground">System Owner</p>
                 </div>
                 {open

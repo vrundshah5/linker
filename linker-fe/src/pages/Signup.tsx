@@ -1,4 +1,5 @@
-import { Globe, User, Mail } from 'lucide-react'
+import { useState } from 'react'
+import { Globe, User, Mail, Check } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -24,7 +25,8 @@ type SignupFormData = yup.InferType<typeof schema>
 
 export default function Signup() {
   const navigate = useNavigate()
-  const { mutateAsync: signup, isPending, error } = useSignup()
+  const [agreed, setAgreed] = useState(false)
+  const { mutateAsync: signup, isPending } = useSignup()
 
   const {
     register,
@@ -147,19 +149,18 @@ export default function Signup() {
           </span>
         </div>
 
-        {/* API error */}
-        {error && (
-          <p className="text-sm text-danger mb-4 -mt-2">
-            {(error as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Something went wrong. Please try again.'}
-          </p>
-        )}
-
         {/* Submit */}
         <button
           type="submit"
           disabled={isPending}
-          className="w-full px-4 py-3 bg-primary text-primary-foreground font-bold text-sm rounded-xl shadow-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-primary-foreground font-bold text-sm rounded-xl shadow-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
         >
+          {isPending && (
+            <svg className="animate-spin size-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+            </svg>
+          )}
           {isPending ? 'Creating account...' : 'Create Account'}
         </button>
       </form>
