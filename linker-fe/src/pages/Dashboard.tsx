@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Search,
   Bell,
@@ -75,7 +76,7 @@ const CATEGORIES: Category[] = [
 
 export default function Dashboard() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-
+  const navigate = useNavigate()
   return (
     <AppLayout>
       <div className="p-8">
@@ -110,7 +111,10 @@ export default function Dashboard() {
             </button>
 
             {/* New Category */}
-            <button className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer">
+            <button
+              onClick={() => navigate('/categories/new')}
+              className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
+            >
               <Plus className="size-4" />
               New Category
             </button>
@@ -200,7 +204,8 @@ export default function Dashboard() {
           {CATEGORIES.map((cat) => (
             <div
               key={cat.id}
-              className={`bg-surface border border-border rounded-2xl p-5 hover:shadow-md transition-all ${
+              onClick={() => navigate(`/categories/${cat.name.toLowerCase().replace(/\s+/g, '-')}`)}
+              className={`bg-surface border border-border rounded-2xl p-5 hover:shadow-md transition-all cursor-pointer ${
                 viewMode === 'list' ? 'flex items-center gap-4' : ''
               }`}
             >
@@ -240,6 +245,7 @@ export default function Dashboard() {
                     <span>{cat.links} Links</span>
                   </div>
                   <button
+                    onClick={(e) => { e.stopPropagation(); navigate(`/categories/${cat.name.toLowerCase().replace(/\s+/g, '-')}`); }}
                     className={`px-4 py-1.5 text-primary-foreground text-xs font-bold rounded-full hover:opacity-90 transition-opacity cursor-pointer ${cat.btnBg}`}
                   >
                     View

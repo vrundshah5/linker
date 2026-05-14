@@ -7,13 +7,15 @@ import {
   Users,
   Settings,
   ChevronDown,
+  Folder,
 } from 'lucide-react'
 
 const NAV_ITEMS = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/messages', label: 'Messages', icon: MessageSquare },
-  { to: '/requests', label: 'Requests', icon: Users },
-  { to: '/settings', label: 'Settings', icon: Settings },
+  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/categories', label: 'Categories', icon: Folder, end: false },
+  { to: '/messages', label: 'Messages', icon: MessageSquare, end: true },
+  { to: '/requests', label: 'Requests', icon: Users, end: true },
+  { to: '/settings', label: 'Settings', icon: Settings, end: true },
 ]
 
 interface AppLayoutProps {
@@ -44,10 +46,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
             Menu
           </p>
           <nav className="flex flex-col gap-1">
-            {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
+            {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
               <NavLink
                 key={to}
                 to={to}
+                end={end}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-colors ${
                     isActive
