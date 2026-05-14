@@ -11,6 +11,7 @@ const OnboardPersonal = lazy(() => import('../pages/OnboardPersonal'))
 const Dashboard = lazy(() => import('../pages/Dashboard'))
 const CreateCategory = lazy(() => import('../pages/CreateCategory'))
 const CategoryDetail = lazy(() => import('../pages/CategoryDetail'))
+const Requests = lazy(() => import('../pages/Requests'))
 
 export const routes: RouteObject[] = [
   // Auth
@@ -29,6 +30,7 @@ export const routes: RouteObject[] = [
   { path: '/categories', element: <Navigate to="/dashboard" replace /> },
   { path: '/categories/new', element: <CreateCategory /> },
   { path: '/categories/:id', element: <CategoryDetail /> },
+  { path: '/requests', element: <Requests /> },
 
   // Fallback
   { path: '*', element: <Navigate to="/login" replace /> },
