@@ -1,0 +1,23 @@
+{
+  "name": "linker-be",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "express": "^5.2.1",
+    "mongoose": "^9.6.2"
+  },
+  "devDependencies": {
+    "dotenv": "^17.4.2",
+    "nodemon": "^3.1.14"
+  }
+}
