@@ -13,9 +13,9 @@ const generateToken = (userId) =>
 
 // POST /api/auth/signup
 export const signup = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { fullName, email, password } = req.body;
 
-  if (!name || !email || !password) {
+  if (!fullName || !email || !password) {
     return res.status(400).json({ success: false, data: null, message: 'All fields are required' });
   }
 
@@ -24,8 +24,8 @@ export const signup = async (req, res) => {
     return res.status(400).json({ success: false, data: null, message: 'Invalid email format' });
   }
 
-  if (password.length < 6) {
-    return res.status(400).json({ success: false, data: null, message: 'Password must be at least 6 characters' });
+  if (password.length < 8) {
+    return res.status(400).json({ success: false, data: null, message: 'Password must be at least 8 characters' });
   }
 
   const existing = await User.findOne({ email: email.toLowerCase() });
@@ -34,7 +34,7 @@ export const signup = async (req, res) => {
   }
 
   const hashed = await bcrypt.hash(password, SALT_ROUNDS);
-  const user = await User.create({ name, email: email.toLowerCase(), password: hashed });
+  const user = await User.create({ name: fullName.trim(), email: email.toLowerCase(), password: hashed });
 
   const token = generateToken(user._id);
 
