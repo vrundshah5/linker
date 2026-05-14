@@ -17,6 +17,24 @@
   --font-headings: "Nunito", sans-serif;
 }
 
+html {
+  zoom: 0.8;
+  min-height: 125vh;
+}
+
+body {
+  min-height: 125vh;
+}
+
+#root {
+  min-height: 125vh;
+}
+
+/* Compensate for zoom: 0.8 — make h-screen fill the full visible area */
+.h-screen {
+  height: 125vh !important;
+}
+
 :root {
   --text: #6b6375;
   --text-h: #08060d;
