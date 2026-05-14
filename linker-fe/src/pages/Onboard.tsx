@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from 'react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Link, User, Briefcase, Check, ArrowRight } from 'lucide-react'
 
 type PlanType = 'personal' | 'professional'
@@ -24,11 +25,12 @@ const PLANS: {
 ]
 
 export default function Onboard() {
+  const navigate = useNavigate()
   const [selected, setSelected] = useState<PlanType>('professional')
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    // TODO: wire up to onboarding service
+    navigate(`/onboard/${selected}`)
   }
 
   return (
@@ -112,6 +114,7 @@ export default function Onboard() {
             Continue to Setup
             <ArrowRight className="size-5" />
           </button>
+        
         </form>
       </div>
     </div>

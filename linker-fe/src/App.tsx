@@ -1,23 +1,17 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import Login from './pages/Login'
-import Signup from './pages/Signup'
-import ForgotPassword from './pages/ForgotPassword'
-import ResetPassword from './pages/ResetPassword'
-import Onboard from './pages/Onboard'
-import OnboardProfessional from './pages/OnboardProfessional'
+import { Suspense } from 'react'
+import { BrowserRouter, useRoutes } from 'react-router-dom'
+import { routes } from './routes'
+
+function AppRoutes() {
+  return useRoutes(routes)
+}
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/onboard" element={<Onboard />} />
-        <Route path="/onboard/professional" element={<OnboardProfessional />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+      <Suspense fallback={null}>
+        <AppRoutes />
+      </Suspense>
     </BrowserRouter>
   )
 }
