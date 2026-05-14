@@ -7,6 +7,7 @@ import * as yup from 'yup'
 import AuthLayout from '../components/layouts/AuthLayout'
 import InputField from '../components/ui/InputField'
 import PasswordInput from '../components/ui/PasswordInput'
+import { useLogin } from '../hooks/auth/useLogin'
 
 const schema = yup.object({
   email: yup.string().email('Enter a valid email address').required('Email is required'),
@@ -21,16 +22,16 @@ type LoginFormData = yup.InferType<typeof schema>
 export default function Login() {
   const navigate = useNavigate()
   const [rememberMe, setRememberMe] = useState(false)
+  const { mutateAsync: login, isPending, error } = useLogin()
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<LoginFormData>({ resolver: yupResolver(schema) })
 
-  async function onSubmit(_data: LoginFormData): Promise<void> {
-    void _data
-    // TODO: wire up to auth service
+  async function onSubmit(data: LoginFormData): Promise<void> {
+    await login({ email: data.email, password: data.password })
     navigate('/dashboard')
   }
 
@@ -136,13 +137,20 @@ export default function Login() {
           </Link>
         </div>
 
+        {/* API error */}
+        {error && (
+          <p className="text-sm text-danger mb-4 -mt-2">
+            {(error as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Something went wrong. Please try again.'}
+          </p>
+        )}
+
         {/* Submit */}
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isPending}
           className="w-full px-4 py-3 bg-primary text-primary-foreground font-bold text-sm rounded-xl shadow-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {isSubmitting ? 'Signing in...' : 'Sign In'}
+          {isPending ? 'Signing in...' : 'Sign In'}
         </button>
       </form>
 

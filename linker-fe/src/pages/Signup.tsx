@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { Globe, User, Mail, Check } from 'lucide-react'
+import { Globe, User, Mail } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -7,6 +6,7 @@ import * as yup from 'yup'
 import AuthLayout from '../components/layouts/AuthLayout'
 import InputField from '../components/ui/InputField'
 import PasswordInput from '../components/ui/PasswordInput'
+import { useSignup } from '../hooks/auth/useSignup'
 
 const schema = yup.object({
   fullName: yup
@@ -24,16 +24,16 @@ type SignupFormData = yup.InferType<typeof schema>
 
 export default function Signup() {
   const navigate = useNavigate()
-  const [agreed, setAgreed] = useState(false)
+  const { mutateAsync: signup, isPending, error } = useSignup()
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<SignupFormData>({ resolver: yupResolver(schema) })
 
-  async function onSubmit(_data: SignupFormData) {
-    // TODO: wire up to auth service
+  async function onSubmit(data: SignupFormData) {
+    await signup({ fullName: data.fullName, email: data.email, password: data.password })
     navigate('/onboard')
   }
 
@@ -147,13 +147,20 @@ export default function Signup() {
           </span>
         </div>
 
+        {/* API error */}
+        {error && (
+          <p className="text-sm text-danger mb-4 -mt-2">
+            {(error as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Something went wrong. Please try again.'}
+          </p>
+        )}
+
         {/* Submit */}
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isPending}
           className="w-full px-4 py-3 bg-primary text-primary-foreground font-bold text-sm rounded-xl shadow-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {isSubmitting ? 'Creating account...' : 'Create Account'}
+          {isPending ? 'Creating account...' : 'Create Account'}
         </button>
       </form>
 

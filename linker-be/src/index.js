@@ -6,6 +6,16 @@ import authRoutes from './routes/auth.js';
 const app = express();
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/linker';
+const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
+
+// CORS — allow the Vite frontend
+app.use((_req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', CLIENT_URL);
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  if (_req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
 
 app.use(express.json());
 
@@ -19,9 +29,15 @@ app.use('/api/auth', authRoutes);
 
 mongoose
   .connect(MONGO_URI)
-  .then(() => {
-    const { host, name } = mongoose.connection;
+  .then(async () => {
+    const { host, name, db } = mongoose.connection;
     console.log(`✅ DB connected — host: ${host} | db: ${name}`);
+
+    // Sync Mongoose model indexes with Atlas
+    await mongoose.connection.syncIndexes();
+    const collections = await db.listCollections().toArray();
+    console.log(`📦 Collections synced: ${collections.map((c) => c.name).join(', ') || 'none yet'}`);
+
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   })
   .catch((err) => {
