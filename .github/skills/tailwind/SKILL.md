@@ -49,6 +49,64 @@ Implement polished, consistent, accessible UI using the Tailwind CSS v4 + shadcn
 
 ---
 
+# Strict Rules (Non-negotiable)
+
+## Rule 1 — Colors Must Come From Design Tokens Only
+
+Every color applied in JSX **must** reference a token defined in the `@theme` block in `index.css` (or the project's global CSS file). This applies to:
+
+- Tailwind utility classes: `bg-primary`, `text-foreground`, `border-border`, `text-muted-foreground`, etc.
+- Inline `style` props that reference CSS variables: `color: 'var(--color-primary)'`
+
+**Forbidden — never use:**
+- Hardcoded hex, rgb, hsl, or oklch values in JSX/TSX (e.g. `style={{ color: '#6c5dd3' }}`)
+- Tailwind color palette classes that are not mapped to a project token (e.g. `bg-purple-600`, `text-gray-900`, `bg-white`, `text-black`)
+- `color-mix()` or other CSS functions in inline styles unless they exclusively mix two project CSS variables
+
+If a color is needed that does not yet exist as a token, **add it to the `@theme` block first** then reference the new token.
+
+**Valid examples:**
+```tsx
+// ✅ token class
+<h1 className="text-foreground">Title</h1>
+
+// ✅ CSS variable in inline style
+<div style={{ background: 'var(--color-surface)' }} />
+
+// ❌ hardcoded color
+<h1 style={{ color: '#1e2022' }}>Title</h1>
+
+// ❌ non-token Tailwind palette class
+<div className="bg-white text-gray-900" />
+```
+
+---
+
+## Rule 2 — Extract Reusable UI Primitives
+
+Whenever a UI element appears more than once across pages, **or** is complex enough to have its own variants/states, extract it into a shared component under `src/components/ui/`.
+
+**Mandatory extractions:**
+
+| Element | Shared component | Location |
+|---|---|---|
+| Text input with icon | `<InputField />` | `src/components/ui/InputField.tsx` |
+| Password input with toggle | `<PasswordInput />` | `src/components/ui/PasswordInput.tsx` |
+| Form field wrapper (label + input + error) | `<FormField />` | `src/components/ui/FormField.tsx` |
+| Social auth button (GitHub / Google) | `<SocialAuthButton />` | `src/components/ui/SocialAuthButton.tsx` |
+| Submit / CTA button | `<Button />` | `src/components/ui/Button.tsx` |
+| Auth page layout (branding panel + form panel) | `<AuthLayout />` | `src/components/layouts/AuthLayout.tsx` |
+
+**Rules for shared components:**
+- Accept a `className` prop and spread it via `cn()` so callers can extend without forking.
+- Accept only the props they need — keep the interface minimal.
+- Never hardcode colors inside the component — use tokens (see Rule 1).
+- Export a single named export matching the file name.
+
+**Before writing an inline element, ask:** *"Does this already exist as a shared component, or should it?"* If yes — use or create the shared component first.
+
+---
+
 # Component Patterns
 
 ## Layout Shell
@@ -176,7 +234,10 @@ import { cn } from "@/lib/utils";
 ---
 
 # Checklist Before Shipping UI
-- [ ] All colors use semantic tokens (`bg-background`, `text-foreground`, etc.)
+- [ ] All colors use semantic tokens (`bg-background`, `text-foreground`, etc.) — **no hardcoded hex, rgb, or non-token Tailwind palette classes**
+- [ ] Any new color needed was first added as a token to `@theme` in `index.css`
+- [ ] Repeated or complex elements extracted into shared components under `src/components/ui/`
+- [ ] Shared components accept `className` and merge via `cn()`
 - [ ] `cn()` used wherever conditional or merged classes appear
 - [ ] Responsive breakpoints added for layout components
 - [ ] `dark:` variants work or CSS variable tokens handle it automatically

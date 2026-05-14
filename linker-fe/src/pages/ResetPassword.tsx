@@ -1,10 +1,10 @@
 import { type FormEvent } from 'react'
-import { Mail, ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 import AuthLayout from '../components/layouts/AuthLayout'
-import InputField from '../components/ui/InputField'
+import PasswordInput from '../components/ui/PasswordInput'
 
-export default function ForgotPassword() {
+export default function ResetPassword() {
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     // TODO: wire up to auth service
@@ -18,27 +18,39 @@ export default function ForgotPassword() {
           className="text-3xl font-bold text-foreground mb-2"
           style={{ fontFamily: 'var(--font-headings)' }}
         >
-          Forgot password?
+          Set new password
         </h1>
         <p className="text-base text-muted-foreground">
-          No worries, we&apos;ll send you reset instructions.
+          Your new password must be different from previously used passwords.
         </p>
       </div>
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="mb-8">
-        {/* Email */}
+        {/* New Password */}
         <div className="flex flex-col gap-2 mb-6">
-          <label htmlFor="email" className="text-sm font-bold text-foreground">
-            Email Address
+          <label htmlFor="password" className="text-sm font-bold text-foreground">
+            New Password
           </label>
-          <InputField
-            id="email"
-            name="email"
-            type="email"
-            placeholder="Enter your email"
-            autoComplete="email"
-            icon={<Mail className="size-5" />}
+          <PasswordInput
+            id="password"
+            name="password"
+            autoComplete="new-password"
+          />
+        </div>
+
+        {/* Confirm Password */}
+        <div className="flex flex-col gap-2 mb-6">
+          <label
+            htmlFor="confirmPassword"
+            className="text-sm font-bold text-foreground"
+          >
+            Confirm Password
+          </label>
+          <PasswordInput
+            id="confirmPassword"
+            name="confirmPassword"
+            autoComplete="new-password"
           />
         </div>
 
@@ -47,7 +59,7 @@ export default function ForgotPassword() {
           type="submit"
           className="w-full px-4 py-3 bg-primary text-primary-foreground font-bold text-sm rounded-xl shadow-sm hover:opacity-90 transition-opacity cursor-pointer mt-2"
         >
-          Send Reset Instructions
+          Reset Password
         </button>
       </form>
 
