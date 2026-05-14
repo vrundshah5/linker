@@ -8,6 +8,7 @@ const ResetPassword = lazy(() => import('../pages/ResetPassword'))
 const Onboard = lazy(() => import('../pages/Onboard'))
 const OnboardProfessional = lazy(() => import('../pages/OnboardProfessional'))
 const OnboardPersonal = lazy(() => import('../pages/OnboardPersonal'))
+const Dashboard = lazy(() => import('../pages/Dashboard'))
 
 export const routes: RouteObject[] = [
   // Auth
@@ -20,6 +21,9 @@ export const routes: RouteObject[] = [
   { path: '/onboard', element: <Onboard /> },
   { path: '/onboard/professional', element: <OnboardProfessional /> },
   { path: '/onboard/personal', element: <OnboardPersonal /> },
+
+  // App
+  { path: '/dashboard', element: <Dashboard /> },
 
   // Fallback
   { path: '*', element: <Navigate to="/login" replace /> },
