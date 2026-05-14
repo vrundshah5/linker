@@ -11,6 +11,7 @@ import {
   ChevronDown,
 } from 'lucide-react'
 import AdminLayout from '../components/layouts/AdminLayout'
+import BellButton from '../components/ui/BellButton'
 
 // ── Stat cards ────────────────────────────────────────────────
 const STATS = [
@@ -102,12 +103,7 @@ export default function AdminOverview() {
                   className="bg-transparent outline-none flex-1 text-foreground placeholder:text-muted-foreground text-sm min-w-0"
                 />
               </div>
-              <button
-                type="button"
-                className="size-10 flex items-center justify-center text-muted-foreground hover:text-foreground rounded-xl hover:bg-muted transition-colors cursor-pointer"
-              >
-                <Bell className="size-5" />
-              </button>
+              <BellButton />
               <button
                 type="button"
                 className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"

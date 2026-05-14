@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Search, Bell, Globe } from 'lucide-react'
+import { Search, Globe } from 'lucide-react'
 import ProjectLayout from '../components/layouts/ProjectLayout'
+import BellButton from '../components/ui/BellButton'
 
 interface Resource {
   id: number
@@ -98,12 +99,7 @@ export default function ProjectResources() {
               />
             </div>
 
-            <button
-              type="button"
-              className="size-10 flex items-center justify-center text-muted-foreground hover:text-foreground rounded-xl hover:bg-muted transition-colors cursor-pointer"
-            >
-              <Bell className="size-5" />
-            </button>
+            <BellButton />
 
             <button
               type="button"

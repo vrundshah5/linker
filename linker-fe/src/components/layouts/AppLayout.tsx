@@ -5,20 +5,16 @@ import {
   LayoutDashboard,
   MessageSquare,
   Users,
-  Settings,
-  ChevronDown,
-  Folder,
   Archive,
+  ChevronDown,
 } from 'lucide-react'
 import UserMenuPopover from '../ui/UserMenuPopover'
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/dashboard', label: 'Categories', icon: Folder, end: true },
   { to: '/messages', label: 'Messages', icon: MessageSquare, end: true },
   { to: '/requests', label: 'Requests', icon: Users, end: true },
   { to: '/archived', label: 'Archived Links', icon: Archive, end: true },
-  { to: '/settings', label: 'Settings', icon: Settings, end: true },
 ]
 
 interface AppLayoutProps {
@@ -71,7 +67,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
         {/* User */}
         <div className="p-3 border-t border-border">
-          <UserMenuPopover accentClass="text-primary" accentBg="bg-primary/10">
+          <UserMenuPopover
+            accentClass="text-primary"
+            accentBg="bg-primary/10"
+            switchTo={{ label: 'Switch to Professional', path: '/professional-dashboard' }}
+          >
             {(open) => (
               <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors text-left">
                 <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">

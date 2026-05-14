@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Search, Bell, Globe } from 'lucide-react'
+import { Search, Globe } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
+import BellButton from '../components/ui/BellButton'
 
 interface ArchivedLink {
   id: number
@@ -100,12 +101,7 @@ export default function ArchivedLinks() {
               />
             </div>
 
-            <button
-              type="button"
-              className="size-10 flex items-center justify-center text-muted-foreground hover:text-foreground rounded-xl hover:bg-muted transition-colors cursor-pointer"
-            >
-              <Bell className="size-5" />
-            </button>
+            <BellButton />
           </div>
         </div>
 

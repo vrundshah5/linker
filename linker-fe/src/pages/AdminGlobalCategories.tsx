@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import {
   Search,
-  Bell,
   Trash2,
   Pen,
   Code2,
@@ -10,6 +9,8 @@ import {
   Archive,
 } from 'lucide-react'
 import AdminLayout from '../components/layouts/AdminLayout'
+import ConfirmModal from '../components/ui/ConfirmModal'
+import BellButton from '../components/ui/BellButton'
 
 type Status = 'Active' | 'Hidden'
 
@@ -80,9 +81,11 @@ const INITIAL_CATEGORIES: GlobalCategory[] = [
 export default function AdminGlobalCategories() {
   const [categories, setCategories] = useState(INITIAL_CATEGORIES)
   const [search, setSearch] = useState('')
+  const [deleteTarget, setDeleteTarget] = useState<number | null>(null)
 
   function removeCategory(id: number) {
     setCategories((prev) => prev.filter((c) => c.id !== id))
+    setDeleteTarget(null)
   }
 
   const visible = categories.filter((c) =>
@@ -90,6 +93,7 @@ export default function AdminGlobalCategories() {
   )
 
   return (
+    <>
     <AdminLayout>
       <div className="h-full flex flex-col overflow-hidden">
 
@@ -115,12 +119,7 @@ export default function AdminGlobalCategories() {
                 className="bg-transparent outline-none flex-1 text-foreground placeholder:text-muted-foreground text-sm min-w-0"
               />
             </div>
-            <button
-              type="button"
-              className="size-10 flex items-center justify-center text-muted-foreground hover:text-foreground rounded-xl hover:bg-muted transition-colors cursor-pointer"
-            >
-              <Bell className="size-5" />
-            </button>
+            <BellButton />
             <button
               type="button"
               className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
@@ -192,7 +191,7 @@ export default function AdminGlobalCategories() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => removeCategory(cat.id)}
+                        onClick={() => setDeleteTarget(cat.id)}
                         className="size-10 flex items-center justify-center rounded-xl bg-danger/10 text-danger hover:bg-danger/20 transition-colors cursor-pointer shrink-0"
                       >
                         <Trash2 className="size-4" />
@@ -206,5 +205,15 @@ export default function AdminGlobalCategories() {
         </div>
       </div>
     </AdminLayout>
+
+    <ConfirmModal
+      open={deleteTarget !== null}
+      title="Delete Category"
+      description={`Are you sure you want to delete "${categories.find(c => c.id === deleteTarget)?.name ?? ''}"? This action cannot be undone.`}
+      confirmLabel="Delete"
+      onConfirm={() => deleteTarget !== null && removeCategory(deleteTarget)}
+      onCancel={() => setDeleteTarget(null)}
+    />
+    </>
   )
 }

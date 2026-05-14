@@ -65,7 +65,11 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
 
         {/* User */}
         <div className="p-3 border-t border-border">
-          <UserMenuPopover accentClass="text-warning" accentBg="bg-warning/10">
+          <UserMenuPopover
+            accentClass="text-warning"
+            accentBg="bg-warning/10"
+            switchTo={{ label: 'Switch to Personal', path: '/dashboard' }}
+          >
             {(open) => (
               <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors text-left">
                 <div className="size-8 rounded-full bg-warning/10 flex items-center justify-center shrink-0 overflow-hidden">

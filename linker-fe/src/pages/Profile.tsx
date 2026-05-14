@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { Camera, Mail, Phone, MapPin, Briefcase, Globe, Bell } from 'lucide-react'
+import { Camera, Mail, Phone, MapPin, Briefcase, Globe } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
+import ConfirmModal from '../components/ui/ConfirmModal'
+import BellButton from '../components/ui/BellButton'
 
 export default function Profile() {
   const [name, setName] = useState('Jason Doe')
@@ -14,8 +16,10 @@ export default function Profile() {
   const [emailNotifs, setEmailNotifs] = useState(true)
   const [pushNotifs, setPushNotifs] = useState(false)
   const [search, setSearch] = useState('')
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   return (
+    <>
     <AppLayout>
       <div className="h-full flex flex-col overflow-hidden">
 
@@ -38,9 +42,7 @@ export default function Profile() {
                 className="bg-transparent outline-none flex-1 text-foreground placeholder:text-muted-foreground text-sm min-w-0"
               />
             </div>
-            <button type="button" className="size-10 flex items-center justify-center text-muted-foreground hover:text-foreground rounded-xl hover:bg-muted transition-colors cursor-pointer">
-              <Bell className="size-5" />
-            </button>
+            <BellButton />
           </div>
         </div>
 
@@ -202,6 +204,7 @@ export default function Profile() {
               </p>
               <button
                 type="button"
+                onClick={() => setShowDeleteModal(true)}
                 className="px-5 py-2.5 bg-danger text-white font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
               >
                 Delete Account
@@ -222,5 +225,15 @@ export default function Profile() {
         </div>
       </div>
     </AppLayout>
+
+    <ConfirmModal
+      open={showDeleteModal}
+      title="Delete Account"
+      description="Are you sure you want to delete your account? All your data, links, and categories will be permanently removed. This action cannot be undone."
+      confirmLabel="Delete Account"
+      onConfirm={() => setShowDeleteModal(false)}
+      onCancel={() => setShowDeleteModal(false)}
+    />
+    </>
   )
 }

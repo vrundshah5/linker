@@ -7,8 +7,6 @@ import {
   Settings,
   ChevronLeft,
   ChevronDown,
-  UserCircle,
-  Plus,
 } from 'lucide-react'
 import UserMenuPopover from '../ui/UserMenuPopover'
 
@@ -17,11 +15,6 @@ const PROJECT_NAV = [
   { to: '/projects/acme-corp-redesign/chat', label: 'Project Chat', icon: MessageSquare, end: true },
   { to: '/projects/acme-corp-redesign/members', label: 'Team Members', icon: Users, end: true },
   { to: '/projects/acme-corp-redesign/settings', label: 'Project Settings', icon: Settings, end: true },
-]
-
-const WORKSPACES = [
-  { id: 'personal', label: 'Personal', icon: UserCircle, active: false, color: 'text-primary bg-primary/10' },
-  { id: 'acme', label: 'Acme Corp', icon: Briefcase, active: true, color: 'text-warning bg-warning/15' },
 ]
 
 interface ProjectLayoutProps {
@@ -84,36 +77,6 @@ export default function ProjectLayout({ children }: ProjectLayoutProps) {
               </NavLink>
             ))}
           </nav>
-        </div>
-
-        {/* Workspaces switcher */}
-        <div className="mx-3 mb-3 border border-border rounded-2xl p-3">
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-1 mb-2">
-            Workspaces
-          </p>
-          <div className="flex flex-col gap-1">
-            {WORKSPACES.map(({ id, label, icon: Icon, active, color }) => (
-              <button
-                key={id}
-                type="button"
-                className={`flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-sm font-bold transition-colors cursor-pointer w-full text-left ${
-                  active ? 'bg-warning/10 text-warning' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                }`}
-              >
-                <div className={`size-7 rounded-lg flex items-center justify-center shrink-0 ${color}`}>
-                  <Icon className="size-3.5" />
-                </div>
-                {label}
-              </button>
-            ))}
-          </div>
-          <button
-            type="button"
-            className="flex items-center gap-2 mt-2 px-2.5 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer w-full"
-          >
-            <Plus className="size-4" />
-            Create Workspace
-          </button>
         </div>
 
         {/* User */}

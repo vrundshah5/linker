@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
-import { Search, Bell, Briefcase, ChevronDown, Pencil } from 'lucide-react'
+import { Search, Briefcase, ChevronDown, Pencil } from 'lucide-react'
 import ProjectLayout from '../components/layouts/ProjectLayout'
+import ConfirmModal from '../components/ui/ConfirmModal'
+import BellButton from '../components/ui/BellButton'
 
 interface Project {
   id: string
@@ -22,6 +24,7 @@ export default function ProjectSettings() {
   const [canInvite, setCanInvite] = useState(false)
   const [canAddResources, setCanAddResources] = useState(true)
   const [search, setSearch] = useState('')
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Close dropdown on outside click
@@ -36,6 +39,7 @@ export default function ProjectSettings() {
   }, [])
 
   return (
+    <>
     <ProjectLayout>
       <div className="h-full flex flex-col overflow-hidden">
 
@@ -59,12 +63,7 @@ export default function ProjectSettings() {
                 className="bg-transparent outline-none flex-1 text-foreground placeholder:text-muted-foreground text-sm min-w-0"
               />
             </div>
-            <button
-              type="button"
-              className="size-10 flex items-center justify-center text-muted-foreground hover:text-foreground rounded-xl hover:bg-muted transition-colors cursor-pointer"
-            >
-              <Bell className="size-5" />
-            </button>
+            <BellButton />
           </div>
         </div>
 
@@ -209,6 +208,7 @@ export default function ProjectSettings() {
             </p>
             <button
               type="button"
+              onClick={() => setShowDeleteModal(true)}
               className="px-5 py-2.5 bg-danger text-white font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
             >
               Delete Project
@@ -227,5 +227,15 @@ export default function ProjectSettings() {
         </div>
       </div>
     </ProjectLayout>
+
+    <ConfirmModal
+      open={showDeleteModal}
+      title="Delete Project"
+      description="Are you sure you want to delete this project? All resources, members, and links will be permanently removed. This action cannot be undone."
+      confirmLabel="Delete Project"
+      onConfirm={() => setShowDeleteModal(false)}
+      onCancel={() => setShowDeleteModal(false)}
+    />
+    </>
   )
 }

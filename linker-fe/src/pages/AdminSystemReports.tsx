@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import {
-  Bell,
   Activity,
   DollarSign,
   Link2,
@@ -13,6 +12,7 @@ import {
   ArrowRight,
 } from 'lucide-react'
 import AdminLayout from '../components/layouts/AdminLayout'
+import BellButton from '../components/ui/BellButton'
 
 const EXPORTS = [
   {
@@ -115,19 +115,14 @@ export default function AdminSystemReports() {
                 className="bg-transparent outline-none flex-1 text-foreground placeholder:text-muted-foreground text-sm min-w-0"
               />
             </div>
-            <button
-              type="button"
-              className="size-10 flex items-center justify-center text-muted-foreground hover:text-foreground rounded-xl hover:bg-muted transition-colors cursor-pointer"
-            >
-              <Bell className="size-5" />
-            </button>
+            <BellButton />
           </div>
         </div>
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-8 py-7">
 
-          {/* Available Exports */}
+          {/* Available Exports */}}
           <h2 className="text-base font-bold text-foreground mb-4">Available Exports</h2>
           <div className="grid grid-cols-2 gap-4 mb-10">
             {EXPORTS.map(({ id, title, description, icon: Icon, iconBg, iconColor }) => (

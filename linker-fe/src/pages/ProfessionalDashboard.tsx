@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Briefcase, Users, Link2, Search, Plus } from 'lucide-react'
 import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
+import BellButton from '../components/ui/BellButton'
 
 interface Project {
   id: number

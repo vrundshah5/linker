@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Search,
-  Bell,
   Plus,
   MoreHorizontal,
   Link2,
@@ -13,6 +12,7 @@ import {
   Folder,
 } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
+import BellButton from '../components/ui/BellButton'
 
 interface Category {
   id: number
@@ -106,9 +106,7 @@ export default function Dashboard() {
             </div>
 
             {/* Bell */}
-            <button className="size-10 flex items-center justify-center text-muted-foreground hover:text-foreground rounded-xl hover:bg-muted transition-colors cursor-pointer">
-              <Bell className="size-5" />
-            </button>
+            <BellButton />
 
             {/* New Category */}
             <button

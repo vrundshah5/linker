@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { Search, Bell, UserMinus, ChevronDown } from 'lucide-react'
+import { Search, UserMinus, ChevronDown } from 'lucide-react'
 import ProjectLayout from '../components/layouts/ProjectLayout'
+import ConfirmModal from '../components/ui/ConfirmModal'
+import BellButton from '../components/ui/BellButton'
 
 type Role = 'Admin' | 'Editor' | 'Viewer'
 
@@ -58,6 +60,7 @@ const ROLES: Role[] = ['Admin', 'Editor', 'Viewer']
 export default function ProjectTeamMembers() {
   const [members, setMembers] = useState<Member[]>(INITIAL_MEMBERS)
   const [search, setSearch] = useState('')
+  const [removeTarget, setRemoveTarget] = useState<Member | null>(null)
 
   function updateRole(id: number, role: Role) {
     setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, role } : m)))
@@ -65,6 +68,7 @@ export default function ProjectTeamMembers() {
 
   function removeMember(id: number) {
     setMembers((prev) => prev.filter((m) => m.id !== id))
+    setRemoveTarget(null)
   }
 
   const visible = members.filter(
@@ -75,6 +79,7 @@ export default function ProjectTeamMembers() {
   )
 
   return (
+    <>
     <ProjectLayout>
       <div className="h-full flex flex-col overflow-hidden">
 
@@ -99,12 +104,7 @@ export default function ProjectTeamMembers() {
               />
             </div>
 
-            <button
-              type="button"
-              className="size-10 flex items-center justify-center text-muted-foreground hover:text-foreground rounded-xl hover:bg-muted transition-colors cursor-pointer"
-            >
-              <Bell className="size-5" />
-            </button>
+            <BellButton />
 
             <button
               type="button"
@@ -185,7 +185,7 @@ export default function ProjectTeamMembers() {
                     {!member.isYou && (
                       <button
                         type="button"
-                        onClick={() => removeMember(member.id)}
+                        onClick={() => setRemoveTarget(member)}
                         className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-danger transition-colors cursor-pointer"
                       >
                         <UserMinus className="size-4" />
@@ -206,5 +206,15 @@ export default function ProjectTeamMembers() {
         </div>
       </div>
     </ProjectLayout>
+
+    <ConfirmModal
+      open={removeTarget !== null}
+      title="Remove Member"
+      description={`Are you sure you want to remove ${removeTarget?.name} from this project? They will lose access immediately.`}
+      confirmLabel="Remove"
+      onConfirm={() => removeTarget && removeMember(removeTarget.id)}
+      onCancel={() => setRemoveTarget(null)}
+    />
+    </>
   )
 }

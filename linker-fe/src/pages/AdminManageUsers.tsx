@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { Bell, SquarePen, Ban } from 'lucide-react'
+import { SquarePen, Ban } from 'lucide-react'
 import AdminLayout from '../components/layouts/AdminLayout'
+import ConfirmModal from '../components/ui/ConfirmModal'
+import BellButton from '../components/ui/BellButton'
 
 type Status = 'Active' | 'Banned'
 type Plan = 'Pro' | 'Free'
@@ -31,6 +33,7 @@ export default function AdminManageUsers() {
   const [users, setUsers] = useState<User[]>(ALL_USERS)
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+  const [banTarget, setBanTarget] = useState<User | null>(null)
 
   function toggleBan(id: number) {
     setUsers((prev) =>
@@ -38,6 +41,7 @@ export default function AdminManageUsers() {
         u.id === id ? { ...u, status: u.status === 'Banned' ? 'Active' : 'Banned' } : u,
       ),
     )
+    setBanTarget(null)
   }
 
   const filtered = users.filter(
@@ -57,6 +61,7 @@ export default function AdminManageUsers() {
   }
 
   return (
+    <>
     <AdminLayout>
       <div className="h-full flex flex-col overflow-hidden">
 
@@ -80,12 +85,7 @@ export default function AdminManageUsers() {
                 className="bg-transparent outline-none flex-1 text-foreground placeholder:text-muted-foreground text-sm min-w-0"
               />
             </div>
-            <button
-              type="button"
-              className="size-10 flex items-center justify-center text-muted-foreground hover:text-foreground rounded-xl hover:bg-muted transition-colors cursor-pointer"
-            >
-              <Bell className="size-5" />
-            </button>
+            <BellButton />
             <button
               type="button"
               className="flex items-center gap-2 px-5 py-2.5 bg-danger text-white font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
@@ -166,7 +166,7 @@ export default function AdminManageUsers() {
                       <button
                         type="button"
                         title={user.status === 'Banned' ? 'Unban user' : 'Ban user'}
-                        onClick={() => toggleBan(user.id)}
+                        onClick={() => setBanTarget(user)}
                         className={`transition-colors cursor-pointer ${
                           user.status === 'Banned'
                             ? 'text-danger'
@@ -209,5 +209,19 @@ export default function AdminManageUsers() {
         </div>
       </div>
     </AdminLayout>
+
+    <ConfirmModal
+      open={banTarget !== null}
+      title={banTarget?.status === 'Banned' ? 'Unban User' : 'Ban User'}
+      description={banTarget?.status === 'Banned'
+        ? `Are you sure you want to unban ${banTarget?.name}? They will regain access to the platform.`
+        : `Are you sure you want to ban ${banTarget?.name}? They will lose access to the platform.`
+      }
+      confirmLabel={banTarget?.status === 'Banned' ? 'Unban' : 'Ban'}
+      variant={banTarget?.status === 'Banned' ? 'warning' : 'danger'}
+      onConfirm={() => banTarget && toggleBan(banTarget.id)}
+      onCancel={() => setBanTarget(null)}
+    />
+    </>
   )
 }
