@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Linker",
+  "version": "1.0.0",
+  "description": "Automatically save clicked links to your Linker archive.",
+  "permissions": ["storage"],
+  "host_permissions": ["http://localhost:5000/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Linker"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ]
+}

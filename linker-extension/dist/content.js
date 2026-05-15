@@ -1,0 +1,1 @@
+document.addEventListener("click",i=>{var r;const e=i.target.closest("a");if(!e)return;const t=e.href;if(!t||t.startsWith("javascript:")||t.startsWith("#")||t===window.location.href)return;const n=(((r=e.textContent)==null?void 0:r.trim())||e.title||e.getAttribute("aria-label")||document.title||t).slice(0,200);chrome.runtime.sendMessage({type:"LINK_CLICKED",url:t,title:n})},!0);
