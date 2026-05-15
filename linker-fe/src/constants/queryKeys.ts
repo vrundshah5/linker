@@ -22,4 +22,10 @@ export const queryKeys = {
     all: ['publicCollection'] as const,
     byUser: (userId: string) => [...queryKeys.publicCollection.all, userId] as const,
   },
+  notifications: {
+    all: ['notifications'] as const,
+  },
+  requests: {
+    all: ['requests'] as const,
+  },
 } as const

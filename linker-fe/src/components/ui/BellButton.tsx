@@ -1,20 +1,21 @@
 import { useState } from 'react'
 import { Bell } from 'lucide-react'
-import NotificationPanel, { MOCK_NOTIFICATIONS, type Notification } from './NotificationPanel'
+import NotificationPanel from './NotificationPanel'
+import {
+  useNotifications,
+  useMarkAllRead,
+  useMarkOneRead,
+  useDeleteNotification,
+} from '../../hooks/useNotifications'
 
 export default function BellButton() {
   const [open, setOpen] = useState(false)
-  const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS)
+  const { data: notifications = [] } = useNotifications()
+  const { mutate: markAllRead } = useMarkAllRead()
+  const { mutate: markOneRead } = useMarkOneRead()
+  const { mutate: deleteOne } = useDeleteNotification()
 
   const unread = notifications.filter((n) => !n.read).length
-
-  function markAllRead() {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-  }
-
-  function dismiss(id: number) {
-    setNotifications((prev) => prev.filter((n) => n.id !== id))
-  }
 
   return (
     <div className="relative">
@@ -33,8 +34,9 @@ export default function BellButton() {
         open={open}
         notifications={notifications}
         onClose={() => setOpen(false)}
-        onMarkAllRead={markAllRead}
-        onDismiss={dismiss}
+        onMarkAllRead={() => markAllRead()}
+        onMarkRead={(id) => markOneRead(id)}
+        onDismiss={(id) => deleteOne(id)}
       />
     </div>
   )

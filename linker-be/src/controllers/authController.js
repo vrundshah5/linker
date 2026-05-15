@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import User from '../models/User.js';
+import { createNotification } from './notificationController.js';
 
 const SALT_ROUNDS = 12;
 
@@ -37,6 +38,20 @@ export const signup = async (req, res) => {
   const user = await User.create({ name: fullName.trim(), email: email.toLowerCase(), password: hashed });
 
   const token = generateToken(user._id);
+
+  // Notify all admins about the new user
+  const admins = await User.find({ role: 'admin' }).select('_id');
+  await Promise.all(
+    admins.map((admin) =>
+      createNotification({
+        userId: admin._id,
+        type: 'new_user',
+        title: 'New user registered',
+        body: `${fullName.trim()} (${email.toLowerCase()}) just signed up.`,
+        meta: { fromUserId: user._id },
+      })
+    )
+  );
 
   return res.status(201).json({
     success: true,

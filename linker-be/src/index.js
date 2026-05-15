@@ -7,6 +7,8 @@ import adminRoutes from './routes/admin.js';
 import categoryRoutes from './routes/categories.js';
 import linkRoutes from './routes/links.js';
 import publicRoutes from './routes/public.js';
+import notificationRoutes from './routes/notifications.js';
+import requestRoutes from './routes/requests.js';
 import GlobalCategory from './models/GlobalCategory.js';
 
 const SEED_CATEGORIES = [
@@ -58,6 +60,12 @@ app.use('/api/admin', adminRoutes);
 
 // Public routes (no auth)
 app.use('/api/public', publicRoutes);
+
+// Notification routes
+app.use('/api/notifications', notificationRoutes);
+
+// Request routes
+app.use('/api/requests', requestRoutes);
 
 mongoose
   .connect(MONGO_URI)

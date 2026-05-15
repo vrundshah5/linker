@@ -1,90 +1,19 @@
 import { useState } from 'react'
-import { Mail, Clock, X, Check, MessageSquare, RefreshCw, XCircle, Send, UserPlus } from 'lucide-react'
+import { Mail, Clock, X, Check, MessageSquare, XCircle, Send, UserPlus } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
 import PageHeader from '../components/ui/PageHeader'
+import { useRequests, useSendRequest, useRespondRequest, useCancelRequest } from '../hooks/useRequests'
+import type { ConnectionRequest } from '../services/requestService'
 
-type Status = 'pending' | 'sent' | 'accepted' | 'rejected'
 type Tab = 'all' | 'pending' | 'sent' | 'history'
 
-interface Request {
-  id: number
-  name: string
-  email: string
-  time: string
-  status: Status
-  avatar: string
-}
+const STATUS_STYLES = {
+  pending:  { label: 'PENDING',  className: 'bg-warning/15 text-warning' },
+  sent:     { label: 'SENT',     className: 'bg-primary/10 text-primary' },
+  accepted: { label: 'ACCEPTED', className: 'bg-success/15 text-success' },
+  rejected: { label: 'REJECTED', className: 'bg-danger/10 text-danger'   },
+} as const
 
-const REQUESTS: Request[] = [
-  {
-    id: 1,
-    name: 'Alex Morgan',
-    email: 'alice@example.com',
-    time: '2 hours ago',
-    status: 'pending',
-    avatar: 'AM',
-  },
-  {
-    id: 2,
-    name: 'David Lee',
-    email: 'david.lee@design.co',
-    time: 'Yesterday',
-    status: 'sent',
-    avatar: 'DL',
-  },
-  {
-    id: 3,
-    name: 'Sophia Chen',
-    email: 'sophia.c@studio.io',
-    time: '3 days ago',
-    status: 'accepted',
-    avatar: 'SC',
-  },
-  {
-    id: 4,
-    name: 'Marcus Wright',
-    email: 'marcus@dev.net',
-    time: 'Last week',
-    status: 'rejected',
-    avatar: 'MW',
-  },
-  {
-    id: 5,
-    name: 'Isabella Martinez',
-    email: 'bella.m@marketing.org',
-    time: 'Just now',
-    status: 'pending',
-    avatar: 'IM',
-  },
-]
-
-const TABS: { key: Tab; label: string; count: number }[] = [
-  { key: 'all', label: 'All Requests', count: 5 },
-  { key: 'pending', label: 'Pending Received', count: 2 },
-  { key: 'sent', label: 'Sent', count: 1 },
-  { key: 'history', label: 'History', count: 2 },
-]
-
-const STATUS_STYLES: Record<Status, { label: string; className: string }> = {
-  pending: {
-    label: 'PENDING',
-    className: 'bg-warning/15 text-warning',
-  },
-  sent: {
-    label: 'SENT',
-    className: 'bg-primary/10 text-primary',
-  },
-  accepted: {
-    label: 'ACCEPTED',
-    className: 'bg-success/15 text-success',
-  },
-  rejected: {
-    label: 'REJECTED',
-    className: 'bg-danger/10 text-danger',
-  },
-}
-
-// Avatar background colors cycling
 const AVATAR_COLORS = [
   'bg-primary/15 text-primary',
   'bg-success/15 text-success',
@@ -92,12 +21,18 @@ const AVATAR_COLORS = [
   'bg-danger/10 text-danger',
 ]
 
-function filterByTab(requests: Request[], tab: Tab): Request[] {
-  if (tab === 'all') return requests
-  if (tab === 'pending') return requests.filter((r) => r.status === 'pending')
-  if (tab === 'sent') return requests.filter((r) => r.status === 'sent')
-  if (tab === 'history') return requests.filter((r) => r.status === 'accepted' || r.status === 'rejected')
-  return requests
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diff / 60_000)
+  if (mins < 1) return 'Just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  return `${Math.floor(hrs / 24)}d ago`
+}
+
+function initials(name: string) {
+  return name.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase()
 }
 
 export default function Requests() {
@@ -105,7 +40,66 @@ export default function Requests() {
   const [showSendModal, setShowSendModal] = useState(false)
   const [modalEmail, setModalEmail] = useState('')
   const [modalNote, setModalNote] = useState('')
-  const visible = filterByTab(REQUESTS, activeTab)
+  const [error, setError] = useState('')
+
+  const { data } = useRequests()
+  const { mutate: sendRequest, isPending: isSending } = useSendRequest()
+  const { mutate: respondRequest } = useRespondRequest()
+  const { mutate: cancelRequest } = useCancelRequest()
+
+  // Merge received + sent into a unified list for display
+  const received: ConnectionRequest[] = data?.received ?? []
+  const sent: ConnectionRequest[] = data?.sent ?? []
+
+  // Build unified view rows
+  type Row = { req: ConnectionRequest; direction: 'received' | 'sent' }
+  const allRows: Row[] = [
+    ...received.map((r) => ({ req: r, direction: 'received' as const })),
+    ...sent.map((r) => ({ req: r, direction: 'sent' as const })),
+  ].sort((a, b) => new Date(b.req.createdAt).getTime() - new Date(a.req.createdAt).getTime())
+
+  const pendingRows = received.filter((r) => r.status === 'pending').map((r) => ({ req: r, direction: 'received' as const }))
+  const sentRows = sent.map((r) => ({ req: r, direction: 'sent' as const }))
+  const historyRows = [
+    ...received.filter((r) => r.status === 'accepted' || r.status === 'rejected').map((r) => ({ req: r, direction: 'received' as const })),
+    ...sent.filter((r) => r.status === 'accepted' || r.status === 'rejected').map((r) => ({ req: r, direction: 'sent' as const })),
+  ]
+
+  const TABS = [
+    { key: 'all' as Tab,     label: 'All Requests',       count: allRows.length     },
+    { key: 'pending' as Tab, label: 'Pending Received',   count: pendingRows.length },
+    { key: 'sent' as Tab,    label: 'Sent',               count: sentRows.length    },
+    { key: 'history' as Tab, label: 'History',            count: historyRows.length },
+  ]
+
+  const visible = activeTab === 'all' ? allRows
+    : activeTab === 'pending' ? pendingRows
+    : activeTab === 'sent' ? sentRows
+    : historyRows
+
+  function handleSend() {
+    setError('')
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(modalEmail.trim())) {
+      setError('Please enter a valid email address.')
+      return
+    }
+    sendRequest(
+      { email: modalEmail.trim(), note: modalNote.trim() || undefined },
+      {
+        onSuccess: () => {
+          setShowSendModal(false)
+          setModalEmail('')
+          setModalNote('')
+          setError('')
+        },
+        onError: (err: unknown) => {
+          const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+          setError(msg ?? 'Failed to send request.')
+        },
+      }
+    )
+  }
 
   return (
     <AppLayout>
@@ -141,7 +135,7 @@ export default function Requests() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => { setShowSendModal(false); setModalEmail(''); setModalNote('') }}
+                  onClick={() => { setShowSendModal(false); setModalEmail(''); setModalNote(''); setError('') }}
                   className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer p-1 rounded-lg hover:bg-muted"
                 >
                   <X className="size-4" />
@@ -150,6 +144,9 @@ export default function Requests() {
 
               {/* Modal body */}
               <div className="px-6 py-5 flex flex-col gap-4">
+                {error && (
+                  <p className="text-sm text-danger bg-danger/5 border border-danger/20 px-4 py-2.5 rounded-xl">{error}</p>
+                )}
                 <div>
                   <label className="block text-sm font-semibold text-foreground mb-1.5">
                     Email address <span className="text-danger">*</span>
@@ -185,19 +182,19 @@ export default function Requests() {
               <div className="px-6 py-4 border-t border-border flex items-center justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => { setShowSendModal(false); setModalEmail(''); setModalNote('') }}
+                  onClick={() => { setShowSendModal(false); setModalEmail(''); setModalNote(''); setError('') }}
                   className="px-5 py-2.5 border border-border rounded-full text-sm font-bold text-foreground hover:bg-muted transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setShowSendModal(false); setModalEmail(''); setModalNote('') }}
-                  disabled={!modalEmail.trim()}
+                  onClick={handleSend}
+                  disabled={!modalEmail.trim() || isSending}
                   className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-full text-sm font-bold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Send className="size-3.5" />
-                  Send Request
+                  {isSending ? 'Sending…' : 'Send Request'}
                 </button>
               </div>
             </div>
@@ -226,103 +223,101 @@ export default function Requests() {
 
         {/* Request rows */}
         <div className="flex flex-col gap-3">
-          {visible.map((req, i) => {
-            const badge = STATUS_STYLES[req.status]
-            const avatarColor = AVATAR_COLORS[i % AVATAR_COLORS.length]
+          {visible.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-24 text-center">
+              <div className="size-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
+                <UserPlus className="size-7 text-muted-foreground" />
+              </div>
+              <p className="text-base font-bold text-foreground mb-1">No requests here</p>
+              <p className="text-sm text-muted-foreground">Use "Send New Request" to connect with someone.</p>
+            </div>
+          ) : (
+            visible.map(({ req, direction }, i) => {
+              const badge = STATUS_STYLES[req.status]
+              const avatarColor = AVATAR_COLORS[i % AVATAR_COLORS.length]
+              const otherUser = direction === 'received' ? req.fromUserId : req.toUserId
+              const displayStatus = direction === 'sent' && req.status === 'pending' ? 'sent' : req.status
 
-            return (
-              <div
-                key={req.id}
-                className="flex items-center gap-5 px-6 py-5 bg-surface border border-border rounded-2xl hover:border-primary/30 hover:shadow-sm transition-all"
-              >
-                {/* Avatar */}
+              return (
                 <div
-                  className={`size-12 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${avatarColor}`}
+                  key={req._id}
+                  className="flex items-center gap-5 px-6 py-5 bg-surface border border-border rounded-2xl hover:border-primary/30 hover:shadow-sm transition-all"
                 >
-                  {req.avatar}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-1.5">
-                    <span className="text-base font-bold text-foreground">{req.name}</span>
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide ${badge.className}`}
-                    >
-                      {badge.label}
-                    </span>
+                  {/* Avatar */}
+                  <div className={`size-12 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${avatarColor}`}>
+                    {initials(otherUser.name)}
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1.5">
-                      <Mail className="size-3.5" />
-                      {req.email}
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <Clock className="size-3.5" />
-                      {req.time}
-                    </span>
-                  </div>
-                </div>
 
-                {/* Actions */}
-                <div className="flex items-center gap-2 shrink-0">
-                  {req.status === 'pending' && (
-                    <>
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-1.5">
+                      <span className="text-base font-bold text-foreground">{otherUser.name}</span>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide ${STATUS_STYLES[displayStatus].className}`}>
+                        {STATUS_STYLES[displayStatus].label}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1.5">
+                        <Mail className="size-3.5" />
+                        {otherUser.email}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <Clock className="size-3.5" />
+                        {timeAgo(req.createdAt)}
+                      </span>
+                    </div>
+                    {req.note && (
+                      <p className="text-xs text-muted-foreground mt-1.5 italic">"{req.note}"</p>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 shrink-0">
+                    {direction === 'received' && req.status === 'pending' && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => respondRequest({ id: req._id, action: 'rejected' })}
+                          className="flex items-center gap-2 px-5 py-2.5 border border-border rounded-full text-sm font-bold text-foreground hover:bg-muted transition-colors cursor-pointer"
+                        >
+                          <X className="size-4" />
+                          Decline
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => respondRequest({ id: req._id, action: 'accepted' })}
+                          className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-full text-sm font-bold hover:opacity-90 transition-opacity cursor-pointer"
+                        >
+                          <Check className="size-4" />
+                          Accept
+                        </button>
+                      </>
+                    )}
+
+                    {direction === 'sent' && req.status === 'pending' && (
                       <button
                         type="button"
+                        onClick={() => cancelRequest(req._id)}
                         className="flex items-center gap-2 px-5 py-2.5 border border-border rounded-full text-sm font-bold text-foreground hover:bg-muted transition-colors cursor-pointer"
                       >
-                        <X className="size-4" />
-                        Decline
+                        <XCircle className="size-4 text-muted-foreground" />
+                        Cancel Request
                       </button>
+                    )}
+
+                    {req.status === 'accepted' && (
                       <button
                         type="button"
-                        className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-full text-sm font-bold hover:opacity-90 transition-opacity cursor-pointer"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-success/10 text-success rounded-full text-sm font-bold cursor-default"
                       >
-                        <Check className="size-4" />
-                        Accept
+                        <MessageSquare className="size-4" />
+                        Message
                       </button>
-                    </>
-                  )}
-
-                  {req.status === 'sent' && (
-                    <button
-                      type="button"
-                      className="flex items-center gap-2 px-5 py-2.5 border border-border rounded-full text-sm font-bold text-foreground hover:bg-muted transition-colors cursor-pointer"
-                    >
-                      <XCircle className="size-4 text-muted-foreground" />
-                      Cancel Request
-                    </button>
-                  )}
-
-                  {req.status === 'accepted' && (
-                    <button
-                      type="button"
-                      className="flex items-center gap-2 px-5 py-2.5 bg-secondary text-primary rounded-full text-sm font-bold hover:bg-primary/15 transition-colors cursor-pointer"
-                    >
-                      <MessageSquare className="size-4" />
-                      Message
-                    </button>
-                  )}
-
-                  {req.status === 'rejected' && (
-                    <button
-                      type="button"
-                      className="flex items-center gap-2 px-5 py-2.5 border border-border rounded-full text-sm font-bold text-foreground hover:bg-muted transition-colors cursor-pointer"
-                    >
-                      <RefreshCw className="size-4 text-muted-foreground" />
-                      Send Again
-                    </button>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
-            )
-          })}
-
-          {visible.length === 0 && (
-            <p className="text-sm text-muted-foreground py-16 text-center">
-              No requests in this section.
-            </p>
+              )
+            })
           )}
         </div>
       </div>

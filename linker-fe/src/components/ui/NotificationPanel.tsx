@@ -1,37 +1,32 @@
 import { useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bell, X, Link2, UserPlus, MessageSquare, Star, CheckCheck } from 'lucide-react'
+import { Bell, X, UserPlus, UserCheck, UserX, Users, CheckCheck } from 'lucide-react'
+import type { AppNotification, NotificationType } from '../../services/notificationService'
 
-export interface Notification {
-  id: number
-  type: 'link' | 'invite' | 'message' | 'system'
-  title: string
-  body: string
-  time: string
-  read: boolean
+const TYPE_META: Record<NotificationType, { icon: React.ElementType; bg: string; color: string }> = {
+  new_user:         { icon: Users,     bg: 'bg-primary/10',  color: 'text-primary'  },
+  request_received: { icon: UserPlus,  bg: 'bg-success/15',  color: 'text-success'  },
+  request_accepted: { icon: UserCheck, bg: 'bg-success/15',  color: 'text-success'  },
+  request_rejected: { icon: UserX,     bg: 'bg-danger/10',   color: 'text-danger'   },
 }
 
-const TYPE_ICON: Record<Notification['type'], { icon: React.ElementType; bg: string; color: string }> = {
-  link:    { icon: Link2,         bg: 'bg-primary/10',  color: 'text-primary'  },
-  invite:  { icon: UserPlus,      bg: 'bg-success/15',  color: 'text-success'  },
-  message: { icon: MessageSquare, bg: 'bg-warning/15',  color: 'text-warning'  },
-  system:  { icon: Star,          bg: 'bg-danger/10',   color: 'text-danger'   },
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diff / 60_000)
+  if (mins < 1) return 'Just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  return `${Math.floor(hrs / 24)}d ago`
 }
-
-export const MOCK_NOTIFICATIONS: Notification[] = [
-  { id: 1, type: 'invite',  title: 'Sarah Connor joined your project',  body: 'Sarah accepted your invite to Acme Corp Redesign.',      time: '2 mins ago',   read: false },
-  { id: 2, type: 'link',    title: 'New resource added',                body: 'John Smith added a link to Marketing Q4 Campaign.',      time: '1 hour ago',   read: false },
-  { id: 3, type: 'message', title: 'New message from Emma Watson',      body: 'Hey, can you review the latest design files?',           time: '3 hours ago',  read: false },
-  { id: 4, type: 'system',  title: 'Pro subscription renewed',          body: 'Your Pro plan has been successfully renewed.',           time: 'Yesterday',    read: true  },
-  { id: 5, type: 'link',    title: 'Link shared with you',              body: 'Michael shared "Frontend Repo" from Internal Wiki.',     time: '2 days ago',   read: true  },
-]
 
 interface NotificationPanelProps {
   open: boolean
-  notifications: Notification[]
+  notifications: AppNotification[]
   onClose: () => void
   onMarkAllRead: () => void
-  onDismiss: (id: number) => void
+  onDismiss: (id: string) => void
+  onMarkRead: (id: string) => void
 }
 
 export default function NotificationPanel({
@@ -40,6 +35,7 @@ export default function NotificationPanel({
   onClose,
   onMarkAllRead,
   onDismiss,
+  onMarkRead,
 }: NotificationPanelProps) {
   const ref = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
@@ -63,6 +59,14 @@ export default function NotificationPanel({
   const unread = notifications.filter((n) => !n.read).length
 
   if (!open) return null
+
+  function handleClick(n: AppNotification) {
+    if (!n.read) onMarkRead(n._id)
+    if (n.type === 'request_received' || n.type === 'request_accepted' || n.type === 'request_rejected') {
+      onClose()
+      navigate('/requests')
+    }
+  }
 
   return (
     <div
@@ -104,34 +108,30 @@ export default function NotificationPanel({
       {/* List */}
       <div className="max-h-80 overflow-y-auto scrollbar-hide divide-y divide-border">
         {notifications.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-8">
-            No notifications
-          </p>
+          <p className="text-sm text-muted-foreground text-center py-8">No notifications</p>
         ) : (
           notifications.map((n) => {
-            const { icon: Icon, bg, color } = TYPE_ICON[n.type]
+            const { icon: Icon, bg, color } = TYPE_META[n.type]
+            const isRequest = n.type === 'request_received' || n.type === 'request_accepted' || n.type === 'request_rejected'
             return (
               <div
-                key={n.id}
+                key={n._id}
+                onClick={() => handleClick(n)}
                 className={`flex items-start gap-3 px-4 py-3.5 transition-colors ${
                   n.read ? 'opacity-60' : 'bg-secondary/30'
-                }`}
+                } ${isRequest ? 'cursor-pointer hover:bg-muted/50' : ''}`}
               >
                 <div className={`size-8 rounded-xl ${bg} flex items-center justify-center shrink-0 mt-0.5`}>
                   <Icon className={`size-4 ${color}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={`text-xs font-bold text-foreground leading-snug ${!n.read ? '' : ''}`}>
-                    {n.title}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5 leading-snug line-clamp-2">
-                    {n.body}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground mt-1">{n.time}</p>
+                  <p className="text-xs font-bold text-foreground leading-snug">{n.title}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-snug line-clamp-2">{n.body}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">{timeAgo(n.createdAt)}</p>
                 </div>
                 <button
                   type="button"
-                  onClick={() => onDismiss(n.id)}
+                  onClick={(e) => { e.stopPropagation(); onDismiss(n._id) }}
                   className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer shrink-0 mt-0.5"
                 >
                   <X className="size-3.5" />

@@ -1,48 +1,60 @@
 import { useState } from 'react'
-import { X, CheckCheck, Link2, UserPlus, MessageSquare, Star } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { X, CheckCheck, Bell, UserPlus, UserCheck, UserX, Users } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
 import PageHeader from '../components/ui/PageHeader'
-import { MOCK_NOTIFICATIONS, type Notification } from '../components/ui/NotificationPanel'
+import type { NotificationType } from '../services/notificationService'
+import {
+  useNotifications,
+  useMarkAllRead,
+  useMarkOneRead,
+  useDeleteNotification,
+} from '../hooks/useNotifications'
 
-const TYPE_ICON: Record<Notification['type'], { icon: React.ElementType; bg: string; color: string; label: string }> = {
-  link:    { icon: Link2,         bg: 'bg-primary/10',  color: 'text-primary',  label: 'Resource' },
-  invite:  { icon: UserPlus,      bg: 'bg-success/15',  color: 'text-success',  label: 'Invite'   },
-  message: { icon: MessageSquare, bg: 'bg-warning/15',  color: 'text-warning',  label: 'Message'  },
-  system:  { icon: Star,          bg: 'bg-danger/10',   color: 'text-danger',   label: 'System'   },
+const TYPE_META: Record<NotificationType, { icon: React.ElementType; bg: string; color: string; label: string }> = {
+  new_user:         { icon: Users,     bg: 'bg-primary/10',  color: 'text-primary',  label: 'New User'  },
+  request_received: { icon: UserPlus,  bg: 'bg-success/15',  color: 'text-success',  label: 'Request'   },
+  request_accepted: { icon: UserCheck, bg: 'bg-success/15',  color: 'text-success',  label: 'Accepted'  },
+  request_rejected: { icon: UserX,     bg: 'bg-danger/10',   color: 'text-danger',   label: 'Declined'  },
 }
 
-const FILTER_TABS = ['All', 'Unread', 'Resource', 'Invite', 'Message', 'System'] as const
+const FILTER_TABS = ['All', 'Unread', 'Request', 'New User'] as const
 type FilterTab = typeof FILTER_TABS[number]
 
-// Extra mock data to fill the page
-const ALL_NOTIFICATIONS: Notification[] = [
-  ...MOCK_NOTIFICATIONS,
-  { id: 6,  type: 'invite',  title: 'You were added to Internal Wiki',    body: 'Emma Watson added you to the Internal Wiki Migration project.',   time: '3 days ago',  read: true  },
-  { id: 7,  type: 'message', title: 'New message from John Smith',         body: 'John Smith: "The new component library is ready for review."',    time: '3 days ago',  read: true  },
-  { id: 8,  type: 'link',    title: 'New resource added',                  body: 'Sarah Connor added "Figma Design System" to Acme Corp Redesign.', time: '4 days ago',  read: true  },
-  { id: 9,  type: 'system',  title: 'Password changed',                    body: 'Your account password was changed successfully.',                  time: '5 days ago',  read: true  },
-  { id: 10, type: 'invite',  title: 'Invitation to Marketing Q4 Campaign', body: 'You were invited to join Marketing Q4 Campaign by Alex Rivera.',  time: '1 week ago',  read: true  },
-]
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diff / 60_000)
+  if (mins < 1) return 'Just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  return `${Math.floor(hrs / 24)}d ago`
+}
 
 export default function Notifications() {
-  const [notifications, setNotifications] = useState<Notification[]>(ALL_NOTIFICATIONS)
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<FilterTab>('All')
+  const { data: notifications = [] } = useNotifications()
+  const { mutate: markAllRead } = useMarkAllRead()
+  const { mutate: markOneRead } = useMarkOneRead()
+  const { mutate: deleteOne } = useDeleteNotification()
 
   const unread = notifications.filter((n) => !n.read).length
-
-  function markAllRead() {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-  }
-
-  function dismiss(id: number) {
-    setNotifications((prev) => prev.filter((n) => n.id !== id))
-  }
 
   const filtered = notifications.filter((n) => {
     if (activeTab === 'All') return true
     if (activeTab === 'Unread') return !n.read
-    return TYPE_ICON[n.type].label === activeTab
+    if (activeTab === 'Request') return n.type === 'request_received' || n.type === 'request_accepted' || n.type === 'request_rejected'
+    if (activeTab === 'New User') return n.type === 'new_user'
+    return true
   })
+
+  function handleClick(n: (typeof notifications)[number]) {
+    if (!n.read) markOneRead(n._id)
+    if (n.type === 'request_received' || n.type === 'request_accepted' || n.type === 'request_rejected') {
+      navigate('/requests')
+    }
+  }
 
   return (
     <AppLayout>
@@ -55,7 +67,7 @@ export default function Notifications() {
             unread > 0 ? (
               <button
                 type="button"
-                onClick={markAllRead}
+                onClick={() => markAllRead()}
                 className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-primary border border-primary/30 rounded-xl hover:bg-secondary transition-colors cursor-pointer"
               >
                 <CheckCheck className="size-4" />
@@ -72,7 +84,9 @@ export default function Notifications() {
               ? notifications.filter((n) => !n.read).length
               : tab === 'All'
               ? notifications.length
-              : notifications.filter((n) => TYPE_ICON[n.type].label === tab).length
+              : tab === 'Request'
+              ? notifications.filter((n) => n.type === 'request_received' || n.type === 'request_accepted' || n.type === 'request_rejected').length
+              : notifications.filter((n) => n.type === 'new_user').length
 
             return (
               <button
@@ -113,13 +127,15 @@ export default function Notifications() {
           ) : (
             <div className="bg-surface border border-border rounded-2xl overflow-hidden">
               {filtered.map((n, idx) => {
-                const { icon: Icon, bg, color, label } = TYPE_ICON[n.type]
+                const { icon: Icon, bg, color, label } = TYPE_META[n.type]
+                const isRequest = n.type === 'request_received' || n.type === 'request_accepted' || n.type === 'request_rejected'
                 return (
                   <div
-                    key={n.id}
+                    key={n._id}
+                    onClick={() => handleClick(n)}
                     className={`flex items-start gap-4 px-6 py-4 transition-colors ${
                       !n.read ? 'bg-secondary/20' : 'hover:bg-muted/40'
-                    } ${idx !== 0 ? 'border-t border-border' : ''}`}
+                    } ${idx !== 0 ? 'border-t border-border' : ''} ${isRequest ? 'cursor-pointer' : ''}`}
                   >
                     {/* Icon */}
                     <div className={`size-10 rounded-xl ${bg} flex items-center justify-center shrink-0 mt-0.5`}>
@@ -138,13 +154,13 @@ export default function Notifications() {
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground leading-snug">{n.body}</p>
-                      <p className="text-xs text-muted-foreground mt-1.5">{n.time}</p>
+                      <p className="text-xs text-muted-foreground mt-1.5">{timeAgo(n.createdAt)}</p>
                     </div>
 
                     {/* Dismiss */}
                     <button
                       type="button"
-                      onClick={() => dismiss(n.id)}
+                      onClick={(e) => { e.stopPropagation(); deleteOne(n._id) }}
                       className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer shrink-0 mt-1 p-1 rounded-lg hover:bg-muted"
                       aria-label="Dismiss notification"
                     >
