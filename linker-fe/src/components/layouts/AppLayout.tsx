@@ -8,6 +8,7 @@ import {
   Archive,
   ChevronDown,
   Folder,
+  LayoutGrid,
 } from 'lucide-react'
 import UserMenuPopover from '../ui/UserMenuPopover'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
@@ -15,6 +16,7 @@ import { useCurrentUser } from '../../hooks/useCurrentUser'
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/categories', label: 'Categories', icon: Folder, end: false },
+  { to: '/collection', label: 'Collection', icon: LayoutGrid, end: true },
   { to: '/messages', label: 'Messages', icon: MessageSquare, end: true },
   { to: '/requests', label: 'Requests', icon: Users, end: true },
   { to: '/archived', label: 'Archived Links', icon: Archive, end: true },

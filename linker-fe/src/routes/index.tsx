@@ -27,6 +27,8 @@ const AdminSystemReports = lazy(() => import('../pages/AdminSystemReports'))
 const AdminPlatformSettings = lazy(() => import('../pages/AdminPlatformSettings'))
 const Profile = lazy(() => import('../pages/Profile'))
 const Notifications = lazy(() => import('../pages/Notifications'))
+const Collection = lazy(() => import('../pages/Collection'))
+const PublicCollection = lazy(() => import('../pages/PublicCollection'))
 
 export const routes: RouteObject[] = [
   // Auth
@@ -61,6 +63,10 @@ export const routes: RouteObject[] = [
   { path: '/admin/settings', element: <AdminPlatformSettings /> },
   { path: '/profile', element: <Profile /> },
   { path: '/notifications', element: <Notifications /> },
+  { path: '/collection', element: <Collection /> },
+
+  // Public (no auth)
+  { path: '/c/:userId', element: <PublicCollection /> },
 
   // Fallback
   { path: '*', element: <Navigate to="/login" replace /> },

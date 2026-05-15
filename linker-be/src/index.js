@@ -6,6 +6,7 @@ import onboardRoutes from './routes/onboard.js';
 import adminRoutes from './routes/admin.js';
 import categoryRoutes from './routes/categories.js';
 import linkRoutes from './routes/links.js';
+import publicRoutes from './routes/public.js';
 import GlobalCategory from './models/GlobalCategory.js';
 
 const SEED_CATEGORIES = [
@@ -54,6 +55,9 @@ app.use('/api/links', linkRoutes);
 
 // Admin routes
 app.use('/api/admin', adminRoutes);
+
+// Public routes (no auth)
+app.use('/api/public', publicRoutes);
 
 mongoose
   .connect(MONGO_URI)

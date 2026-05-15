@@ -18,4 +18,8 @@ export const queryKeys = {
     all: ['links'] as const,
     byCategory: (categoryId: string) => [...queryKeys.links.all, 'byCategory', categoryId] as const,
   },
+  publicCollection: {
+    all: ['publicCollection'] as const,
+    byUser: (userId: string) => [...queryKeys.publicCollection.all, userId] as const,
+  },
 } as const
