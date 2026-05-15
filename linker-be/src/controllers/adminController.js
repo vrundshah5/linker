@@ -1,6 +1,86 @@
 import User from '../models/User.js';
 import GlobalCategory from '../models/GlobalCategory.js';
 import UserCategory from '../models/UserCategory.js';
+import Link from '../models/Link.js';
+
+// GET /api/admin/stats
+export const getStats = async (req, res) => {
+  try {
+    const [totalUsers, totalCategories, totalLinks, activeGlobalCategories] = await Promise.all([
+      User.countDocuments({ role: { $ne: 'admin' } }),
+      UserCategory.countDocuments(),
+      Link.countDocuments(),
+      GlobalCategory.countDocuments({ isActive: true }),
+    ]);
+
+    // User registrations per month for the last 7 months
+    const sevenMonthsAgo = new Date();
+    sevenMonthsAgo.setMonth(sevenMonthsAgo.getMonth() - 6);
+    sevenMonthsAgo.setDate(1);
+    sevenMonthsAgo.setHours(0, 0, 0, 0);
+
+    const userGrowth = await User.aggregate([
+      { $match: { createdAt: { $gte: sevenMonthsAgo }, role: { $ne: 'admin' } } },
+      {
+        $group: {
+          _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1 } },
+    ]);
+
+    const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    // Fill in missing months with 0
+    const months = [];
+    const now = new Date();
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const match = userGrowth.find(
+        (g) => g._id.year === d.getFullYear() && g._id.month === d.getMonth() + 1
+      );
+      months.push({ month: MONTH_NAMES[d.getMonth()], count: match?.count ?? 0 });
+    }
+
+    // Top 5 categories by total link count across all users
+    const topCategories = await UserCategory.aggregate([
+      {
+        $group: {
+          _id: '$name',
+          totalLinks: { $sum: '$linkCount' },
+          userCount: { $sum: 1 },
+        },
+      },
+      { $sort: { totalLinks: -1 } },
+      { $limit: 5 },
+    ]);
+
+    const maxLinks = topCategories[0]?.totalLinks ?? 1;
+
+    const categoryDistribution = topCategories.map((c) => ({
+      name: c._id,
+      count: c.totalLinks,
+      pct: Math.round((c.totalLinks / maxLinks) * 100),
+    }));
+
+    return res.json({
+      success: true,
+      data: {
+        totalUsers,
+        totalCategories,
+        totalLinks,
+        activeGlobalCategories,
+        userGrowth: months,
+        categoryDistribution,
+      },
+      message: 'Stats fetched',
+    });
+  } catch (err) {
+    console.error('getStats error:', err);
+    return res.status(500).json({ success: false, data: null, message: 'Server error' });
+  }
+};
 
 // GET /api/admin/users?search=&page=1&limit=10
 export const listUsers = async (req, res) => {

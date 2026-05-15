@@ -9,7 +9,7 @@ export interface CurrentUser {
   initials: string
   onboardingComplete: boolean
   workspaceType: 'personal' | 'professional' | null
-  hasProfessionalWorkspace: boolean
+  workspaces: string[]
 }
 
 export function useCurrentUser(): CurrentUser {
@@ -22,7 +22,7 @@ export function useCurrentUser(): CurrentUser {
         email: string
         onboardingComplete?: boolean
         workspaceType?: 'personal' | 'professional' | null
-        hasProfessionalWorkspace?: boolean
+        workspaces?: string[]
       }
       const parts = user.name.trim().split(' ')
       const initials = parts.length >= 2
@@ -33,11 +33,11 @@ export function useCurrentUser(): CurrentUser {
         initials,
         onboardingComplete: user.onboardingComplete ?? false,
         workspaceType: user.workspaceType ?? null,
-        hasProfessionalWorkspace: user.hasProfessionalWorkspace ?? false,
+        workspaces: user.workspaces ?? [],
       }
     }
   } catch {
     // ignore malformed data
   }
-  return { id: '', name: '', email: '', initials: '', onboardingComplete: false, workspaceType: null, hasProfessionalWorkspace: false }
+  return { id: '', name: '', email: '', initials: '', onboardingComplete: false, workspaceType: null, workspaces: [] }
 }

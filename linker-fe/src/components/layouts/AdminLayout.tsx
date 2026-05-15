@@ -77,7 +77,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
         {/* User */}
         <div className="p-3 border-t border-border">
-          <UserMenuPopover accentClass="text-danger" accentBg="bg-danger/10">
+          <UserMenuPopover accentClass="text-danger" accentBg="bg-danger/10" profilePath="/admin/profile">
             {(open) => (
               <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors text-left">
                 <div className="size-8 rounded-full bg-danger/10 flex items-center justify-center shrink-0">

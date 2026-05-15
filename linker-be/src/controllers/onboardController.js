@@ -1,6 +1,8 @@
 import User from '../models/User.js';
 import GlobalCategory from '../models/GlobalCategory.js';
 import UserCategory from '../models/UserCategory.js';
+import Project from '../models/Project.js';
+import ProjectResource from '../models/ProjectResource.js';
 
 // PATCH /api/onboard/workspace-type
 // Called when user selects Personal or Professional on the /onboard screen
@@ -91,6 +93,7 @@ export const completePersonalOnboard = async (req, res) => {
         onboardingComplete: true,
         workspaceType: 'personal',
         'onboardingData.categories': categories,
+        $addToSet: { workspaces: 'personal' },
       },
       { new: true, select: '-password -resetPasswordToken -resetPasswordExpires' }
     );
@@ -133,12 +136,33 @@ export const completeProfessionalOnboard = async (req, res) => {
         'onboardingData.projectDescription': projectDescription?.trim() || null,
         'onboardingData.invitedEmails': Array.isArray(invitedEmails) ? invitedEmails : [],
         'onboardingData.resources': Array.isArray(resources) ? resources : [],
+        $addToSet: { workspaces: 'professional' },
       },
       { new: true, select: '-password -resetPasswordToken -resetPasswordExpires' }
     );
 
     if (!user) {
       return res.status(404).json({ success: false, data: null, message: 'User not found' });
+    }
+
+    // Create the first project from onboarding data
+    const project = await Project.create({
+      name: projectName.trim(),
+      description: projectDescription?.trim() || '',
+      ownerId: user._id,
+      members: [{ userId: user._id, role: 'admin' }],
+    });
+
+    // Save onboarding resources to the project
+    const resourceUrls = Array.isArray(resources) ? resources.filter((r) => r && r.trim()) : [];
+    if (resourceUrls.length > 0) {
+      const resourceDocs = resourceUrls.map((url) => ({
+        projectId: project._id,
+        addedBy: user._id,
+        title: '',
+        url: url.trim(),
+      }));
+      await ProjectResource.insertMany(resourceDocs);
     }
 
     return res.status(200).json({

@@ -79,7 +79,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           <UserMenuPopover
             accentClass="text-primary"
             accentBg="bg-primary/10"
-            switchTo={user.hasProfessionalWorkspace ? { label: 'Switch to Professional', path: '/professional-dashboard', onSwitch: () => switchWorkspace('professional') } : undefined}
+            switchTo={user.workspaces.includes('professional') ? { label: 'Switch to Professional', path: '/professional-dashboard', onSwitch: () => switchWorkspace('professional') } : undefined}
           >
             {(open) => (
               <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors text-left">

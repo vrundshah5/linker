@@ -12,7 +12,7 @@ export interface UserProfile {
   website: string
   bio: string
   workspaceType: 'personal' | 'professional' | null
-  hasProfessionalWorkspace: boolean
+  workspaces: string[]
   onboardingComplete: boolean
 }
 

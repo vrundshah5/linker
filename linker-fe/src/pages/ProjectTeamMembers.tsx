@@ -1,81 +1,43 @@
 import { useState } from 'react'
-import { UserMinus, ChevronDown } from 'lucide-react'
+import { useParams } from 'react-router-dom'
+import { UserMinus } from 'lucide-react'
 import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
 import ConfirmModal from '../components/ui/ConfirmModal'
+import InviteMemberModal from '../components/ui/InviteMemberModal'
 import PageHeader from '../components/ui/PageHeader'
+import { useProject, useRemoveProjectMember } from '../hooks/useProjects'
+import { useCurrentUser } from '../hooks/useCurrentUser'
 
-type Role = 'Admin' | 'Editor' | 'Viewer'
-
-interface Member {
-  id: number
-  name: string
-  email: string
-  role: Role
-  isYou: boolean
-  avatarColor: string
-  initials: string
-}
-
-const INITIAL_MEMBERS: Member[] = [
-  {
-    id: 1,
-    name: 'Jason Doe',
-    email: 'jason@example.com',
-    role: 'Admin',
-    isYou: true,
-    avatarColor: 'bg-warning/20 text-warning',
-    initials: 'JD',
-  },
-  {
-    id: 2,
-    name: 'Sarah Connor',
-    email: 'sarah@acme.com',
-    role: 'Editor',
-    isYou: false,
-    avatarColor: 'bg-success/15 text-success',
-    initials: 'SC',
-  },
-  {
-    id: 3,
-    name: 'John Smith',
-    email: 'john@acme.com',
-    role: 'Viewer',
-    isYou: false,
-    avatarColor: 'bg-primary/15 text-primary',
-    initials: 'JS',
-  },
-  {
-    id: 4,
-    name: 'Emma Watson',
-    email: 'emma@agency.co',
-    role: 'Editor',
-    isYou: false,
-    avatarColor: 'bg-danger/10 text-danger',
-    initials: 'EW',
-  },
+const AVATAR_COLORS = [
+  'bg-warning/20 text-warning',
+  'bg-success/15 text-success',
+  'bg-primary/15 text-primary',
+  'bg-danger/10 text-danger',
 ]
 
-const ROLES: Role[] = ['Admin', 'Editor', 'Viewer']
+function getInitials(name: string) {
+  const parts = name.trim().split(' ')
+  return parts.length >= 2
+    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    : name.slice(0, 2).toUpperCase()
+}
 
 export default function ProjectTeamMembers() {
-  const [members, setMembers] = useState<Member[]>(INITIAL_MEMBERS)
+  const { projectId } = useParams<{ projectId: string }>()
+  const { data: project } = useProject(projectId)
+  const currentUser = useCurrentUser()
+  const { mutate: removeMember } = useRemoveProjectMember()
   const [search, setSearch] = useState('')
-  const [removeTarget, setRemoveTarget] = useState<Member | null>(null)
+  const [removeTarget, setRemoveTarget] = useState<{ id: string; name: string } | null>(null)
+  const [showInvite, setShowInvite] = useState(false)
 
-  function updateRole(id: number, role: Role) {
-    setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, role } : m)))
-  }
-
-  function removeMember(id: number) {
-    setMembers((prev) => prev.filter((m) => m.id !== id))
-    setRemoveTarget(null)
-  }
+  const members = project?.members ?? []
 
   const visible = members.filter(
     (m) =>
       search.trim() === '' ||
-      m.name.toLowerCase().includes(search.toLowerCase()) ||
-      m.email.toLowerCase().includes(search.toLowerCase()),
+      m.userId.name.toLowerCase().includes(search.toLowerCase()) ||
+      m.userId.email.toLowerCase().includes(search.toLowerCase()),
   )
 
   return (
@@ -91,6 +53,7 @@ export default function ProjectTeamMembers() {
           actions={
             <button
               type="button"
+              onClick={() => setShowInvite(true)}
               className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
             >
               Invite Member
@@ -117,67 +80,60 @@ export default function ProjectTeamMembers() {
 
             {/* Rows */}
             <div className="divide-y divide-border">
-              {visible.map((member) => (
-                <div
-                  key={member.id}
-                  className="grid grid-cols-[1fr_220px_160px] items-center px-6 py-4"
-                >
-                  {/* Member info */}
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div
-                      className={`size-10 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${member.avatarColor}`}
-                    >
-                      {member.initials}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-foreground">{member.name}</span>
-                        {member.isYou && (
-                          <span className="px-2 py-0.5 bg-secondary text-primary text-[10px] font-bold rounded-full tracking-wide">
-                            YOU
-                          </span>
-                        )}
+              {visible.map((member, idx) => {
+                const isYou = member.userId._id === currentUser.id
+                const avatarColor = AVATAR_COLORS[idx % AVATAR_COLORS.length]
+                const initials = getInitials(member.userId.name)
+                const roleLabel = member.role.charAt(0).toUpperCase() + member.role.slice(1)
+
+                return (
+                  <div
+                    key={member.userId._id}
+                    className="grid grid-cols-[1fr_220px_160px] items-center px-6 py-4"
+                  >
+                    {/* Member info */}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className={`size-10 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${avatarColor}`}
+                      >
+                        {initials}
                       </div>
-                      <p className="text-xs text-muted-foreground truncate">{member.email}</p>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-foreground">{member.userId.name}</span>
+                          {isYou && (
+                            <span className="px-2 py-0.5 bg-secondary text-primary text-[10px] font-bold rounded-full tracking-wide">
+                              YOU
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate">{member.userId.email}</p>
+                      </div>
+                    </div>
+
+                    {/* Role */}
+                    <div>
+                      <span className="px-4 py-2 bg-surface border border-border rounded-xl text-sm font-semibold text-foreground inline-block">
+                        {roleLabel}
+                      </span>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex justify-end">
+                      {!isYou && (
+                        <button
+                          type="button"
+                          onClick={() => setRemoveTarget({ id: member.userId._id, name: member.userId.name })}
+                          className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-danger transition-colors cursor-pointer"
+                        >
+                          <UserMinus className="size-4" />
+                          Remove
+                        </button>
+                      )}
                     </div>
                   </div>
-
-                  {/* Role dropdown */}
-                  <div>
-                    <div className="relative inline-flex items-center">
-                      <select
-                        value={member.role}
-                        disabled={member.isYou}
-                        onChange={(e) => updateRole(member.id, e.target.value as Role)}
-                        className={`appearance-none pl-4 pr-8 py-2 bg-surface border border-border rounded-xl text-sm font-semibold text-foreground focus:outline-none focus:border-primary transition-colors ${
-                          member.isYou ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:border-primary/40'
-                        }`}
-                      >
-                        {ROLES.map((r) => (
-                          <option key={r} value={r}>
-                            {r}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex justify-end">
-                    {!member.isYou && (
-                      <button
-                        type="button"
-                        onClick={() => setRemoveTarget(member)}
-                        className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-danger transition-colors cursor-pointer"
-                      >
-                        <UserMinus className="size-4" />
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
+                )
+              })}
 
               {visible.length === 0 && (
                 <div className="px-6 py-10 text-center text-sm text-muted-foreground">
@@ -195,9 +151,22 @@ export default function ProjectTeamMembers() {
       title="Remove Member"
       description={`Are you sure you want to remove ${removeTarget?.name} from this project? They will lose access immediately.`}
       confirmLabel="Remove"
-      onConfirm={() => removeTarget && removeMember(removeTarget.id)}
+      onConfirm={() => {
+        if (removeTarget && projectId) {
+          removeMember({ projectId, userId: removeTarget.id })
+        }
+        setRemoveTarget(null)
+      }}
       onCancel={() => setRemoveTarget(null)}
     />
+
+    {projectId && (
+      <InviteMemberModal
+        open={showInvite}
+        projectId={projectId}
+        onClose={() => setShowInvite(false)}
+      />
+    )}
     </>
   )
 }

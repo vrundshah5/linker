@@ -1,74 +1,49 @@
 import { useState } from 'react'
-import { Search, Globe } from 'lucide-react'
+import { useParams } from 'react-router-dom'
+import { Search, Globe, Loader2, Trash2, BookMarked } from 'lucide-react'
 import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
 import PageHeader from '../components/ui/PageHeader'
-
-interface Resource {
-  id: number
-  title: string
-  url: string
-  tags: string[]
-  date: string
-}
-
-const RESOURCES: Resource[] = [
-  {
-    id: 1,
-    title: 'Acme Corp Brand Guidelines v2.1',
-    url: 'https://brandfolder.com/acme',
-    tags: ['Design', 'Official'],
-    date: 'Oct 12, 2023',
-  },
-  {
-    id: 2,
-    title: 'Figma - Core Component Library',
-    url: 'https://figma.com/file/components',
-    tags: ['Design'],
-    date: 'Oct 15, 2023',
-  },
-  {
-    id: 3,
-    title: 'Competitor Analysis Q4',
-    url: 'https://docs.google.com/presentation',
-    tags: ['Research'],
-    date: 'Oct 18, 2023',
-  },
-  {
-    id: 4,
-    title: 'Frontend Repository (GitHub)',
-    url: 'https://github.com/acme/redesign-web',
-    tags: ['Development'],
-    date: 'Oct 20, 2023',
-  },
-]
-
-const CATEGORY_FILTERS = ['All', 'Design', 'Development']
-
-const TAG_STYLES: Record<string, string> = {
-  Design: 'bg-secondary text-primary',
-  Official: 'bg-secondary text-primary',
-  Research: 'bg-secondary text-primary',
-  Development: 'bg-secondary text-primary',
-}
+import AddResourceModal from '../components/ui/AddResourceModal'
+import ConfirmModal from '../components/ui/ConfirmModal'
+import { useProject, useProjectResources, useAddProjectResources, useDeleteProjectResource } from '../hooks/useProjects'
 
 export default function ProjectResources() {
-  const [activeFilter, setActiveFilter] = useState('All')
+  const { projectId } = useParams<{ projectId: string }>()
+  const { data: project } = useProject(projectId)
+  const { data: resources, isLoading } = useProjectResources(projectId)
+  const { mutate: addResources, isPending: adding } = useAddProjectResources()
+  const { mutate: deleteResource } = useDeleteProjectResource()
   const [topSearch, setTopSearch] = useState('')
   const [inlineSearch, setInlineSearch] = useState('')
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null)
 
-  const visibleResources = RESOURCES.filter((r) => {
-    const matchesFilter =
-      activeFilter === 'All' || r.tags.includes(activeFilter)
-    const matchesTop =
-      topSearch.trim() === '' ||
-      r.title.toLowerCase().includes(topSearch.toLowerCase()) ||
-      r.url.toLowerCase().includes(topSearch.toLowerCase())
-    const matchesInline =
-      inlineSearch.trim() === '' ||
-      r.title.toLowerCase().includes(inlineSearch.toLowerCase()) ||
-      r.url.toLowerCase().includes(inlineSearch.toLowerCase())
-    return matchesFilter && matchesTop && matchesInline
+  const projectName = project?.name ?? 'Project'
+
+  const visibleResources = (resources ?? []).filter((r) => {
+    const q = (topSearch.trim() || inlineSearch.trim()).toLowerCase()
+    if (!q) return true
+    return (
+      r.title.toLowerCase().includes(q) ||
+      r.url.toLowerCase().includes(q)
+    )
   })
+
+  function handleAddResources(items: { url: string; title: string }[]) {
+    if (!projectId) return
+    addResources(
+      { projectId, resources: items },
+      { onSuccess: () => setShowAddModal(false) },
+    )
+  }
+
+  function formatDate(dateStr: string) {
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
+  }
 
   return (
     <WorkspaceLayout>
@@ -76,12 +51,13 @@ export default function ProjectResources() {
 
         <PageHeader
           title="Project Resources"
-          subtitle="All saved links and documents for Acme Corp Redesign."
+          subtitle={`All saved links and documents for ${projectName}.`}
           searchValue={topSearch}
           onSearch={setTopSearch}
           actions={
             <button
               type="button"
+              onClick={() => setShowAddModal(true)}
               className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
             >
               + Add Resource
@@ -89,30 +65,18 @@ export default function ProjectResources() {
           }
         />
 
+        <AddResourceModal
+          open={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          onSubmit={handleAddResources}
+          isPending={adding}
+        />
+
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-8 py-7">
 
-          {/* Filter bar */}
-          <div className="flex items-center justify-between mb-6 gap-4">
-            {/* Category pills */}
-            <div className="flex items-center gap-2">
-              {CATEGORY_FILTERS.map((filter) => (
-                <button
-                  key={filter}
-                  type="button"
-                  onClick={() => setActiveFilter(filter)}
-                  className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors cursor-pointer ${
-                    activeFilter === filter
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'bg-surface text-foreground border-border hover:border-primary/40 hover:bg-secondary/50'
-                  }`}
-                >
-                  {filter}
-                </button>
-              ))}
-            </div>
-
-            {/* Inline search */}
+          {/* Inline search */}
+          <div className="flex items-center justify-end mb-6">
             <div className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-xl w-52 focus-within:border-primary transition-colors">
               <Search className="size-4 text-muted-foreground shrink-0" />
               <input
@@ -127,14 +91,22 @@ export default function ProjectResources() {
 
           {/* Resource rows */}
           <div className="flex flex-col gap-3">
-            {visibleResources.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-8 text-center">
-                No resources found.
-              </p>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="size-6 text-muted-foreground animate-spin" />
+              </div>
+            ) : visibleResources.length === 0 ? (
+              <div className="bg-surface border border-border rounded-2xl p-12 text-center">
+                <BookMarked className="size-10 text-muted-foreground mx-auto mb-3" />
+                <p className="text-base font-bold text-foreground mb-1">No resources yet</p>
+                <p className="text-sm text-muted-foreground">
+                  Click "+ Add Resource" to save links and documents to this project.
+                </p>
+              </div>
             ) : (
               visibleResources.map((resource) => (
                 <div
-                  key={resource.id}
+                  key={resource._id}
                   className="flex items-center gap-5 px-6 py-5 bg-surface border border-border rounded-2xl hover:border-primary/30 hover:shadow-sm transition-all"
                 >
                   {/* Globe icon */}
@@ -145,32 +117,52 @@ export default function ProjectResources() {
                   {/* Title + URL */}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-foreground leading-snug mb-0.5 truncate">
-                      {resource.title}
+                      {resource.title || resource.url}
                     </p>
-                    <p className="text-xs text-primary truncate">{resource.url}</p>
-                  </div>
-
-                  {/* Tag badges */}
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    {resource.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${TAG_STYLES[tag] ?? 'bg-muted text-muted-foreground'}`}
-                      >
-                        {tag}
-                      </span>
-                    ))}
+                    <a
+                      href={resource.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary truncate block hover:underline"
+                    >
+                      {resource.url}
+                    </a>
                   </div>
 
                   {/* Date */}
                   <p className="text-sm text-muted-foreground shrink-0 ml-2">
-                    {resource.date}
+                    {formatDate(resource.createdAt)}
                   </p>
+
+                  {/* Delete */}
+                  <button
+                    type="button"
+                    onClick={() => setDeleteTarget({ id: resource._id, title: resource.title || resource.url })}
+                    className="p-2 text-muted-foreground hover:text-danger transition-colors cursor-pointer shrink-0"
+                    aria-label="Delete resource"
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
                 </div>
               ))
             )}
           </div>
         </div>
+
+        <ConfirmModal
+          open={!!deleteTarget}
+          title="Delete Resource"
+          description={`Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone.`}
+          confirmLabel="Delete"
+          variant="danger"
+          onConfirm={() => {
+            if (projectId && deleteTarget) {
+              deleteResource({ projectId, resourceId: deleteTarget.id })
+            }
+            setDeleteTarget(null)
+          }}
+          onCancel={() => setDeleteTarget(null)}
+        />
       </div>
     </WorkspaceLayout>
   )

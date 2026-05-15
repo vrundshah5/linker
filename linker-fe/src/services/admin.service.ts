@@ -38,7 +38,21 @@ export interface AdminGlobalCategory {
   updatedAt: string
 }
 
+export interface AdminStats {
+  totalUsers: number
+  totalCategories: number
+  totalLinks: number
+  activeGlobalCategories: number
+  userGrowth: { month: string; count: number }[]
+  categoryDistribution: { name: string; count: number; pct: number }[]
+}
+
 export const adminService = {
+  getStats: async (): Promise<AdminStats> => {
+    const { data } = await api.get<{ success: boolean; data: AdminStats }>('/admin/stats')
+    return data.data
+  },
+
   listUsers: async (params: { search?: string; page?: number; limit?: number }): Promise<ListUsersResponse> => {
     const { data } = await api.get<ListUsersResponse>('/admin/users', { params })
     return data

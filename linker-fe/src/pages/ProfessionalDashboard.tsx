@@ -1,54 +1,16 @@
 import { useState } from 'react'
-import { Briefcase, Users, Link2, Search, Plus } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Briefcase, Users, Link2, Search, Plus, Loader2 } from 'lucide-react'
 import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
-import BellButton from '../components/ui/BellButton'
+import CreateProjectModal from '../components/ui/CreateProjectModal'
+import { useCurrentUser } from '../hooks/useCurrentUser'
+import { useProjects, useCreateProject } from '../hooks/useProjects'
 
-interface Project {
-  id: number
-  name: string
-  lastActive: string
-  role: 'ADMIN' | 'MEMBER'
-  iconBg: string
-  iconColor: string
-  members: string[]
-  extraMembers: number
-  links: number
-}
-
-const PROJECTS: Project[] = [
-  {
-    id: 1,
-    name: 'Acme Corp Redesign',
-    lastActive: '2 hours ago',
-    role: 'ADMIN',
-    iconBg: 'bg-warning/15',
-    iconColor: 'text-warning',
-    members: ['SC', 'JS', 'EW'],
-    extraMembers: 2,
-    links: 24,
-  },
-  {
-    id: 2,
-    name: 'Marketing Q4 Campaign',
-    lastActive: 'Yesterday',
-    role: 'MEMBER',
-    iconBg: 'bg-primary/10',
-    iconColor: 'text-primary',
-    members: ['SC', 'JS', 'EW'],
-    extraMembers: 9,
-    links: 45,
-  },
-  {
-    id: 3,
-    name: 'Internal Wiki Migration',
-    lastActive: '3 days ago',
-    role: 'ADMIN',
-    iconBg: 'bg-success/15',
-    iconColor: 'text-success',
-    members: ['SC', 'JS', 'EW'],
-    extraMembers: 0,
-    links: 8,
-  },
+const PROJECT_COLORS = [
+  { bg: 'bg-warning/15', text: 'text-warning' },
+  { bg: 'bg-primary/10', text: 'text-primary' },
+  { bg: 'bg-success/15', text: 'text-success' },
+  { bg: 'bg-danger/10', text: 'text-danger' },
 ]
 
 const AVATAR_COLORS = [
@@ -58,58 +20,45 @@ const AVATAR_COLORS = [
   'bg-danger/10 text-danger',
 ]
 
-interface ActivityItem {
-  id: number
-  avatar: string
-  avatarColor: string
-  text: string
-  projectName: string
-  projectColor: string
-  time: string
+function getInitials(name: string) {
+  const parts = name.trim().split(' ')
+  return parts.length >= 2
+    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    : name.slice(0, 2).toUpperCase()
 }
 
-const ACTIVITY: ActivityItem[] = [
-  {
-    id: 1,
-    avatar: 'SC',
-    avatarColor: 'bg-warning/20 text-warning',
-    text: 'added 3 new links to',
-    projectName: 'Acme Corp Redesign',
-    projectColor: 'text-warning',
-    time: '2 hours ago',
-  },
-  {
-    id: 2,
-    avatar: 'JS',
-    avatarColor: 'bg-primary/15 text-primary',
-    text: 'commented on a resource in',
-    projectName: 'Marketing Q4 Campaign',
-    projectColor: 'text-primary',
-    time: '5 hours ago',
-  },
-  {
-    id: 3,
-    avatar: 'EW',
-    avatarColor: 'bg-success/15 text-success',
-    text: 'invited a new team member to',
-    projectName: 'Internal Wiki Migration',
-    projectColor: 'text-success',
-    time: 'Yesterday',
-  },
-]
-
-const ACTIVITY_NAMES: Record<string, string> = {
-  SC: 'Sarah Connor',
-  JS: 'John Smith',
-  EW: 'Emma Watson',
+function timeAgo(dateStr: string) {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  return `${days}d ago`
 }
 
 export default function ProfessionalDashboard() {
+  const user = useCurrentUser()
+  const navigate = useNavigate()
+  const { data: projects, isLoading } = useProjects()
+  const { mutate: createProject, isPending: creating } = useCreateProject()
   const [search, setSearch] = useState('')
+  const [showCreate, setShowCreate] = useState(false)
 
-  const visibleProjects = PROJECTS.filter((p) =>
+  const visibleProjects = (projects ?? []).filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase()),
   )
+
+  const totalCollaborators = (projects ?? []).reduce((sum, p) => sum + p.members.length, 0)
+  const firstName = user.name.split(' ')[0] || user.name
+
+  function handleCreate(data: { name: string; description: string }) {
+    createProject({ name: data.name, description: data.description }, {
+      onSuccess: () => {
+        setShowCreate(false)
+      },
+    })
+  }
 
   return (
     <WorkspaceLayout>
@@ -120,14 +69,15 @@ export default function ProfessionalDashboard() {
             <div>
               <h1 className="text-3xl font-bold text-foreground leading-tight">
                 Welcome to your Workspace,{' '}
-                <span className="text-warning">Jason</span>
+                <span className="text-warning">{firstName}</span>
               </h1>
               <p className="text-sm text-muted-foreground mt-2">
-                You have 3 active projects and 12 unread notifications. Let's get to work.
+                You have {projects?.length ?? 0} active project{(projects?.length ?? 0) !== 1 ? 's' : ''}. Let's get to work.
               </p>
             </div>
             <button
               type="button"
+              onClick={() => setShowCreate(true)}
               className="flex items-center gap-2 px-5 py-2.5 bg-warning text-white font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer shrink-0"
             >
               <Plus className="size-4" />
@@ -135,12 +85,20 @@ export default function ProfessionalDashboard() {
             </button>
           </div>
 
+          {/* Create project modal */}
+          <CreateProjectModal
+            open={showCreate}
+            onClose={() => setShowCreate(false)}
+            onSubmit={handleCreate}
+            isPending={creating}
+          />
+
           {/* Stats row */}
           <div className="grid grid-cols-3 gap-4 mb-10">
             {[
-              { icon: Briefcase, label: 'Active Projects', value: 3 },
-              { icon: Users, label: 'Collaborators', value: 18 },
-              { icon: Link2, label: 'Total Links', value: 77 },
+              { icon: Briefcase, label: 'Active Projects', value: projects?.length ?? 0 },
+              { icon: Users, label: 'Collaborators', value: totalCollaborators },
+              { icon: Link2, label: 'Total Links', value: '—' },
             ].map(({ icon: Icon, label, value }) => (
               <div
                 key={label}
@@ -175,103 +133,83 @@ export default function ProfessionalDashboard() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-5">
-              {visibleProjects.map((project) => (
-                <div
-                  key={project.id}
-                  className="bg-surface border border-border rounded-2xl p-6 hover:border-warning/40 hover:shadow-sm transition-all cursor-pointer"
-                >
-                  {/* Icon + Role badge */}
-                  <div className="flex items-start justify-between mb-5">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="size-6 text-muted-foreground animate-spin" />
+              </div>
+            ) : visibleProjects.length === 0 ? (
+              <div className="bg-surface border border-border rounded-2xl p-12 text-center">
+                <Briefcase className="size-10 text-muted-foreground mx-auto mb-3" />
+                <p className="text-base font-bold text-foreground mb-1">No projects yet</p>
+                <p className="text-sm text-muted-foreground">
+                  Click "New Project" to create your first workspace project.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-5">
+                {visibleProjects.map((project, idx) => {
+                  const colorSet = PROJECT_COLORS[idx % PROJECT_COLORS.length]
+                  const myMembership = project.members.find((m) => m.userId._id === user.id)
+                  const role = myMembership?.role?.toUpperCase() ?? 'MEMBER'
+
+                  return (
                     <div
-                      className={`size-12 rounded-2xl ${project.iconBg} flex items-center justify-center`}
+                      key={project._id}
+                      onClick={() => navigate(`/projects/${project._id}/resources`)}
+                      className="bg-surface border border-border rounded-2xl p-6 hover:border-warning/40 hover:shadow-sm transition-all cursor-pointer"
                     >
-                      <Briefcase className={`size-6 ${project.iconColor}`} />
-                    </div>
-                    <span
-                      className={`px-3 py-1 rounded-full text-[11px] font-bold tracking-wide ${
-                        project.role === 'ADMIN'
-                          ? 'bg-secondary text-primary'
-                          : 'bg-muted text-muted-foreground'
-                      }`}
-                    >
-                      {project.role}
-                    </span>
-                  </div>
-
-                  {/* Name + last active */}
-                  <p className="text-base font-bold text-foreground mb-1">{project.name}</p>
-                  <p className="text-xs text-muted-foreground mb-5">
-                    Last active {project.lastActive}
-                  </p>
-
-                  {/* Members + link count */}
-                  <div className="flex items-center justify-between">
-                    {/* Stacked avatars */}
-                    <div className="flex items-center">
-                      {project.members.map((initials, i) => (
-                        <div
-                          key={initials + i}
-                          className={`size-7 rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-surface ${
-                            AVATAR_COLORS[i % AVATAR_COLORS.length]
-                          } ${i > 0 ? '-ml-2' : ''}`}
+                      {/* Icon + Role badge */}
+                      <div className="flex items-start justify-between mb-5">
+                        <div className={`size-12 rounded-2xl ${colorSet.bg} flex items-center justify-center`}>
+                          <Briefcase className={`size-6 ${colorSet.text}`} />
+                        </div>
+                        <span
+                          className={`px-3 py-1 rounded-full text-[11px] font-bold tracking-wide ${
+                            role === 'ADMIN'
+                              ? 'bg-secondary text-primary'
+                              : 'bg-muted text-muted-foreground'
+                          }`}
                         >
-                          {initials}
+                          {role}
+                        </span>
+                      </div>
+
+                      {/* Name + last active */}
+                      <p className="text-base font-bold text-foreground mb-1">{project.name}</p>
+                      <p className="text-xs text-muted-foreground mb-5">
+                        Last active {timeAgo(project.updatedAt)}
+                      </p>
+
+                      {/* Members */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          {project.members.slice(0, 3).map((m, i) => (
+                            <div
+                              key={m.userId._id}
+                              className={`size-7 rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-surface ${
+                                AVATAR_COLORS[i % AVATAR_COLORS.length]
+                              } ${i > 0 ? '-ml-2' : ''}`}
+                            >
+                              {getInitials(m.userId.name)}
+                            </div>
+                          ))}
+                          {project.members.length > 3 && (
+                            <div className="size-7 rounded-full bg-muted text-muted-foreground text-[10px] font-bold flex items-center justify-center ring-2 ring-surface -ml-2">
+                              +{project.members.length - 3}
+                            </div>
+                          )}
                         </div>
-                      ))}
-                      {project.extraMembers > 0 && (
-                        <div className="size-7 rounded-full bg-muted text-muted-foreground text-[10px] font-bold flex items-center justify-center ring-2 ring-surface -ml-2">
-                          +{project.extraMembers}
+
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                          <Users className="size-4" />
+                          <span className="text-sm font-semibold">{project.members.length}</span>
                         </div>
-                      )}
+                      </div>
                     </div>
-
-                    {/* Link count */}
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                      <Link2 className="size-4" />
-                      <span className="text-sm font-semibold">{project.links}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Recent Activity */}
-          <div>
-            <h2 className="text-xl font-bold text-foreground mb-5">Recent Activity</h2>
-            <div className="bg-surface border border-border rounded-2xl divide-y divide-border">
-              {ACTIVITY.map((item) => (
-                <div key={item.id} className="flex items-center gap-4 px-6 py-5">
-                  {/* Avatar */}
-                  <div
-                    className={`size-10 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${item.avatarColor}`}
-                  >
-                    {item.avatar}
-                  </div>
-
-                  {/* Text */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-foreground">
-                      <span className="font-bold">{ACTIVITY_NAMES[item.avatar]}</span>{' '}
-                      {item.text}{' '}
-                      <span className={`font-bold ${item.projectColor}`}>
-                        {item.projectName}
-                      </span>
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{item.time}</p>
-                  </div>
-
-                  {/* View button */}
-                  <button
-                    type="button"
-                    className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer px-2"
-                  >
-                    View
-                  </button>
-                </div>
-              ))}
-            </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>

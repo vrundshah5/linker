@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
 import {
+  getStats,
   listUsers,
   toggleBan,
   getUserDetail,
@@ -15,6 +16,9 @@ const router = Router();
 
 router.use(requireAuth);
 router.use(requireAdmin);
+
+// Stats / Overview
+router.get('/stats', getStats);
 
 // Users
 router.get('/users', listUsers);

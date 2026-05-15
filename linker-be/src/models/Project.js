@@ -1,0 +1,22 @@
+import mongoose from 'mongoose';
+
+const projectSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    description: { type: String, default: '', trim: true },
+    ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    members: [
+      {
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        role: { type: String, enum: ['admin', 'member'], default: 'member' },
+      },
+    ],
+    color: { type: String, default: '#f59e0b' },
+  },
+  { timestamps: true }
+);
+
+projectSchema.index({ ownerId: 1 });
+projectSchema.index({ 'members.userId': 1 });
+
+export default mongoose.model('Project', projectSchema);

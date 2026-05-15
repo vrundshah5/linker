@@ -25,7 +25,9 @@ const AdminManageUsers = lazy(() => import('../pages/AdminManageUsers'))
 const AdminUserDetail = lazy(() => import('../pages/AdminUserDetail'))
 const AdminSystemReports = lazy(() => import('../pages/AdminSystemReports'))
 const AdminPlatformSettings = lazy(() => import('../pages/AdminPlatformSettings'))
+const AdminProfile = lazy(() => import('../pages/AdminProfile'))
 const Profile = lazy(() => import('../pages/Profile'))
+const ProfessionalProfile = lazy(() => import('../pages/ProfessionalProfile'))
 const Notifications = lazy(() => import('../pages/Notifications'))
 const Collection = lazy(() => import('../pages/Collection'))
 const PublicCollection = lazy(() => import('../pages/PublicCollection'))
@@ -51,17 +53,19 @@ export const routes: RouteObject[] = [
   { path: '/requests', element: <Requests /> },
   { path: '/archived', element: <ArchivedLinks /> },
   { path: '/professional-dashboard', element: <ProfessionalDashboard /> },
-  { path: '/projects/acme-corp-redesign/resources', element: <ProjectResources /> },
-  { path: '/projects/acme-corp-redesign/chat', element: <ProjectChat /> },
-  { path: '/projects/acme-corp-redesign/members', element: <ProjectTeamMembers /> },
-  { path: '/projects/acme-corp-redesign/settings', element: <ProjectSettings /> },
+  { path: '/projects/:projectId/resources', element: <ProjectResources /> },
+  { path: '/projects/:projectId/chat', element: <ProjectChat /> },
+  { path: '/projects/:projectId/members', element: <ProjectTeamMembers /> },
+  { path: '/projects/:projectId/settings', element: <ProjectSettings /> },
   { path: '/admin/overview', element: <AdminOverview /> },
   { path: '/admin/categories', element: <AdminGlobalCategories /> },
   { path: '/admin/users', element: <AdminManageUsers /> },
   { path: '/admin/users/:id', element: <AdminUserDetail /> },
   { path: '/admin/reports', element: <AdminSystemReports /> },
   { path: '/admin/settings', element: <AdminPlatformSettings /> },
+  { path: '/admin/profile', element: <AdminProfile /> },
   { path: '/profile', element: <Profile /> },
+  { path: '/professional-profile', element: <ProfessionalProfile /> },
   { path: '/notifications', element: <Notifications /> },
   { path: '/collection', element: <Collection /> },
 

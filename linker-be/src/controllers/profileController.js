@@ -58,7 +58,6 @@ export const updateProfile = async (req, res) => {
 
 // PATCH /api/profile/workspace
 // Switch between personal and professional workspace.
-// Also marks hasProfessionalWorkspace = true when switching to professional.
 export const switchWorkspace = async (req, res) => {
   try {
     const { workspaceType } = req.body;
@@ -72,7 +71,6 @@ export const switchWorkspace = async (req, res) => {
     }
 
     const updateFields = { workspaceType };
-    if (workspaceType === 'professional') updateFields.hasProfessionalWorkspace = true;
 
     const user = await User.findByIdAndUpdate(
       req.user.id,

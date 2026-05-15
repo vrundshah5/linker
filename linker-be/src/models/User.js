@@ -56,8 +56,8 @@ const userSchema = new mongoose.Schema(
     company: { type: String, default: '' },
     website: { type: String, default: '' },
     bio: { type: String, default: '' },
-    // Whether user has ever completed professional onboarding
-    hasProfessionalWorkspace: { type: Boolean, default: false },
+    // Array of workspace types the user has set up
+    workspaces: { type: [String], enum: ['personal', 'professional'], default: [] },
     resetPasswordToken: {
       type: String,
       default: null,

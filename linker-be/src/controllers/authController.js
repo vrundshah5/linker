@@ -55,7 +55,7 @@ export const signup = async (req, res) => {
 
   return res.status(201).json({
     success: true,
-    data: { token, user: { id: user._id, name: user.name, email: user.email, role: user.role, onboardingComplete: user.onboardingComplete, workspaceType: user.workspaceType } },
+    data: { token, user: { id: user._id, name: user.name, email: user.email, role: user.role, onboardingComplete: user.onboardingComplete, workspaceType: user.workspaceType, workspaces: user.workspaces } },
     message: 'Account created successfully',
   });
 };
@@ -86,7 +86,7 @@ export const login = async (req, res) => {
 
   return res.status(200).json({
     success: true,
-    data: { token, user: { id: user._id, name: user.name, email: user.email, role: user.role, onboardingComplete: user.onboardingComplete, workspaceType: user.workspaceType } },
+    data: { token, user: { id: user._id, name: user.name, email: user.email, role: user.role, onboardingComplete: user.onboardingComplete, workspaceType: user.workspaceType, workspaces: user.workspaces } },
     message: 'Logged in successfully',
   });
 };

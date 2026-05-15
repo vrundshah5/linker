@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Mail, Phone, MapPin, Briefcase, Globe, Loader2, ArrowRight } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
-import AppLayout from '../components/layouts/AppLayout'
+import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
 import ConfirmModal from '../components/ui/ConfirmModal'
-import PageHeader from '../components/ui/PageHeader'
 import { useProfile, useUpdateProfile, useSwitchWorkspace } from '../hooks/useProfile'
 
 function getInitials(name: string) {
@@ -13,8 +11,7 @@ function getInitials(name: string) {
     : name.slice(0, 2).toUpperCase()
 }
 
-export default function Profile() {
-  const navigate = useNavigate()
+export default function ProfessionalProfile() {
   const { data: profile, isLoading } = useProfile()
   const { mutate: saveProfile, isPending: saving } = useUpdateProfile()
   const { mutate: switchWorkspace, isPending: switching } = useSwitchWorkspace()
@@ -26,10 +23,8 @@ export default function Profile() {
   const [company, setCompany]   = useState('')
   const [website, setWebsite]   = useState('')
   const [bio, setBio]           = useState('')
-  const [search, setSearch]     = useState('')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
-  // Populate form once profile loads
   useEffect(() => {
     if (profile) {
       setName(profile.name ?? '')
@@ -57,20 +52,25 @@ export default function Profile() {
     saveProfile({ name, phone, location, jobTitle, company, website, bio })
   }
 
-  const isPersonal = profile?.workspaceType === 'personal'
-  const hasPro     = profile?.workspaces?.includes('professional') === true
+  const hasPersonal = profile?.workspaces?.includes('personal') === true
 
   return (
     <>
-    <AppLayout>
+    <WorkspaceLayout>
       <div className="h-full flex flex-col overflow-hidden">
 
-        <PageHeader
-          title="My Profile"
-          subtitle="Manage your personal information and preferences."
-          searchValue={search}
-          onSearch={setSearch}
-        />
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-background border-b border-border px-8 py-4 shrink-0">
+          <h1
+            className="text-2xl font-bold text-foreground leading-tight"
+            style={{ fontFamily: 'var(--font-headings)' }}
+          >
+            My Profile
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Manage your professional information and preferences.
+          </p>
+        </div>
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-8 py-7 pb-28">
@@ -83,8 +83,8 @@ export default function Profile() {
 
             {/* Avatar card */}
             <div className="bg-surface border border-border rounded-2xl p-6 flex items-center gap-6">
-              <div className="size-20 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <span className="text-2xl font-bold text-primary">
+              <div className="size-20 rounded-full bg-warning/10 flex items-center justify-center shrink-0">
+                <span className="text-2xl font-bold text-warning">
                   {name ? getInitials(name) : '?'}
                 </span>
               </div>
@@ -93,44 +93,25 @@ export default function Profile() {
                 <p className="text-sm text-muted-foreground mt-0.5">
                   {[jobTitle, company].filter(Boolean).join(' · ') || 'No title set'}
                 </p>
-                <span className="mt-2 inline-block px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-semibold">
-                  Personal workspace
+                <span className="mt-2 inline-block px-2.5 py-0.5 rounded-full bg-warning/10 text-warning text-xs font-semibold">
+                  Professional workspace
                 </span>
               </div>
             </div>
 
-            {/* Professional workspace prompt — only for personal users who haven't set up pro yet */}
-            {isPersonal && !hasPro && (
-              <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-2xl p-5 flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-bold text-foreground">Want a Professional workspace?</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Collaborate with teams, manage projects, and share resources professionally.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => navigate('/onboard/professional')}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground text-sm font-bold rounded-xl hover:opacity-90 transition-opacity cursor-pointer shrink-0"
-                >
-                  Set up <ArrowRight className="size-4" />
-                </button>
-              </div>
-            )}
-
-            {/* Switch workspace — only show if user has both workspaces */}
-            {hasPro && isPersonal && (
+            {/* Switch to personal */}
+            {hasPersonal && (
               <div className="bg-surface border border-border rounded-2xl p-5 flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm font-bold text-foreground">Switch to Professional</p>
+                  <p className="text-sm font-bold text-foreground">Switch to Personal</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    You have a professional workspace set up.
+                    You have a personal workspace set up.
                   </p>
                 </div>
                 <button
                   type="button"
                   disabled={switching}
-                  onClick={() => switchWorkspace('professional')}
+                  onClick={() => switchWorkspace('personal')}
                   className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground text-sm font-bold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer shrink-0"
                 >
                   {switching ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
@@ -150,7 +131,7 @@ export default function Profile() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:border-warning transition-colors"
                   />
                 </div>
 
@@ -174,7 +155,7 @@ export default function Profile() {
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:border-warning transition-colors"
                   />
                 </div>
 
@@ -186,7 +167,7 @@ export default function Profile() {
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:border-warning transition-colors"
                   />
                 </div>
 
@@ -198,7 +179,7 @@ export default function Profile() {
                     type="url"
                     value={website}
                     onChange={(e) => setWebsite(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:border-warning transition-colors"
                   />
                 </div>
 
@@ -210,7 +191,7 @@ export default function Profile() {
                     type="text"
                     value={jobTitle}
                     onChange={(e) => setJobTitle(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:border-warning transition-colors"
                   />
                 </div>
 
@@ -220,7 +201,7 @@ export default function Profile() {
                     type="text"
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:border-warning transition-colors"
                   />
                 </div>
 
@@ -230,7 +211,7 @@ export default function Profile() {
                     rows={3}
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:border-primary transition-colors resize-none"
+                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:border-warning transition-colors resize-none"
                   />
                 </div>
               </div>
@@ -270,7 +251,7 @@ export default function Profile() {
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-2 px-6 py-2.5 bg-warning text-white font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
             >
               {saving && <Loader2 className="size-4 animate-spin" />}
               Save Changes
@@ -278,7 +259,7 @@ export default function Profile() {
           </div>
         )}
       </div>
-    </AppLayout>
+    </WorkspaceLayout>
 
     <ConfirmModal
       open={showDeleteModal}

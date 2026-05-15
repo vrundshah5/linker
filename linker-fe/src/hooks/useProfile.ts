@@ -43,7 +43,7 @@ export function useSwitchWorkspace() {
         const stored = JSON.parse(raw)
         localStorage.setItem(
           'user',
-          JSON.stringify({ ...stored, workspaceType: user.workspaceType })
+          JSON.stringify({ ...stored, workspaceType: user.workspaceType, workspaces: user.workspaces })
         )
       }
       if (user.workspaceType === 'professional') {

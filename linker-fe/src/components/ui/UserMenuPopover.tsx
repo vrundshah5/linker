@@ -6,11 +6,13 @@ interface UserMenuPopoverProps {
   children: (open: boolean) => ReactNode
   accentClass: string
   accentBg: string
+  /** Override the profile route (defaults to /profile). */
+  profilePath?: string
   /** Route to switch workspace mode. If provided shows a Switch option. */
   switchTo?: { label: string; path: string; onSwitch?: () => void }
 }
 
-export default function UserMenuPopover({ children, accentClass, accentBg, switchTo }: UserMenuPopoverProps) {
+export default function UserMenuPopover({ children, accentClass, accentBg, profilePath = '/profile', switchTo }: UserMenuPopoverProps) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
@@ -40,7 +42,7 @@ export default function UserMenuPopover({ children, accentClass, accentBg, switc
           {/* Profile option */}
           <button
             type="button"
-            onClick={() => { setOpen(false); navigate('/profile') }}
+            onClick={() => { setOpen(false); navigate(profilePath) }}
             className="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
           >
             <div className={`size-7 rounded-lg ${accentBg} flex items-center justify-center shrink-0`}>

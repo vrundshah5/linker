@@ -10,6 +10,7 @@ export const queryKeys = {
   },
   admin: {
     all: ['admin'] as const,
+    stats: () => [...queryKeys.admin.all, 'stats'] as const,
     users: (params?: object) => [...queryKeys.admin.all, 'users', params] as const,
     userDetail: (id: string) => [...queryKeys.admin.all, 'users', id] as const,
     globalCategories: (search?: string) => [...queryKeys.admin.all, 'globalCategories', search] as const,
@@ -36,5 +37,11 @@ export const queryKeys = {
   },
   profile: {
     me: ['profile', 'me'] as const,
+  },
+  projects: {
+    all: ['projects'] as const,
+    stats: (id: string) => ['projects', 'stats', id] as const,
+    resources: (id: string) => ['projects', 'resources', id] as const,
+    messages: (id: string) => ['projects', 'messages', id] as const,
   },
 } as const

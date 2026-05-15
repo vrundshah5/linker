@@ -1,32 +1,36 @@
 import { useState, useRef, useEffect } from 'react'
+import { useParams } from 'react-router-dom'
 import { Briefcase, ChevronDown, Pencil } from 'lucide-react'
 import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
 import ConfirmModal from '../components/ui/ConfirmModal'
-import BellButton from '../components/ui/BellButton'
 import PageHeader from '../components/ui/PageHeader'
+import { useProject, useProjects, useUpdateProject, useDeleteProject } from '../hooks/useProjects'
 
-interface Project {
-  id: string
-  name: string
-  iconBg: string
-  iconColor: string
-}
-
-const PROJECTS: Project[] = [
-  { id: 'acme', name: 'Acme Corp Redesign', iconBg: 'bg-warning/15', iconColor: 'text-warning' },
-  { id: 'marketing', name: 'Marketing Q4 Campaign', iconBg: 'bg-primary/10', iconColor: 'text-primary' },
-  { id: 'wiki', name: 'Internal Wiki Migration', iconBg: 'bg-success/15', iconColor: 'text-success' },
+const PROJECT_COLORS = [
+  { iconBg: 'bg-warning/15', iconColor: 'text-warning' },
+  { iconBg: 'bg-primary/10', iconColor: 'text-primary' },
+  { iconBg: 'bg-success/15', iconColor: 'text-success' },
+  { iconBg: 'bg-danger/10', iconColor: 'text-danger' },
 ]
 
 export default function ProjectSettings() {
-  const [dropdownOpen, setDropdownOpen] = useState(false)
-  const [selectedProject, setSelectedProject] = useState(PROJECTS[0])
-  const [projectName, setProjectName] = useState('Acme Corp Redesign')
+  const { projectId } = useParams<{ projectId: string }>()
+  const { data: project } = useProject(projectId)
+  const { data: projects } = useProjects()
+  const { mutate: updateProject } = useUpdateProject()
+  const { mutate: deleteProject } = useDeleteProject()
+  const [projectName, setProjectName] = useState('')
   const [canInvite, setCanInvite] = useState(false)
   const [canAddResources, setCanAddResources] = useState(true)
   const [search, setSearch] = useState('')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Sync project name when project data loads
+  useEffect(() => {
+    if (project) setProjectName(project.name)
+  }, [project])
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -68,42 +72,47 @@ export default function ProjectSettings() {
                 onClick={() => setDropdownOpen((v) => !v)}
                 className="w-full flex items-center gap-3 px-4 py-3 bg-background border border-border rounded-xl hover:border-primary/40 transition-colors cursor-pointer text-left"
               >
-                <div className={`size-8 rounded-lg ${selectedProject.iconBg} flex items-center justify-center shrink-0`}>
-                  <Briefcase className={`size-4 ${selectedProject.iconColor}`} />
-                </div>
+                {(() => {
+                  const idx = projects?.findIndex((p) => p._id === projectId) ?? 0
+                  const colors = PROJECT_COLORS[Math.max(0, idx) % PROJECT_COLORS.length]
+                  return (
+                    <div className={`size-8 rounded-lg ${colors.iconBg} flex items-center justify-center shrink-0`}>
+                      <Briefcase className={`size-4 ${colors.iconColor}`} />
+                    </div>
+                  )
+                })()}
                 <span className="flex-1 text-sm font-semibold text-foreground">
-                  {selectedProject.name}
+                  {project?.name ?? 'Project'}
                 </span>
                 <ChevronDown className={`size-4 text-muted-foreground transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
-              {dropdownOpen && (
+              {dropdownOpen && (projects?.length ?? 0) > 1 && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-surface border border-border rounded-xl shadow-lg z-20 overflow-hidden">
                   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-4 py-2.5 border-b border-border">
                     Switch Project Context
                   </p>
-                  {PROJECTS.map((project) => (
-                    <button
-                      key={project.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedProject(project)
-                        setDropdownOpen(false)
-                      }}
-                      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors cursor-pointer ${
-                        selectedProject.id === project.id
-                          ? 'bg-warning/10'
-                          : 'hover:bg-muted'
-                      }`}
-                    >
-                      <div className={`size-7 rounded-lg ${project.iconBg} flex items-center justify-center shrink-0`}>
-                        <Briefcase className={`size-3.5 ${project.iconColor}`} />
-                      </div>
-                      <span className={`text-sm font-semibold ${selectedProject.id === project.id ? 'text-warning' : 'text-foreground'}`}>
-                        {project.name}
-                      </span>
-                    </button>
-                  ))}
+                  {projects!.map((p, idx) => {
+                    const colors = PROJECT_COLORS[idx % PROJECT_COLORS.length]
+                    return (
+                      <a
+                        key={p._id}
+                        href={`/projects/${p._id}/settings`}
+                        className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors cursor-pointer ${
+                          p._id === projectId
+                            ? 'bg-warning/10'
+                            : 'hover:bg-muted'
+                        }`}
+                      >
+                        <div className={`size-7 rounded-lg ${colors.iconBg} flex items-center justify-center shrink-0`}>
+                          <Briefcase className={`size-3.5 ${colors.iconColor}`} />
+                        </div>
+                        <span className={`text-sm font-semibold ${p._id === projectId ? 'text-warning' : 'text-foreground'}`}>
+                          {p.name}
+                        </span>
+                      </a>
+                    )
+                  })}
                 </div>
               )}
             </div>
@@ -204,7 +213,9 @@ export default function ProjectSettings() {
         <div className="sticky bottom-0 bg-background border-t border-border px-8 py-4 flex justify-end">
           <button
             type="button"
-            className="px-6 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
+            onClick={() => projectId && updateProject({ id: projectId, name: projectName.trim() })}
+            disabled={!projectName.trim() || projectName.trim() === project?.name}
+            className="px-6 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Save Changes
           </button>
@@ -217,7 +228,10 @@ export default function ProjectSettings() {
       title="Delete Project"
       description="Are you sure you want to delete this project? All resources, members, and links will be permanently removed. This action cannot be undone."
       confirmLabel="Delete Project"
-      onConfirm={() => setShowDeleteModal(false)}
+      onConfirm={() => {
+        if (projectId) deleteProject(projectId)
+        setShowDeleteModal(false)
+      }}
       onCancel={() => setShowDeleteModal(false)}
     />
     </>
