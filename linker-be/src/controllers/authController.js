@@ -40,7 +40,7 @@ export const signup = async (req, res) => {
 
   return res.status(201).json({
     success: true,
-    data: { token, user: { id: user._id, name: user.name, email: user.email } },
+    data: { token, user: { id: user._id, name: user.name, email: user.email, role: user.role, onboardingComplete: user.onboardingComplete, workspaceType: user.workspaceType } },
     message: 'Account created successfully',
   });
 };
@@ -63,11 +63,15 @@ export const login = async (req, res) => {
     return res.status(401).json({ success: false, data: null, message: 'Invalid credentials' });
   }
 
+  if (user.isBanned) {
+    return res.status(403).json({ success: false, data: null, message: 'Your account has been suspended. Please contact support.' });
+  }
+
   const token = generateToken(user._id);
 
   return res.status(200).json({
     success: true,
-    data: { token, user: { id: user._id, name: user.name, email: user.email } },
+    data: { token, user: { id: user._id, name: user.name, email: user.email, role: user.role, onboardingComplete: user.onboardingComplete, workspaceType: user.workspaceType } },
     message: 'Logged in successfully',
   });
 };

@@ -13,6 +13,9 @@ import {
   Check,
   ArrowRight,
 } from 'lucide-react'
+import { useCompletePersonalOnboard } from '../hooks/onboard/useCompletePersonalOnboard'
+import OnboardSplash from '../components/ui/OnboardSplash'
+import { useCurrentUser } from '../hooks/useCurrentUser'
 
 interface Category {
   id: string
@@ -33,9 +36,12 @@ const CATEGORIES: Category[] = [
 
 export default function OnboardPersonal() {
   const navigate = useNavigate()
+  const user = useCurrentUser()
   const [selected, setSelected] = useState<Set<string>>(
     new Set(['design', 'devtools', 'readlater']),
   )
+  const [showSplash, setShowSplash] = useState(false)
+  const { mutateAsync: completeOnboard, isPending } = useCompletePersonalOnboard()
 
   function toggleCategory(id: string) {
     setSelected((prev) => {
@@ -45,13 +51,20 @@ export default function OnboardPersonal() {
     })
   }
 
-  function handleContinue() {
-    // TODO: persist selected categories
-    navigate('/dashboard')
+  async function handleContinue() {
+    await completeOnboard(Array.from(selected))
+    setShowSplash(true)
   }
 
   return (
     <div className="min-h-screen w-full bg-background flex flex-col items-center py-20 px-6">
+      {showSplash && (
+        <OnboardSplash
+          userName={user.name}
+          workspaceType="personal"
+          onDone={() => navigate('/dashboard')}
+        />
+      )}
       {/* Logo */}
       <div className="flex items-center gap-3 mb-10">
         <div className="size-10 bg-primary text-primary-foreground rounded-xl flex items-center justify-center shadow-sm">
@@ -124,15 +137,22 @@ export default function OnboardPersonal() {
             onClick={() => navigate('/onboard')}
             className="px-4 py-3 text-muted-foreground font-bold hover:text-foreground transition-colors cursor-pointer"
           >
-            Skip for now
+            Back
           </button>
           <button
             type="button"
             onClick={handleContinue}
-            className="px-8 py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-sm hover:opacity-90 transition-opacity flex items-center gap-2 cursor-pointer"
+            disabled={isPending || selected.size === 0}
+            className="px-8 py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-sm hover:opacity-90 transition-opacity flex items-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Go to Dashboard
-            <ArrowRight className="size-4" />
+            {isPending && (
+              <svg className="animate-spin size-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+              </svg>
+            )}
+            {isPending ? 'Saving...' : 'Go to Dashboard'}
+            {!isPending && <ArrowRight className="size-4" />}
           </button>
         </div>
       </div>

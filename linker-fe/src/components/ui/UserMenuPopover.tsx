@@ -36,7 +36,7 @@ export default function UserMenuPopover({ children, accentClass, accentBg, switc
 
       {/* Dropdown — pops upward */}
       {open && (
-        <div className="absolute bottom-full left-0 mb-2 w-56 bg-surface border border-border rounded-2xl shadow-lg z-50 overflow-hidden">
+        <div className="absolute bottom-full left-0 mb-2 w-64 bg-surface border border-border rounded-2xl shadow-lg z-50 overflow-hidden">
           {/* Profile option */}
           <button
             type="button"
@@ -61,7 +61,7 @@ export default function UserMenuPopover({ children, accentClass, accentBg, switc
                 <div className="size-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <ArrowLeftRight className="size-3.5 text-primary" />
                 </div>
-                {switchTo.label}
+                <span className="whitespace-nowrap">{switchTo.label}</span>
               </button>
             </>
           )}

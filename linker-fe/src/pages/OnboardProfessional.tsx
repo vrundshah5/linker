@@ -4,6 +4,9 @@ import { Link, Mail, Link2, Plus, Trash2, X, User } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
+import { useCompleteProfessionalOnboard } from '../hooks/onboard/useCompleteProfessionalOnboard'
+import OnboardSplash from '../components/ui/OnboardSplash'
+import { useCurrentUser } from '../hooks/useCurrentUser'
 
 const schema = yup.object({
   projectName: yup
@@ -44,15 +47,18 @@ const INITIAL_RESOURCES: Resource[] = [
 
 export default function OnboardProfessional() {
   const navigate = useNavigate()
+  const user = useCurrentUser()
   const [inviteEmail, setInviteEmail] = useState('')
   const [members, setMembers] = useState<InvitedMember[]>(INITIAL_MEMBERS)
   const [resources, setResources] = useState<Resource[]>(INITIAL_RESOURCES)
   const [newResourceUrl, setNewResourceUrl] = useState('')
+  const [showSplash, setShowSplash] = useState(false)
+  const { mutateAsync: completeOnboard, isPending } = useCompleteProfessionalOnboard()
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<ProfessionalFormData>({
     resolver: yupResolver(schema),
     defaultValues: { projectName: 'Acme Corp Redesign' },
@@ -89,13 +95,25 @@ export default function OnboardProfessional() {
     setResources((prev) => prev.filter((r) => r.id !== id))
   }
 
-  async function onSubmit(_data: ProfessionalFormData) {
-    // TODO: wire up to onboarding service
-    navigate('/dashboard')
+  async function onSubmit(data: ProfessionalFormData) {
+    await completeOnboard({
+      projectName: data.projectName,
+      projectDescription: data.description,
+      invitedEmails: members.map((m) => m.email),
+      resources: resources.map((r) => r.url),
+    })
+    setShowSplash(true)
   }
 
   return (
     <div className="min-h-screen w-full bg-background flex flex-col items-center py-20 px-6">
+      {showSplash && (
+        <OnboardSplash
+          userName={user.name}
+          workspaceType="professional"
+          onDone={() => navigate('/professional-dashboard')}
+        />
+      )}
       {/* Logo */}
       <div className="flex items-center gap-3 mb-10">
         <div className="size-10 bg-primary text-primary-foreground rounded-xl flex items-center justify-center shadow-sm">
@@ -311,17 +329,23 @@ export default function OnboardProfessional() {
           <div className="flex items-center justify-between pt-6 border-t border-border mt-2">
             <button
               type="button"
-              onClick={() => history.back()}
+              onClick={() => navigate('/onboard')}
               className="px-6 py-3 text-muted-foreground font-bold hover:text-foreground transition-colors cursor-pointer"
             >
               Back
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="px-8 py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              disabled={isPending}
+              className="px-8 py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              {isSubmitting ? 'Creating...' : 'Create Workspace'}
+              {isPending && (
+                <svg className="animate-spin size-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                </svg>
+              )}
+              {isPending ? 'Creating...' : 'Create Workspace'}
             </button>
           </div>
         </form>

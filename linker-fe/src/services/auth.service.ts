@@ -4,6 +4,9 @@ export interface AuthUser {
   id: string
   name: string
   email: string
+  role: 'user' | 'admin'
+  onboardingComplete: boolean
+  workspaceType: 'personal' | 'professional' | null
 }
 
 export interface AuthResponse {

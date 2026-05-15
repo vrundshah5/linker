@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { UserPlus, Phone, MoreVertical, Link2, Smile, Send, Globe, Bookmark } from 'lucide-react'
+import { UserPlus, Phone, MoreVertical, Link2, Smile, Send, Globe, BookmarkPlus, CheckCheck, Mail } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
 
 interface Contact {
@@ -97,49 +97,40 @@ export default function Messages() {
       <div className="flex h-full overflow-hidden">
 
         {/* ── Left panel ── */}
-        <div className="w-[280px] shrink-0 border-r border-border bg-surface flex flex-col">
+        <div className="w-80 shrink-0 border-r border-border bg-surface flex flex-col z-10">
 
-          {/* Heading */}
-          <div className="px-5 pt-6 pb-5 shrink-0">
-            <h1
-              className="text-xl font-bold text-foreground"
-              style={{ fontFamily: 'var(--font-headings)' }}
-            >
+          {/* Header + Add friend */}
+          <div className="p-6 border-b border-border shrink-0">
+            <h1 className="text-2xl font-bold text-foreground mb-6" style={{ fontFamily: 'var(--font-headings)' }}>
               Messages
             </h1>
-          </div>
-
-          {/* Add friend */}
-          <div className="px-4 pb-4 shrink-0">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2.5 px-1">
-              Add Friend
-            </p>
-            <div className="flex items-center gap-2">
-              <div className="flex-1 flex items-center gap-2 px-3 py-2.5 bg-input border border-border rounded-xl focus-within:border-primary transition-colors">
-                <svg className="size-4 text-muted-foreground shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                <input
-                  type="email"
-                  value={friendEmail}
-                  onChange={(e) => setFriendEmail(e.target.value)}
-                  placeholder="Friend's email"
-                  className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground min-w-0"
-                />
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                Add Friend
+              </label>
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-input border border-border rounded-xl focus-within:border-primary transition-colors text-sm min-w-0">
+                  <Mail className="size-4 text-muted-foreground shrink-0" />
+                  <input
+                    type="email"
+                    value={friendEmail}
+                    onChange={(e) => setFriendEmail(e.target.value)}
+                    placeholder="Friend's email"
+                    className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground min-w-0"
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="size-9 shrink-0 bg-primary text-primary-foreground rounded-xl flex items-center justify-center hover:opacity-90 transition-opacity cursor-pointer"
+                >
+                  <UserPlus className="size-[18px]" />
+                </button>
               </div>
-              <button
-                type="button"
-                className="size-10 shrink-0 bg-primary text-primary-foreground rounded-xl flex items-center justify-center hover:opacity-90 transition-opacity cursor-pointer"
-              >
-                <UserPlus className="size-[18px]" />
-              </button>
             </div>
           </div>
 
-          <div className="h-px bg-border shrink-0" />
-
           {/* Contact list */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
             {CONTACTS.map((contact) => {
               const isActive = contact.id === activeContact.id
               return (
@@ -147,45 +138,37 @@ export default function Messages() {
                   key={contact.id}
                   type="button"
                   onClick={() => setActiveContact(contact)}
-                  className={`w-full flex items-center gap-3 px-4 py-3.5 transition-colors cursor-pointer text-left border-b border-border/40 ${
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl transition-colors cursor-pointer text-left ${
                     isActive ? 'bg-secondary' : 'hover:bg-muted'
                   }`}
                 >
                   {/* Avatar */}
                   <div className="relative shrink-0">
-                    <div className={`size-11 rounded-full flex items-center justify-center text-sm font-bold ring-2 ${
-                      isActive ? 'ring-primary/20' : 'ring-transparent'
-                    } ${contact.avatarColor}`}>
+                    <div className={`size-10 rounded-full flex items-center justify-center text-sm font-bold ${contact.avatarColor}`}>
                       {contact.initials}
                     </div>
                     {contact.online && (
-                      <span className="absolute bottom-0.5 right-0.5 size-2.5 rounded-full bg-success border-2 border-surface" />
+                      <span className="absolute bottom-0 right-0 size-3 rounded-full bg-success border-2 border-surface" />
                     )}
                   </div>
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-bold truncate mb-1 ${
-                      isActive ? 'text-primary' : 'text-foreground'
-                    }`} style={{ fontFamily: 'var(--font-headings)' }}>
-                      {contact.name}
-                    </p>
-                    <p className={`text-xs truncate ${
-                      isActive ? 'text-primary/70' : 'text-muted-foreground'
-                    }`}>{contact.preview}</p>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span className={`text-sm font-bold truncate ${isActive ? 'text-primary' : 'text-foreground'}`}>
+                        {contact.name}
+                      </span>
+                      <span className="text-xs text-muted-foreground shrink-0">{contact.time}</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground truncate block">{contact.preview}</span>
                   </div>
 
-                  {/* Time + unread badge in right column */}
-                  <div className="shrink-0 flex flex-col items-end gap-1.5">
-                    <span className="text-[11px] text-muted-foreground">{contact.time}</span>
-                    {contact.unread ? (
-                      <span className="min-w-[20px] h-5 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
-                        {contact.unread}
-                      </span>
-                    ) : (
-                      <span className="h-5" />
-                    )}
-                  </div>
+                  {/* Unread badge */}
+                  {contact.unread ? (
+                    <div className="size-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px] font-bold shrink-0">
+                      {contact.unread}
+                    </div>
+                  ) : null}
                 </button>
               )
             })}
@@ -193,42 +176,40 @@ export default function Messages() {
         </div>
 
         {/* ── Right panel: chat ── */}
-        <div className="flex-1 flex flex-col overflow-hidden bg-background">
+        <div className="flex-1 flex flex-col overflow-hidden bg-[#fcfcfc]">
 
           {/* Chat header */}
-          <div className="shrink-0 flex items-center justify-between px-6 py-4 bg-surface border-b border-border">
-            <div className="flex items-center gap-3">
-              <div className="shrink-0">
-                <div className={`size-11 rounded-full flex items-center justify-center text-sm font-bold ${activeContact.avatarColor}`}>
-                  {activeContact.initials}
-                </div>
+          <div className="h-[88px] shrink-0 flex items-center justify-between px-8 bg-surface border-b border-border z-10">
+            <div className="flex items-center gap-4">
+              <div className={`size-12 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${activeContact.avatarColor}`}>
+                {activeContact.initials}
               </div>
               <div>
-                <p className="text-base font-bold text-foreground leading-tight" style={{ fontFamily: 'var(--font-headings)' }}>{activeContact.name}</p>
+                <h3 className="text-lg font-bold text-foreground">{activeContact.name}</h3>
                 {activeContact.online && (
-                  <p className="text-xs font-semibold mt-0.5 flex items-center gap-1.5">
-                    <span className="size-2 rounded-full bg-success inline-block" />
-                    <span className="text-success">Online</span>
-                  </p>
+                  <div className="flex items-center gap-1.5 text-sm text-success font-medium">
+                    <span className="size-2 rounded-full bg-success" />
+                    Online
+                  </div>
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button type="button" className="size-9 flex items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer">
-                <Phone className="size-4" />
+            <div className="flex items-center gap-3">
+              <button type="button" className="size-10 rounded-xl border border-border text-muted-foreground hover:text-foreground hover:bg-muted flex items-center justify-center transition-colors cursor-pointer">
+                <Phone className="size-[18px]" />
               </button>
-              <button type="button" className="size-9 flex items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer">
-                <MoreVertical className="size-4" />
+              <button type="button" className="size-10 rounded-xl border border-border text-muted-foreground hover:text-foreground hover:bg-muted flex items-center justify-center transition-colors cursor-pointer">
+                <MoreVertical className="size-[18px]" />
               </button>
             </div>
           </div>
 
           {/* Messages area */}
-          <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-4">
+          <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-6">
 
             {/* Date separator */}
-            <div className="flex items-center justify-center my-1">
-              <span className="px-4 py-1.5 bg-muted text-muted-foreground text-xs font-semibold rounded-full">
+            <div className="text-center">
+              <span className="inline-block px-3 py-1 bg-border rounded-lg text-xs font-bold text-muted-foreground">
                 Today
               </span>
             </div>
@@ -239,40 +220,40 @@ export default function Messages() {
               /* ── Link card ── */
               if (msg.type === 'link' && msg.link) {
                 return (
-                  <div key={msg.id} className="flex items-end gap-3">
-                    <div className={`size-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${activeContact.avatarColor}`}>
-                      {activeContact.initials}
-                    </div>
-                    <div className="max-w-[340px]">
-                      <div className="bg-secondary border border-primary/10 rounded-2xl overflow-hidden">
-                        <div className="flex items-center gap-3 px-4 py-4">
-                          <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <div key={msg.id} className="flex items-start gap-4">
+                    {/* Invisible spacer to align with text bubble above */}
+                    <div className="size-8 rounded-full shrink-0 opacity-0" />
+                    <div className="max-w-[70%] w-[400px]">
+                      <div className="bg-surface border border-border rounded-2xl rounded-tl-sm shadow-sm overflow-hidden mb-1">
+                        {/* Link preview header */}
+                        <div className="p-4 bg-secondary/50 border-b border-border flex items-center gap-3">
+                          <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                             <Globe className="size-5 text-primary" />
                           </div>
-                          <div className="min-w-0">
-                            <p className="text-sm font-bold text-foreground leading-snug">{msg.link.title}</p>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-sm font-bold text-foreground truncate">{msg.link.title}</h4>
                             <a
                               href={msg.link.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-xs text-primary hover:underline truncate block mt-0.5"
+                              className="text-xs text-primary truncate hover:underline block mt-0.5"
                             >
                               {msg.link.url}
                             </a>
                           </div>
                         </div>
-                        <div className="flex items-center border-t border-primary/10">
-                          <button type="button" className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-primary hover:bg-primary/10 transition-colors cursor-pointer">
-                            <Bookmark className="size-3.5" />
+                        {/* Actions */}
+                        <div className="px-4 py-3 flex items-center justify-between bg-surface">
+                          <button type="button" className="text-xs font-bold text-primary flex items-center gap-1 hover:opacity-80 transition-opacity cursor-pointer">
+                            <BookmarkPlus className="size-3.5" />
                             Save to Category
                           </button>
-                          <div className="w-px h-7 bg-primary/10" />
-                          <button type="button" className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer">
+                          <button type="button" className="text-xs font-bold text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
                             Open Link
                           </button>
                         </div>
                       </div>
-                      <p className="text-[11px] text-muted-foreground mt-1.5 px-1">{msg.time}</p>
+                      <span className="text-xs text-muted-foreground ml-1">{msg.time}</span>
                     </div>
                   </div>
                 )
@@ -280,27 +261,25 @@ export default function Messages() {
 
               /* ── Text bubble ── */
               return (
-                <div key={msg.id} className={`flex items-end gap-3 ${isMe ? 'flex-row-reverse' : ''}`}>
+                <div key={msg.id} className={`flex items-start gap-4 ${isMe ? 'justify-end' : ''}`}>
                   {!isMe && (
-                    <div className={`size-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${activeContact.avatarColor}`}>
+                    <div className={`size-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${activeContact.avatarColor}`}>
                       {activeContact.initials}
                     </div>
                   )}
 
-                  <div className={`flex flex-col max-w-[480px] ${isMe ? 'items-end' : 'items-start'}`}>
-                    <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                  <div className={`max-w-[70%] flex flex-col ${isMe ? 'items-end' : ''}`}>
+                    <div className={`p-4 shadow-sm text-sm mb-1 ${
                       isMe
-                        ? 'bg-primary text-primary-foreground rounded-br-none'
-                        : 'bg-surface border border-border text-foreground rounded-bl-none shadow-sm'
+                        ? 'bg-primary text-primary-foreground rounded-2xl rounded-tr-sm'
+                        : 'bg-surface border border-border text-foreground rounded-2xl rounded-tl-sm'
                     }`}>
                       {msg.text}
                     </div>
-                    <div className={`flex items-center gap-1.5 mt-1.5 px-1 ${isMe ? 'flex-row-reverse' : ''}`}>
-                      <span className="text-[11px] text-muted-foreground">{msg.time}</span>
+                    <div className={`flex items-center gap-1 text-xs text-muted-foreground ${isMe ? 'mr-1' : 'ml-1'}`}>
+                      {msg.time}
                       {isMe && msg.seen && (
-                        <svg className="size-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l4.5 4.5 9-9M9 12.75l4.5 4.5" />
-                        </svg>
+                        <CheckCheck className="size-3.5 text-primary" />
                       )}
                     </div>
                   </div>
@@ -310,12 +289,12 @@ export default function Messages() {
           </div>
 
           {/* Input bar */}
-          <div className="shrink-0 px-6 py-4 bg-background border-t border-border">
-            <div className="flex items-center gap-3 px-4 py-3 bg-input border border-border rounded-2xl focus-within:border-primary transition-colors">
-              <button type="button" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer shrink-0">
+          <div className="p-6 bg-surface border-t border-border shrink-0 z-10">
+            <div className="flex items-center gap-3 bg-input border border-border rounded-2xl p-2 shadow-sm">
+              <button type="button" className="size-10 flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-secondary rounded-xl shrink-0 transition-colors cursor-pointer">
                 <Link2 className="size-5" />
               </button>
-              <button type="button" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer shrink-0">
+              <button type="button" className="size-10 flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-secondary rounded-xl shrink-0 transition-colors cursor-pointer">
                 <Smile className="size-5" />
               </button>
               <input
@@ -323,15 +302,15 @@ export default function Messages() {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Type a message or paste a link..."
-                className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground min-w-0"
+                className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground min-w-0 px-2"
                 onKeyDown={(e) => { if (e.key === 'Enter') setInputValue('') }}
               />
               <button
                 type="button"
-                className="flex items-center gap-2 px-5 py-2 bg-primary text-primary-foreground text-sm font-bold rounded-xl hover:opacity-90 transition-opacity cursor-pointer shrink-0"
+                className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground text-sm font-bold rounded-xl shadow-sm hover:opacity-90 transition-opacity cursor-pointer shrink-0"
               >
                 Send
-                <Send className="size-3.5" />
+                <Send className="size-4" />
               </button>
             </div>
           </div>
@@ -341,3 +320,4 @@ export default function Messages() {
     </AppLayout>
   )
 }
+

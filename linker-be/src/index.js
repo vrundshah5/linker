@@ -2,6 +2,8 @@ import express from 'express';
 import mongoose from 'mongoose';
 import 'dotenv/config';
 import authRoutes from './routes/auth.js';
+import onboardRoutes from './routes/onboard.js';
+import adminRoutes from './routes/admin.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -26,6 +28,12 @@ app.get('/', (_req, res) => {
 
 // Auth routes
 app.use('/api/auth', authRoutes);
+
+// Onboard routes
+app.use('/api/onboard', onboardRoutes);
+
+// Admin routes
+app.use('/api/admin', adminRoutes);
 
 mongoose
   .connect(MONGO_URI)

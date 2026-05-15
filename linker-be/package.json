@@ -6,10 +6,10 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "migrate:up": "migrate-mongo up",
-    "migrate:down": "migrate-mongo down",
-    "migrate:status": "migrate-mongo status",
-    "migrate:create": "migrate-mongo create",
+    "migrate:up": "migrate-mongo up --file migrate-mongo-config.cjs",
+    "migrate:down": "migrate-mongo down --file migrate-mongo-config.cjs",
+    "migrate:status": "migrate-mongo status --file migrate-mongo-config.cjs",
+    "migrate:create": "migrate-mongo create --file migrate-mongo-config.cjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

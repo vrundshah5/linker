@@ -44,6 +44,11 @@ body {
   display: none;
 }
 
+/* Counteract html zoom:0.8 so Sonner toast animations don't flicker */
+[data-sonner-toaster] {
+  zoom: 1.25 !important;
+}
+
 :root {
   --text: #6b6375;
   --text-h: #08060d;

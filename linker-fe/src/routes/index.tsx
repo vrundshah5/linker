@@ -16,6 +16,7 @@ const Messages = lazy(() => import('../pages/Messages'))
 const ArchivedLinks = lazy(() => import('../pages/ArchivedLinks'))
 const ProfessionalDashboard = lazy(() => import('../pages/ProfessionalDashboard'))
 const ProjectResources = lazy(() => import('../pages/ProjectResources'))
+const ProjectChat = lazy(() => import('../pages/ProjectChat'))
 const ProjectTeamMembers = lazy(() => import('../pages/ProjectTeamMembers'))
 const ProjectSettings = lazy(() => import('../pages/ProjectSettings'))
 const AdminOverview = lazy(() => import('../pages/AdminOverview'))
@@ -47,6 +48,7 @@ export const routes: RouteObject[] = [
   { path: '/archived', element: <ArchivedLinks /> },
   { path: '/professional-dashboard', element: <ProfessionalDashboard /> },
   { path: '/projects/acme-corp-redesign/resources', element: <ProjectResources /> },
+  { path: '/projects/acme-corp-redesign/chat', element: <ProjectChat /> },
   { path: '/projects/acme-corp-redesign/members', element: <ProjectTeamMembers /> },
   { path: '/projects/acme-corp-redesign/settings', element: <ProjectSettings /> },
   { path: '/admin/overview', element: <AdminOverview /> },

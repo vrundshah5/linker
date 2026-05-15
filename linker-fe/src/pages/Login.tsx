@@ -31,8 +31,17 @@ export default function Login() {
   } = useForm<LoginFormData>({ resolver: yupResolver(schema) })
 
   async function onSubmit(data: LoginFormData): Promise<void> {
-    await login({ email: data.email, password: data.password })
-    navigate('/dashboard')
+    const res = await login({ email: data.email, password: data.password })
+    const { role, onboardingComplete, workspaceType } = res.data.user
+    if (role === 'admin') {
+      navigate('/admin/overview')
+    } else if (!onboardingComplete) {
+      navigate('/onboard')
+    } else if (workspaceType === 'professional') {
+      navigate('/professional-dashboard')
+    } else {
+      navigate('/dashboard')
+    }
   }
 
   return (

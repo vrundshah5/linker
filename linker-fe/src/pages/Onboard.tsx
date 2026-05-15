@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Link, User, Briefcase, Check, ArrowRight } from 'lucide-react'
+import { useSelectWorkspaceType } from '../hooks/onboard/useSelectWorkspaceType'
 
 type PlanType = 'personal' | 'professional'
 
@@ -26,10 +27,12 @@ const PLANS: {
 
 export default function Onboard() {
   const navigate = useNavigate()
-  const [selected, setSelected] = useState<PlanType>('professional')
+  const [selected, setSelected] = useState<PlanType>('personal')
+  const { mutateAsync: selectType, isPending } = useSelectWorkspaceType()
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    await selectType(selected)
     navigate(`/onboard/${selected}`)
   }
 
@@ -108,8 +111,15 @@ export default function Onboard() {
           {/* CTA */}
           <button
             type="submit"
-            className="px-10 py-4 bg-primary text-primary-foreground font-bold rounded-xl shadow-sm text-lg w-full max-w-md hover:opacity-90 transition-opacity flex items-center justify-center gap-2 cursor-pointer"
+            disabled={isPending}
+            className="px-10 py-4 bg-primary text-primary-foreground font-bold rounded-xl shadow-sm text-lg w-full max-w-md hover:opacity-90 transition-opacity flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
+            {isPending && (
+              <svg className="animate-spin size-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+              </svg>
+            )}
             Continue to Setup
             <ArrowRight className="size-5" />
           </button>
