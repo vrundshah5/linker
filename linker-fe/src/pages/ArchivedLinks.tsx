@@ -1,70 +1,36 @@
-import { useState } from 'react'
-import { Globe } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Globe, Loader2 } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
 import PageHeader from '../components/ui/PageHeader'
+import { useArchivedLinks } from '../hooks/links/useArchivedLinks'
 
-interface ArchivedLink {
-  id: number
-  title: string
-  url: string
-  categories: string[]
-  date: string
+function getFavicon(url: string) {
+  try {
+    const { hostname } = new URL(url)
+    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`
+  } catch {
+    return null
+  }
 }
 
-const ARCHIVED_LINKS: ArchivedLink[] = [
-  {
-    id: 1,
-    title: 'Old UI/UX Trends 2022',
-    url: 'https://awwwards.com/old-trends',
-    categories: ['Design Inspiration'],
-    date: 'Jan 15, 2023',
-  },
-  {
-    id: 2,
-    title: 'Deprecated React Features',
-    url: 'https://reactjs.org/docs/legacy',
-    categories: ['Dev Tools'],
-    date: 'Mar 10, 2023',
-  },
-  {
-    id: 3,
-    title: 'SEO Strategies 2021',
-    url: 'https://moz.com/seo-2021',
-    categories: ['Marketing'],
-    date: 'Feb 28, 2023',
-  },
-  {
-    id: 4,
-    title: 'Archived Portfolio V1',
-    url: 'https://my-old-portfolio.com',
-    categories: ['Design Inspiration', 'Personal'],
-    date: 'Dec 05, 2022',
-  },
-  {
-    id: 5,
-    title: 'Idea: Social Network for Pets',
-    url: 'https://github.com/ideas/1',
-    categories: ['Project Ideas'],
-    date: 'Aug 12, 2023',
-  },
-]
-
-const CATEGORY_FILTERS = [
-  'All',
-  'Design Inspiration',
-  'Dev Tools',
-  'Marketing',
-  'Project Ideas',
-  'Read Later',
-]
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+}
 
 export default function ArchivedLinks() {
   const [activeFilter, setActiveFilter] = useState('All')
   const [search, setSearch] = useState('')
 
-  const visibleLinks = ARCHIVED_LINKS.filter((link) => {
+  const { data: archivedLinks = [], isLoading, isError } = useArchivedLinks()
+
+  const categoryFilters = useMemo(() => {
+    const names = archivedLinks.map((l) => l.categoryId.name)
+    return ['All', ...Array.from(new Set(names))]
+  }, [archivedLinks])
+
+  const visibleLinks = archivedLinks.filter((link) => {
     const matchesCategory =
-      activeFilter === 'All' || link.categories.includes(activeFilter)
+      activeFilter === 'All' || link.categoryId.name === activeFilter
     const matchesSearch =
       search.trim() === '' ||
       link.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -91,7 +57,7 @@ export default function ArchivedLinks() {
           <div className="mb-6">
             <p className="text-sm font-bold text-foreground mb-3">Filter by Category</p>
             <div className="flex flex-wrap items-center gap-2">
-              {CATEGORY_FILTERS.map((filter) => (
+              {categoryFilters.map((filter) => (
                 <button
                   key={filter}
                   type="button"
@@ -110,57 +76,86 @@ export default function ArchivedLinks() {
 
           <div className="border-t border-border mb-6" />
 
-          {/* Result heading */}
-          <p className="text-base font-bold text-foreground mb-5">
-            {headingText}{' '}
-            <span className="font-normal text-muted-foreground">
-              ({visibleLinks.length} link{visibleLinks.length !== 1 ? 's' : ''})
-            </span>
-          </p>
-
-          {/* Link rows */}
-          <div className="flex flex-col gap-3">
-            {visibleLinks.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-8 text-center">
-                No archived links found.
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="size-6 text-muted-foreground animate-spin" />
+            </div>
+          ) : isError ? (
+            <p className="text-sm text-destructive py-8 text-center">Failed to load archived links.</p>
+          ) : (
+            <>
+              {/* Result heading */}
+              <p className="text-base font-bold text-foreground mb-5">
+                {headingText}{' '}
+                <span className="font-normal text-muted-foreground">
+                  ({visibleLinks.length} link{visibleLinks.length !== 1 ? 's' : ''})
+                </span>
               </p>
-            ) : (
-              visibleLinks.map((link) => (
-                <div
-                  key={link.id}
-                  className="flex items-center gap-5 px-6 py-5 bg-surface border border-border rounded-2xl hover:border-primary/30 hover:shadow-sm transition-all"
-                >
-                  {/* Globe icon */}
-                  <div className="size-11 rounded-xl bg-muted flex items-center justify-center shrink-0">
-                    <Globe className="size-5 text-muted-foreground" />
-                  </div>
 
-                  {/* Title + URL */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-foreground leading-snug mb-0.5 truncate">
-                      {link.title}
-                    </p>
-                    <p className="text-xs text-primary truncate">{link.url}</p>
-                  </div>
-
-                  {/* Category badges */}
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    {link.categories.map((cat) => (
-                      <span
-                        key={cat}
-                        className="px-3 py-1 bg-secondary text-primary text-xs font-semibold rounded-full"
+              {/* Link rows */}
+              <div className="flex flex-col gap-3">
+                {visibleLinks.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-8 text-center">
+                    No archived links found.
+                  </p>
+                ) : (
+                  visibleLinks.map((link) => {
+                    const favicon = getFavicon(link.url)
+                    return (
+                      <div
+                        key={link._id}
+                        className="flex items-center gap-5 px-6 py-5 bg-surface border border-border rounded-2xl hover:border-primary/30 hover:shadow-sm transition-all"
                       >
-                        {cat}
-                      </span>
-                    ))}
-                  </div>
+                        {/* Favicon / Globe icon */}
+                        <div className="size-11 rounded-xl bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+                          {favicon ? (
+                            <img
+                              src={favicon}
+                              alt=""
+                              className="size-5"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none'
+                              }}
+                            />
+                          ) : (
+                            <Globe className="size-5 text-muted-foreground" />
+                          )}
+                        </div>
 
-                  {/* Date */}
-                  <p className="text-sm text-muted-foreground shrink-0 ml-2">{link.date}</p>
-                </div>
-              ))
-            )}
-          </div>
+                        {/* Title + URL */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-foreground leading-snug mb-0.5 truncate">
+                            {link.title}
+                          </p>
+                          <a
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-primary truncate block hover:underline"
+                          >
+                            {link.url}
+                          </a>
+                        </div>
+
+                        {/* Category badge */}
+                        <span
+                          className="px-3 py-1 bg-secondary text-primary text-xs font-semibold rounded-full shrink-0"
+                          style={{ borderColor: link.categoryId.themeColor, borderWidth: 1 }}
+                        >
+                          {link.categoryId.name}
+                        </span>
+
+                        {/* Date */}
+                        <p className="text-sm text-muted-foreground shrink-0 ml-2">
+                          {formatDate(link.createdAt)}
+                        </p>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </AppLayout>

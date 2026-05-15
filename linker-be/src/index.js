@@ -9,6 +9,7 @@ import linkRoutes from './routes/links.js';
 import publicRoutes from './routes/public.js';
 import notificationRoutes from './routes/notifications.js';
 import requestRoutes from './routes/requests.js';
+import messageRoutes from './routes/messages.js';
 import GlobalCategory from './models/GlobalCategory.js';
 
 const SEED_CATEGORIES = [
@@ -27,9 +28,18 @@ const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/linker';
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
-// CORS — allow the Vite frontend
+// CORS — allow the Vite frontend and browser extensions
 app.use((_req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', CLIENT_URL);
+  const origin = _req.headers.origin;
+  const isExtension =
+    typeof origin === 'string' &&
+    (origin.startsWith('chrome-extension://') || origin.startsWith('moz-extension://'));
+
+  if (isExtension) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', CLIENT_URL);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
   if (_req.method === 'OPTIONS') return res.sendStatus(204);
@@ -66,6 +76,9 @@ app.use('/api/notifications', notificationRoutes);
 
 // Request routes
 app.use('/api/requests', requestRoutes);
+
+// Message routes
+app.use('/api/messages', messageRoutes);
 
 mongoose
   .connect(MONGO_URI)

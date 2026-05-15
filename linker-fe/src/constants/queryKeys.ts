@@ -16,6 +16,7 @@ export const queryKeys = {
   },
   links: {
     all: ['links'] as const,
+    archived: () => [...queryKeys.links.all, 'archived'] as const,
     byCategory: (categoryId: string) => [...queryKeys.links.all, 'byCategory', categoryId] as const,
   },
   publicCollection: {
@@ -27,5 +28,10 @@ export const queryKeys = {
   },
   requests: {
     all: ['requests'] as const,
+  },
+  messages: {
+    all: ['messages'] as const,
+    conversations: () => [...['messages'], 'conversations'] as const,
+    thread: (userId: string) => [...['messages'], 'thread', userId] as const,
   },
 } as const

@@ -1,321 +1,399 @@
-import { useState } from 'react'
-import { UserPlus, Phone, MoreVertical, Link2, Smile, Send, Globe, BookmarkPlus, CheckCheck, Mail } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Send, MessageSquare, Loader2, ExternalLink, Globe } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
+import { useConversations, useMessages, useSendMessage, useMarkRead } from '../hooks/useMessages'
+import type { ConversationUser } from '../services/messageService'
 
-interface Contact {
-  id: number
-  name: string
-  preview: string
-  time: string
-  unread?: number
-  online?: boolean
-  initials: string
-  avatarColor: string
-}
-
-type MessageType = 'text' | 'link'
-
-interface Message {
-  id: number
-  type: MessageType
-  from: 'them' | 'me'
-  text?: string
-  link?: { title: string; url: string }
-  time: string
-  seen?: boolean
-}
-
-const CONTACTS: Contact[] = [
-  {
-    id: 1,
-    name: 'Sarah Connor',
-    preview: 'Sent a link...',
-    time: '12:30',
-    unread: 2,
-    online: true,
-    initials: 'SC',
-    avatarColor: 'bg-success/20 text-success',
-  },
-  {
-    id: 2,
-    name: 'John Smith',
-    preview: 'You: Thanks!',
-    time: '12:30',
-    initials: 'JS',
-    avatarColor: 'bg-warning/20 text-warning',
-  },
-  {
-    id: 3,
-    name: 'Emma Watson',
-    preview: 'You: Thanks!',
-    time: '12:30',
-    initials: 'EW',
-    avatarColor: 'bg-primary/15 text-primary',
-  },
-  {
-    id: 4,
-    name: 'Michael Doe',
-    preview: 'You: Thanks!',
-    time: '12:30',
-    initials: 'MD',
-    avatarColor: 'bg-danger/10 text-danger',
-  },
+const AVATAR_COLORS = [
+  'bg-primary/15 text-primary',
+  'bg-success/15 text-success',
+  'bg-warning/15 text-warning',
+  'bg-danger/10 text-danger',
 ]
 
-const MESSAGES: Message[] = [
-  {
-    id: 1,
-    type: 'text',
-    from: 'them',
-    text: "Hey! Have you seen this new design tool? I think it would be perfect for our next project.",
-    time: '12:28 PM',
-  },
-  {
-    id: 2,
-    type: 'link',
-    from: 'them',
-    link: { title: 'Mobbin - Mobile Design Patterns', url: 'https://mobbin.com' },
-    time: '12:30 PM',
-  },
-  {
-    id: 3,
-    type: 'text',
-    from: 'me',
-    text: "Oh wow, this looks exactly like what we need. Let me save it to the Design Inspiration category right now.",
-    time: '12:35 PM',
-    seen: true,
-  },
-]
+function initials(name: string) {
+  return name
+    .split(' ')
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+}
+
+function avatarColor(userId: string) {
+  let hash = 0
+  for (let i = 0; i < userId.length; i++) hash = userId.charCodeAt(i) + ((hash << 5) - hash)
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
+}
+
+function formatTime(iso: string) {
+  const d = new Date(iso)
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+function formatPreview(conv: ConversationUser) {
+  if (!conv.lastMessage) return 'No messages yet'
+  const prefix = conv.lastMessage.isFromMe ? 'You: ' : ''
+  return `${prefix}${conv.lastMessage.content}`
+}
+
+const URL_REGEX = /^(https?:\/\/)(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)$/i
+const URL_IN_TEXT_REGEX = /(https?:\/\/[^\s]+)/g
+
+function isUrl(text: string) {
+  return URL_REGEX.test(text.trim())
+}
+
+function getDomain(url: string) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    return url
+  }
+}
+
+interface LinkCardProps {
+  url: string
+  isMe: boolean
+}
+
+function LinkCard({ url, isMe }: LinkCardProps) {
+  const domain = getDomain(url)
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`group flex flex-col rounded-2xl overflow-hidden shadow-sm border transition-all hover:shadow-md w-72 ${
+        isMe
+          ? 'border-primary/30 bg-primary/10 rounded-br-sm'
+          : 'border-border bg-surface rounded-bl-sm'
+      }`}
+    >
+      {/* Top banner */}
+      <div className={`flex items-center gap-3 px-4 py-3 ${
+        isMe ? 'bg-primary/15' : 'bg-muted'
+      }`}>
+        <div className={`size-9 rounded-xl flex items-center justify-center shrink-0 ${
+          isMe ? 'bg-primary/20 text-primary' : 'bg-border text-muted-foreground'
+        }`}>
+          <Globe className="size-4" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className={`text-[11px] font-bold uppercase tracking-wider truncate ${
+            isMe ? 'text-primary/70' : 'text-muted-foreground'
+          }`}>Link</p>
+          <p className={`text-sm font-bold truncate ${
+            isMe ? 'text-primary' : 'text-foreground'
+          }`}>{domain}</p>
+        </div>
+      </div>
+
+      {/* URL row */}
+      <div className={`flex items-center justify-between gap-2 px-4 py-2.5 ${
+        isMe ? 'bg-primary/5' : 'bg-surface'
+      }`}>
+        <span className={`text-xs truncate ${
+          isMe ? 'text-primary/60' : 'text-muted-foreground'
+        }`}>{url}</span>
+        <span className={`shrink-0 flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg transition-colors ${
+          isMe
+            ? 'bg-primary text-primary-foreground group-hover:opacity-90'
+            : 'bg-foreground text-background group-hover:opacity-80'
+        }`}>
+          Open <ExternalLink className="size-3" />
+        </span>
+      </div>
+    </a>
+  )
+}
+
+function renderContent(text: string, isMe: boolean) {
+  if (isUrl(text.trim())) {
+    return <LinkCard url={text.trim()} isMe={isMe} />
+  }
+  // Inline URL linkification inside a text bubble
+  const parts = text.split(URL_IN_TEXT_REGEX)
+  return (
+    <>
+      {parts.map((part, i) =>
+        URL_IN_TEXT_REGEX.test(part) ? (
+          <a
+            key={i}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2 break-all hover:opacity-80"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {part}
+          </a>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  )
+}
+
+function getMyId(): string {
+  try {
+    const raw = localStorage.getItem('user')
+    if (raw) return (JSON.parse(raw) as { id: string }).id
+  } catch {
+    // ignore
+  }
+  return ''
+}
 
 export default function Messages() {
-  const [activeContact, setActiveContact] = useState<Contact>(CONTACTS[0])
+  const myId = getMyId()
+  const [activeUserId, setActiveUserId] = useState<string | null>(null)
   const [inputValue, setInputValue] = useState('')
-  const [friendEmail, setFriendEmail] = useState('')
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const { data: conversations = [], isLoading: loadingConvs } = useConversations()
+  const { data: messages = [], isLoading: loadingMsgs } = useMessages(activeUserId)
+  const { mutate: sendMessage, isPending: sending } = useSendMessage()
+  const { mutate: markRead } = useMarkRead()
+
+  const activeConv = conversations.find((c) => c.userId === activeUserId) ?? null
+
+  // Auto-select first conversation
+  useEffect(() => {
+    if (!activeUserId && conversations.length > 0) {
+      setActiveUserId(conversations[0].userId)
+    }
+  }, [conversations, activeUserId])
+
+  // Mark messages as read when opening a conversation
+  useEffect(() => {
+    if (activeUserId && activeConv && activeConv.unreadCount > 0) {
+      markRead(activeUserId)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeUserId, activeConv?.unreadCount])
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  function handleSend() {
+    const text = inputValue.trim()
+    if (!text || !activeUserId || sending) return
+    sendMessage({ userId: activeUserId, content: text })
+    setInputValue('')
+  }
 
   return (
     <AppLayout>
       <div className="flex h-full overflow-hidden">
 
-        {/* ── Left panel ── */}
+        {/* ── Left panel: conversations ── */}
         <div className="w-80 shrink-0 border-r border-border bg-surface flex flex-col z-10">
-
-          {/* Header + Add friend */}
           <div className="p-6 border-b border-border shrink-0">
-            <h1 className="text-2xl font-bold text-foreground mb-6" style={{ fontFamily: 'var(--font-headings)' }}>
+            <h1
+              className="text-2xl font-bold text-foreground"
+              style={{ fontFamily: 'var(--font-headings)' }}
+            >
               Messages
             </h1>
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                Add Friend
-              </label>
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-input border border-border rounded-xl focus-within:border-primary transition-colors text-sm min-w-0">
-                  <Mail className="size-4 text-muted-foreground shrink-0" />
-                  <input
-                    type="email"
-                    value={friendEmail}
-                    onChange={(e) => setFriendEmail(e.target.value)}
-                    placeholder="Friend's email"
-                    className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground min-w-0"
-                  />
-                </div>
-                <button
-                  type="button"
-                  className="size-9 shrink-0 bg-primary text-primary-foreground rounded-xl flex items-center justify-center hover:opacity-90 transition-opacity cursor-pointer"
-                >
-                  <UserPlus className="size-[18px]" />
-                </button>
-              </div>
-            </div>
+            <p className="text-sm text-muted-foreground mt-1">
+              Your accepted connections
+            </p>
           </div>
 
-          {/* Contact list */}
           <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
-            {CONTACTS.map((contact) => {
-              const isActive = contact.id === activeContact.id
-              return (
-                <button
-                  key={contact.id}
-                  type="button"
-                  onClick={() => setActiveContact(contact)}
-                  className={`w-full flex items-center gap-3 p-3 rounded-xl transition-colors cursor-pointer text-left ${
-                    isActive ? 'bg-secondary' : 'hover:bg-muted'
-                  }`}
-                >
-                  {/* Avatar */}
-                  <div className="relative shrink-0">
-                    <div className={`size-10 rounded-full flex items-center justify-center text-sm font-bold ${contact.avatarColor}`}>
-                      {contact.initials}
+            {loadingConvs ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="size-5 text-muted-foreground animate-spin" />
+              </div>
+            ) : conversations.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-3 text-center px-4">
+                <div className="size-12 rounded-2xl bg-muted flex items-center justify-center">
+                  <MessageSquare className="size-6 text-muted-foreground" />
+                </div>
+                <p className="text-sm font-semibold text-foreground">No connections yet</p>
+                <p className="text-xs text-muted-foreground">
+                  Accept or get a request accepted to start messaging
+                </p>
+              </div>
+            ) : (
+              conversations.map((conv) => {
+                const isActive = conv.userId === activeUserId
+                const color = avatarColor(conv.userId)
+                return (
+                  <button
+                    key={conv.userId}
+                    type="button"
+                    onClick={() => setActiveUserId(conv.userId)}
+                    className={`w-full flex items-center gap-3 p-3 rounded-xl transition-colors cursor-pointer text-left ${
+                      isActive ? 'bg-secondary' : 'hover:bg-muted'
+                    }`}
+                  >
+                    <div className="relative shrink-0">
+                      <div
+                        className={`size-10 rounded-full flex items-center justify-center text-sm font-bold ${color}`}
+                      >
+                        {initials(conv.name)}
+                      </div>
                     </div>
-                    {contact.online && (
-                      <span className="absolute bottom-0 right-0 size-3 rounded-full bg-success border-2 border-surface" />
-                    )}
-                  </div>
 
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-0.5">
-                      <span className={`text-sm font-bold truncate ${isActive ? 'text-primary' : 'text-foreground'}`}>
-                        {contact.name}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span
+                          className={`text-sm font-bold truncate ${
+                            isActive ? 'text-primary' : 'text-foreground'
+                          }`}
+                        >
+                          {conv.name}
+                        </span>
+                        {conv.lastMessage && (
+                          <span className="text-xs text-muted-foreground shrink-0">
+                            {formatTime(conv.lastMessage.createdAt)}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground truncate block">
+                        {formatPreview(conv)}
                       </span>
-                      <span className="text-xs text-muted-foreground shrink-0">{contact.time}</span>
                     </div>
-                    <span className="text-xs text-muted-foreground truncate block">{contact.preview}</span>
-                  </div>
 
-                  {/* Unread badge */}
-                  {contact.unread ? (
-                    <div className="size-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px] font-bold shrink-0">
-                      {contact.unread}
-                    </div>
-                  ) : null}
-                </button>
-              )
-            })}
+                    {conv.unreadCount > 0 && (
+                      <div className="size-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px] font-bold shrink-0">
+                        {conv.unreadCount > 9 ? '9+' : conv.unreadCount}
+                      </div>
+                    )}
+                  </button>
+                )
+              })
+            )}
           </div>
         </div>
 
         {/* ── Right panel: chat ── */}
-        <div className="flex-1 flex flex-col overflow-hidden bg-[#fcfcfc]">
+        {activeConv ? (
+          <div className="flex-1 flex flex-col overflow-hidden bg-[#fcfcfc]">
 
-          {/* Chat header */}
-          <div className="h-[88px] shrink-0 flex items-center justify-between px-8 bg-surface border-b border-border z-10">
-            <div className="flex items-center gap-4">
-              <div className={`size-12 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${activeContact.avatarColor}`}>
-                {activeContact.initials}
+            {/* Chat header */}
+            <div className="h-[72px] shrink-0 flex items-center px-8 bg-surface border-b border-border z-10 gap-4">
+              <div
+                className={`size-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${avatarColor(activeConv.userId)}`}
+              >
+                {initials(activeConv.name)}
               </div>
               <div>
-                <h3 className="text-lg font-bold text-foreground">{activeContact.name}</h3>
-                {activeContact.online && (
-                  <div className="flex items-center gap-1.5 text-sm text-success font-medium">
-                    <span className="size-2 rounded-full bg-success" />
-                    Online
-                  </div>
-                )}
+                <h3 className="text-base font-bold text-foreground">{activeConv.name}</h3>
+                <p className="text-xs text-muted-foreground">{activeConv.email}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <button type="button" className="size-10 rounded-xl border border-border text-muted-foreground hover:text-foreground hover:bg-muted flex items-center justify-center transition-colors cursor-pointer">
-                <Phone className="size-[18px]" />
-              </button>
-              <button type="button" className="size-10 rounded-xl border border-border text-muted-foreground hover:text-foreground hover:bg-muted flex items-center justify-center transition-colors cursor-pointer">
-                <MoreVertical className="size-[18px]" />
-              </button>
-            </div>
-          </div>
 
-          {/* Messages area */}
-          <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-6">
-
-            {/* Date separator */}
-            <div className="text-center">
-              <span className="inline-block px-3 py-1 bg-border rounded-lg text-xs font-bold text-muted-foreground">
-                Today
-              </span>
-            </div>
-
-            {MESSAGES.map((msg) => {
-              const isMe = msg.from === 'me'
-
-              /* ── Link card ── */
-              if (msg.type === 'link' && msg.link) {
-                return (
-                  <div key={msg.id} className="flex items-start gap-4">
-                    {/* Invisible spacer to align with text bubble above */}
-                    <div className="size-8 rounded-full shrink-0 opacity-0" />
-                    <div className="max-w-[70%] w-[400px]">
-                      <div className="bg-surface border border-border rounded-2xl rounded-tl-sm shadow-sm overflow-hidden mb-1">
-                        {/* Link preview header */}
-                        <div className="p-4 bg-secondary/50 border-b border-border flex items-center gap-3">
-                          <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                            <Globe className="size-5 text-primary" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-bold text-foreground truncate">{msg.link.title}</h4>
-                            <a
-                              href={msg.link.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs text-primary truncate hover:underline block mt-0.5"
-                            >
-                              {msg.link.url}
-                            </a>
-                          </div>
-                        </div>
-                        {/* Actions */}
-                        <div className="px-4 py-3 flex items-center justify-between bg-surface">
-                          <button type="button" className="text-xs font-bold text-primary flex items-center gap-1 hover:opacity-80 transition-opacity cursor-pointer">
-                            <BookmarkPlus className="size-3.5" />
-                            Save to Category
-                          </button>
-                          <button type="button" className="text-xs font-bold text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-                            Open Link
-                          </button>
-                        </div>
-                      </div>
-                      <span className="text-xs text-muted-foreground ml-1">{msg.time}</span>
-                    </div>
-                  </div>
-                )
-              }
-
-              /* ── Text bubble ── */
-              return (
-                <div key={msg.id} className={`flex items-start gap-4 ${isMe ? 'justify-end' : ''}`}>
-                  {!isMe && (
-                    <div className={`size-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${activeContact.avatarColor}`}>
-                      {activeContact.initials}
-                    </div>
-                  )}
-
-                  <div className={`max-w-[70%] flex flex-col ${isMe ? 'items-end' : ''}`}>
-                    <div className={`p-4 shadow-sm text-sm mb-1 ${
-                      isMe
-                        ? 'bg-primary text-primary-foreground rounded-2xl rounded-tr-sm'
-                        : 'bg-surface border border-border text-foreground rounded-2xl rounded-tl-sm'
-                    }`}>
-                      {msg.text}
-                    </div>
-                    <div className={`flex items-center gap-1 text-xs text-muted-foreground ${isMe ? 'mr-1' : 'ml-1'}`}>
-                      {msg.time}
-                      {isMe && msg.seen && (
-                        <CheckCheck className="size-3.5 text-primary" />
-                      )}
-                    </div>
-                  </div>
+            {/* Messages area */}
+            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
+              {loadingMsgs ? (
+                <div className="flex items-center justify-center flex-1">
+                  <Loader2 className="size-5 text-muted-foreground animate-spin" />
                 </div>
-              )
-            })}
-          </div>
+              ) : messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center flex-1 gap-3 text-center">
+                  <div className="size-12 rounded-2xl bg-muted flex items-center justify-center">
+                    <MessageSquare className="size-6 text-muted-foreground" />
+                  </div>
+                  <p className="text-sm font-semibold text-foreground">No messages yet</p>
+                  <p className="text-xs text-muted-foreground">Say hi to {activeConv.name}!</p>
+                </div>
+              ) : (
+                messages.map((msg) => {
+                  const isMe = msg.fromUserId._id === myId
+                  return (
+                    <div
+                      key={msg._id}
+                      className={`flex items-end gap-3 ${isMe ? 'justify-end' : ''}`}
+                    >
+                      {!isMe && (
+                        <div
+                          className={`size-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${avatarColor(activeConv.userId)}`}
+                        >
+                          {initials(activeConv.name)}
+                        </div>
+                      )}
 
-          {/* Input bar */}
-          <div className="p-6 bg-surface border-t border-border shrink-0 z-10">
-            <div className="flex items-center gap-3 bg-input border border-border rounded-2xl p-2 shadow-sm">
-              <button type="button" className="size-10 flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-secondary rounded-xl shrink-0 transition-colors cursor-pointer">
-                <Link2 className="size-5" />
-              </button>
-              <button type="button" className="size-10 flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-secondary rounded-xl shrink-0 transition-colors cursor-pointer">
-                <Smile className="size-5" />
-              </button>
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Type a message or paste a link..."
-                className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground min-w-0 px-2"
-                onKeyDown={(e) => { if (e.key === 'Enter') setInputValue('') }}
-              />
-              <button
-                type="button"
-                className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground text-sm font-bold rounded-xl shadow-sm hover:opacity-90 transition-opacity cursor-pointer shrink-0"
-              >
-                Send
-                <Send className="size-4" />
-              </button>
+                      <div className={`max-w-[70%] flex flex-col ${isMe ? 'items-end' : ''}`}>
+                        {isUrl(msg.content.trim()) ? (
+                          <LinkCard url={msg.content.trim()} isMe={isMe} />
+                        ) : (
+                          <div
+                            className={`px-4 py-3 text-sm shadow-sm ${
+                              isMe
+                                ? 'bg-primary text-primary-foreground rounded-2xl rounded-br-sm'
+                                : 'bg-surface border border-border text-foreground rounded-2xl rounded-bl-sm'
+                            }`}
+                          >
+                            {renderContent(msg.content, isMe)}
+                          </div>
+                        )}
+                        <span className="text-[11px] text-muted-foreground mt-1 px-1">
+                          {formatTime(msg.createdAt)}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input bar */}
+            <div className="p-5 bg-surface border-t border-border shrink-0 z-10">
+              <div className="flex items-center gap-3 bg-input border border-border rounded-2xl px-4 py-2 shadow-sm focus-within:border-primary transition-colors">
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder={`Message ${activeConv.name}…`}
+                  className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground min-w-0 py-1.5"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      handleSend()
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  disabled={!inputValue.trim() || sending}
+                  onClick={handleSend}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-bold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0"
+                >
+                  {sending ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Send className="size-4" />
+                  )}
+                  Send
+                </button>
+              </div>
             </div>
           </div>
-
-        </div>
+        ) : (
+          /* Empty state when no conversation is selected */
+          <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center bg-[#fcfcfc]">
+            {!loadingConvs && (
+              <>
+                <div className="size-16 rounded-2xl bg-muted flex items-center justify-center">
+                  <MessageSquare className="size-8 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="text-base font-bold text-foreground">Select a conversation</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Choose a contact on the left to start chatting
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </AppLayout>
   )
