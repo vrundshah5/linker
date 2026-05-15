@@ -10,6 +10,8 @@ export function useUpdateLink(categoryId: string) {
       linkService.updateLink(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.links.byCategory(categoryId) })
+      // Archiving/unarchiving a link must also refresh the archived page
+      queryClient.invalidateQueries({ queryKey: queryKeys.links.archived() })
     },
   })
 }

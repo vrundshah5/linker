@@ -31,16 +31,13 @@ document.addEventListener(
       url
     ).slice(0, 200)
 
-    // sendMessage can throw if the service worker hasn't started yet.
-    // Suppress the error — Chrome will have already woken the SW by the
-    // time subsequent messages arrive.
+    // Fire-and-forget. If the SW cold-starts, Chrome automatically wakes it
+    // and the message is queued — no retry delay needed.
     chrome.runtime.sendMessage({ type: 'LINK_CLICKED', url, title }).catch(() => {
-      // SW was not ready; retry once after a short delay.
-      setTimeout(() => {
-        chrome.runtime.sendMessage({ type: 'LINK_CLICKED', url, title }).catch(() => {
-          // Silently ignore second failure.
-        })
-      }, 500)
+      // Retry immediately (no delay) — SW should be awake by now.
+      chrome.runtime.sendMessage({ type: 'LINK_CLICKED', url, title }).catch(() => {
+        // Silently ignore second failure.
+      })
     })
   },
   true, // capture phase — catches all clicks before they bubble
