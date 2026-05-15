@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Search, Mail, Clock, X, Check, MessageSquare, RefreshCw, XCircle } from 'lucide-react'
+import { Mail, Clock, X, Check, MessageSquare, RefreshCw, XCircle, Send, UserPlus } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
-import BellButton from '../components/ui/BellButton'
+import PageHeader from '../components/ui/PageHeader'
 
 type Status = 'pending' | 'sent' | 'accepted' | 'rejected'
 type Tab = 'all' | 'pending' | 'sent' | 'history'
@@ -103,51 +102,107 @@ function filterByTab(requests: Request[], tab: Tab): Request[] {
 
 export default function Requests() {
   const [activeTab, setActiveTab] = useState<Tab>('all')
+  const [showSendModal, setShowSendModal] = useState(false)
+  const [modalEmail, setModalEmail] = useState('')
+  const [modalNote, setModalNote] = useState('')
   const visible = filterByTab(REQUESTS, activeTab)
 
   return (
     <AppLayout>
       <div className="h-full flex flex-col overflow-hidden">
-      {/* Top bar */}
-      <div className="sticky top-0 z-10 bg-background border-b border-border px-8 py-4 flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-            <Link to="/messages" className="hover:text-foreground transition-colors">
-              Messages
-            </Link>
-            <span>›</span>
-            <span className="text-foreground font-medium">Chat Requests</span>
+        <PageHeader
+          title="Chat Requests"
+          subtitle="Manage your incoming and outgoing friend requests."
+          actions={
+            <button
+              type="button"
+              onClick={() => setShowSendModal(true)}
+              className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
+            >
+              Send New Request
+            </button>
+          }
+        />
+
+        {/* Send Request Modal */}
+        {showSendModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-surface border border-border rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
+              {/* Modal header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+                <div className="flex items-center gap-3">
+                  <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <UserPlus className="size-4 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-foreground">Send Friend Request</h2>
+                    <p className="text-xs text-muted-foreground mt-0.5">Connect with someone by their email</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setShowSendModal(false); setModalEmail(''); setModalNote('') }}
+                  className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer p-1 rounded-lg hover:bg-muted"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+
+              {/* Modal body */}
+              <div className="px-6 py-5 flex flex-col gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">
+                    Email address <span className="text-danger">*</span>
+                  </label>
+                  <div className="flex items-center gap-2 px-4 py-3 bg-background border border-border rounded-xl focus-within:border-primary transition-colors">
+                    <Mail className="size-4 text-muted-foreground shrink-0" />
+                    <input
+                      type="email"
+                      placeholder="friend@example.com"
+                      value={modalEmail}
+                      onChange={(e) => setModalEmail(e.target.value)}
+                      className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground min-w-0"
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">
+                    Add a note <span className="text-xs font-normal text-muted-foreground">(optional)</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Hey, let's connect on Linker!"
+                    value={modalNote}
+                    onChange={(e) => setModalNote(e.target.value)}
+                    className="w-full px-4 py-3 bg-background border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors resize-none"
+                  />
+                </div>
+              </div>
+
+              {/* Modal footer */}
+              <div className="px-6 py-4 border-t border-border flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => { setShowSendModal(false); setModalEmail(''); setModalNote('') }}
+                  className="px-5 py-2.5 border border-border rounded-full text-sm font-bold text-foreground hover:bg-muted transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowSendModal(false); setModalEmail(''); setModalNote('') }}
+                  disabled={!modalEmail.trim()}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-full text-sm font-bold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Send className="size-3.5" />
+                  Send Request
+                </button>
+              </div>
+            </div>
           </div>
-          <h1
-            className="text-2xl font-bold text-foreground leading-tight"
-          >
-            Chat Requests
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Manage your incoming and outgoing friend requests.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-xl w-52 focus-within:border-primary transition-colors">
-            <Search className="size-4 text-muted-foreground shrink-0" />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="bg-transparent outline-none flex-1 text-foreground placeholder:text-muted-foreground text-sm min-w-0"
-            />
-          </div>
-
-          <BellButton />
-
-          <button
-            type="button"
-            className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
-          >
-            Send New Request
-          </button>
-        </div>
-      </div>
+        )}
 
       {/* Body */}
       <div className="flex-1 overflow-y-auto px-8 py-7">

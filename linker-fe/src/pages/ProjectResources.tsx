@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Search, Globe } from 'lucide-react'
 import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
-import BellButton from '../components/ui/BellButton'
+import PageHeader from '../components/ui/PageHeader'
 
 interface Resource {
   id: number
@@ -74,41 +74,20 @@ export default function ProjectResources() {
     <WorkspaceLayout>
       <div className="h-full flex flex-col overflow-hidden">
 
-        {/* Top bar */}
-        <div className="sticky top-0 z-10 bg-background border-b border-border px-8 py-4 flex items-center gap-4">
-          {/* Title */}
-          <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold text-foreground leading-tight">
-              Project Resources
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              All saved links and documents for Acme Corp Redesign.
-            </p>
-          </div>
-
-          {/* Right controls */}
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-xl w-52 focus-within:border-primary transition-colors">
-              <Search className="size-4 text-muted-foreground shrink-0" />
-              <input
-                type="text"
-                placeholder="Search..."
-                value={topSearch}
-                onChange={(e) => setTopSearch(e.target.value)}
-                className="bg-transparent outline-none flex-1 text-foreground placeholder:text-muted-foreground text-sm min-w-0"
-              />
-            </div>
-
-            <BellButton />
-
+        <PageHeader
+          title="Project Resources"
+          subtitle="All saved links and documents for Acme Corp Redesign."
+          searchValue={topSearch}
+          onSearch={setTopSearch}
+          actions={
             <button
               type="button"
               className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
             >
               + Add Resource
             </button>
-          </div>
-        </div>
+          }
+        />
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-8 py-7">

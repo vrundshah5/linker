@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Search,
   Plus,
   MoreHorizontal,
   Link2,
@@ -12,7 +11,7 @@ import {
   Folder,
 } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
-import BellButton from '../components/ui/BellButton'
+import PageHeader from '../components/ui/PageHeader'
 
 interface Category {
   id: number
@@ -79,36 +78,11 @@ export default function Dashboard() {
   const navigate = useNavigate()
   return (
     <AppLayout>
-      <div className="h-full overflow-y-auto">
-      <div className="p-8">
-        {/* Page header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1
-              className="text-2xl font-bold text-foreground"
-            >
-              Dashboard
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Manage your categories and links.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Search */}
-            <div className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-xl w-56 focus-within:border-primary transition-colors">
-              <Search className="size-4 text-muted-foreground shrink-0" />
-              <input
-                type="text"
-                placeholder="Search..."
-                className="bg-transparent outline-none flex-1 text-foreground placeholder:text-muted-foreground text-sm min-w-0"
-              />
-            </div>
-
-            {/* Bell */}
-            <BellButton />
-
-            {/* New Category */}
+      <div className="h-full flex flex-col overflow-hidden">
+        <PageHeader
+          title="Dashboard"
+          subtitle="Manage your categories and links."
+          actions={
             <button
               onClick={() => navigate('/categories/new')}
               className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
@@ -116,8 +90,10 @@ export default function Dashboard() {
               <Plus className="size-4" />
               New Category
             </button>
-          </div>
-        </div>
+          }
+        />
+        <div className="flex-1 overflow-y-auto">
+        <div className="p-8">
 
         {/* Pro banner */}
         <div className="relative bg-primary rounded-2xl p-8 mb-8 overflow-hidden">
@@ -258,6 +234,7 @@ export default function Dashboard() {
           ))}
         </div>
       </div>
+        </div>
       </div>
     </AppLayout>
   )

@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Bell, X, Link2, UserPlus, MessageSquare, Star, CheckCheck } from 'lucide-react'
 
 export interface Notification {
@@ -41,6 +42,7 @@ export default function NotificationPanel({
   onDismiss,
 }: NotificationPanelProps) {
   const ref = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
     if (!open) return
@@ -144,6 +146,7 @@ export default function NotificationPanel({
       <div className="border-t border-border px-4 py-2.5 text-center">
         <button
           type="button"
+          onClick={() => { onClose(); navigate('/notifications') }}
           className="text-xs font-semibold text-primary hover:opacity-75 transition-opacity cursor-pointer"
         >
           View all notifications

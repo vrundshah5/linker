@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { Search, Bell, Globe, Plus, Copy, Trash2, MoreVertical } from 'lucide-react'
+import { useParams } from 'react-router-dom'
+import { Globe, Plus, Copy, Trash2, MoreVertical } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
+import PageHeader from '../components/ui/PageHeader'
 
 type Tab = 'all' | 'favorites' | 'archived'
 
@@ -91,54 +92,19 @@ export default function CategoryDetail() {
   return (
     <AppLayout>
       <div className="h-full flex flex-col overflow-hidden">
-      {/* Top bar */}
-      <div className="sticky top-0 z-10 bg-background border-b border-border px-8 py-4 flex items-center justify-between gap-4">
-        {/* Breadcrumb + title */}
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-            <Link to="/dashboard" className="hover:text-foreground transition-colors">
-              Dashboard
-            </Link>
-            <span className="text-border">›</span>
-            <span className="text-foreground font-medium truncate">{categoryName}</span>
-          </div>
-          <h1
-            className="text-2xl font-bold text-foreground leading-tight truncate"
-          >
-            {categoryName}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Curated list of UI/UX design portfolios and agency websites.
-          </p>
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-xl w-52 focus-within:border-primary transition-colors">
-            <Search className="size-4 text-muted-foreground shrink-0" />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="bg-transparent outline-none flex-1 text-foreground placeholder:text-muted-foreground text-sm min-w-0"
-            />
-          </div>
-
-          <button
-            type="button"
-            className="size-10 flex items-center justify-center text-muted-foreground hover:text-foreground rounded-xl hover:bg-muted transition-colors cursor-pointer"
-          >
-            <Bell className="size-5" />
-          </button>
-
-          <button
-            type="button"
-            className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
-          >
-            <Plus className="size-4" />
-            Add Link
-          </button>
-        </div>
-      </div>
+        <PageHeader
+          title={categoryName}
+          subtitle="Curated list of UI/UX design portfolios and agency websites."
+          actions={
+            <button
+              type="button"
+              className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
+            >
+              <Plus className="size-4" />
+              Add Link
+            </button>
+          }
+        />
 
       {/* Body */}
       <div className="flex-1 overflow-y-auto px-8 py-7">

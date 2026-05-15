@@ -1,7 +1,5 @@
 import { useState } from 'react'
 import {
-  Search,
-  Bell,
   Users,
   Folder,
   Link2,
@@ -11,7 +9,7 @@ import {
   ChevronDown,
 } from 'lucide-react'
 import AdminLayout from '../components/layouts/AdminLayout'
-import BellButton from '../components/ui/BellButton'
+import PageHeader from '../components/ui/PageHeader'
 
 // ── Stat cards ────────────────────────────────────────────────
 const STATS = [
@@ -78,40 +76,23 @@ export default function AdminOverview() {
 
   return (
     <AdminLayout>
-      <div className="h-full overflow-y-auto">
+      <div className="h-full flex flex-col overflow-hidden">
+        <PageHeader
+          title="System Overview"
+          subtitle="Monitor platform usage and global statistics."
+          searchValue={search}
+          onSearch={setSearch}
+          actions={
+            <button
+              type="button"
+              className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
+            >
+              Generate Report
+            </button>
+          }
+        />
+        <div className="flex-1 overflow-y-auto">
         <div className="p-8">
-
-          {/* ── Top bar ── */}
-          <div className="flex items-start justify-between mb-8 gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground leading-tight">
-                System Overview
-              </h1>
-              <p className="text-sm text-muted-foreground mt-1.5">
-                Monitor platform usage and global statistics.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3 shrink-0">
-              <div className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-xl w-52 focus-within:border-primary transition-colors">
-                <Search className="size-4 text-muted-foreground shrink-0" />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="bg-transparent outline-none flex-1 text-foreground placeholder:text-muted-foreground text-sm min-w-0"
-                />
-              </div>
-              <BellButton />
-              <button
-                type="button"
-                className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
-              >
-                Generate Report
-              </button>
-            </div>
-          </div>
 
           {/* ── Stat cards ── */}
           <div className="grid grid-cols-4 gap-4 mb-6">
@@ -236,6 +217,7 @@ export default function AdminOverview() {
             </div>
           </div>
 
+        </div>
         </div>
       </div>
     </AdminLayout>

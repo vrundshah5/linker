@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
-import { Search, Briefcase, ChevronDown, Pencil } from 'lucide-react'
+import { Briefcase, ChevronDown, Pencil } from 'lucide-react'
 import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
 import ConfirmModal from '../components/ui/ConfirmModal'
 import BellButton from '../components/ui/BellButton'
+import PageHeader from '../components/ui/PageHeader'
 
 interface Project {
   id: string
@@ -43,29 +44,12 @@ export default function ProjectSettings() {
     <WorkspaceLayout>
       <div className="h-full flex flex-col overflow-hidden">
 
-        {/* Top bar */}
-        <div className="sticky top-0 z-10 bg-background border-b border-border px-8 py-4 flex items-center gap-4">
-          <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold text-foreground leading-tight">Project Settings</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Configure project details, permissions, and workspace preferences.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-xl w-48 focus-within:border-primary transition-colors">
-              <Search className="size-4 text-muted-foreground shrink-0" />
-              <input
-                type="text"
-                placeholder="Search..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="bg-transparent outline-none flex-1 text-foreground placeholder:text-muted-foreground text-sm min-w-0"
-              />
-            </div>
-            <BellButton />
-          </div>
-        </div>
+        <PageHeader
+          title="Project Settings"
+          subtitle="Configure project details, permissions, and workspace preferences."
+          searchValue={search}
+          onSearch={setSearch}
+        />
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-8 py-7 pb-24">
