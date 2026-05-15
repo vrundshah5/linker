@@ -9,6 +9,7 @@ const Onboard = lazy(() => import('../pages/Onboard'))
 const OnboardProfessional = lazy(() => import('../pages/OnboardProfessional'))
 const OnboardPersonal = lazy(() => import('../pages/OnboardPersonal'))
 const Dashboard = lazy(() => import('../pages/Dashboard'))
+const Categories = lazy(() => import('../pages/Categories'))
 const CategoryDetail = lazy(() => import('../pages/CategoryDetail'))
 const Requests = lazy(() => import('../pages/Requests'))
 const Messages = lazy(() => import('../pages/Messages'))
@@ -42,8 +43,8 @@ export const routes: RouteObject[] = [
   // App
   { path: '/dashboard', element: <Dashboard /> },
   { path: '/messages', element: <Messages /> },
-  // /categories/new is removed — creation is handled via modal on the dashboard
-  { path: '/categories', element: <Navigate to="/dashboard" replace /> },
+  // /categories/new is removed — creation is handled via modal on the categories page
+  { path: '/categories', element: <Categories /> },
   { path: '/categories/:id', element: <CategoryDetail /> },
   { path: '/requests', element: <Requests /> },
   { path: '/archived', element: <ArchivedLinks /> },

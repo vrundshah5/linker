@@ -7,6 +7,7 @@ export interface GlobalCategory {
   icon: string
   color: string
   isActive: boolean
+  allowedExtensions: string[]
   createdAt: string
   updatedAt: string
 }
@@ -32,6 +33,12 @@ export interface CreateCategoryPayload {
   icon?: string
 }
 
+export interface UpdateCategoryPayload {
+  name?: string
+  description?: string
+  themeColor?: string
+}
+
 export const categoryService = {
   getGlobalCategories: async (): Promise<{ data: { categories: GlobalCategory[] } }> => {
     const { data } = await api.get('/categories/global')
@@ -50,5 +57,10 @@ export const categoryService = {
 
   deleteCategory: async (id: string): Promise<void> => {
     await api.delete(`/categories/${id}`)
+  },
+
+  updateCategory: async (id: string, payload: UpdateCategoryPayload): Promise<{ data: { category: UserCategory } }> => {
+    const { data } = await api.patch(`/categories/${id}`, payload)
+    return data
   },
 }

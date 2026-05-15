@@ -5,6 +5,19 @@ import authRoutes from './routes/auth.js';
 import onboardRoutes from './routes/onboard.js';
 import adminRoutes from './routes/admin.js';
 import categoryRoutes from './routes/categories.js';
+import linkRoutes from './routes/links.js';
+import GlobalCategory from './models/GlobalCategory.js';
+
+const SEED_CATEGORIES = [
+  { name: 'Design Inspiration', description: 'UI/UX design references, portfolios, and creative inspiration.', icon: 'Palette', color: '#6c5dd3', isActive: true },
+  { name: 'Dev Tools', description: 'Developer tools, libraries, frameworks, and resources.', icon: 'Code2', color: '#3eac68', isActive: true },
+  { name: 'Marketing', description: 'Marketing strategies, campaigns, and analytics resources.', icon: 'TrendingUp', color: '#ff9b26', isActive: true },
+  { name: 'Project Ideas', description: 'Side project concepts, experiments, and startup ideas.', icon: 'Lightbulb', color: '#ff6a55', isActive: true },
+  { name: 'Read Later', description: 'Articles, blog posts, and content saved for later reading.', icon: 'BookOpen', color: '#6c5dd3', isActive: true },
+  { name: 'Recipes', description: 'Cooking recipes, food blogs, and culinary inspiration.', icon: 'Coffee', color: '#3eac68', isActive: true },
+  { name: 'Finance', description: 'Personal finance, investing, and money management resources.', icon: 'DollarSign', color: '#ff9b26', isActive: true },
+  { name: 'Travel Plans', description: 'Travel destinations, itineraries, and trip planning links.', icon: 'Map', color: '#ff6a55', isActive: true },
+];
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -36,6 +49,9 @@ app.use('/api/onboard', onboardRoutes);
 // Category routes (user categories + global categories picker)
 app.use('/api/categories', categoryRoutes);
 
+// Link routes
+app.use('/api/links', linkRoutes);
+
 // Admin routes
 app.use('/api/admin', adminRoutes);
 
@@ -51,6 +67,13 @@ mongoose
     console.log(`📦 Collections synced: ${collections.map((c) => c.name).join(', ') || 'none yet'}`);
 
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
+    // Auto-seed global categories if none exist
+    const count = await GlobalCategory.countDocuments();
+    if (count === 0) {
+      await GlobalCategory.insertMany(SEED_CATEGORIES);
+      console.log(`🌱 Seeded ${SEED_CATEGORIES.length} global categories`);
+    }
   })
   .catch((err) => {
     console.error('❌ MongoDB connection error:', err.message);

@@ -50,7 +50,7 @@ export default function ConfirmModal({
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center p-4"
       style={{ backgroundColor: 'rgba(0,0,0,0.35)' }}
-      onMouseDown={(e) => { if (e.target === e.currentTarget) onCancel() }}
+      onMouseDown={(e) => { e.stopPropagation(); if (e.target === e.currentTarget) onCancel() }}
     >
       {/* Panel */}
       <div className="bg-surface rounded-2xl shadow-xl w-full max-w-md p-6 relative">

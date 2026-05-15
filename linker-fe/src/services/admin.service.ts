@@ -33,6 +33,7 @@ export interface AdminGlobalCategory {
   icon: string
   color: string
   isActive: boolean
+  allowedExtensions: string[]
   createdAt: string
   updatedAt: string
 }
@@ -58,12 +59,12 @@ export const adminService = {
     return data
   },
 
-  createGlobalCategory: async (payload: { name: string; description?: string; icon?: string; color?: string }): Promise<{ success: boolean; data: { category: AdminGlobalCategory }; message: string }> => {
+  createGlobalCategory: async (payload: { name: string; description?: string; icon?: string; color?: string; allowedExtensions?: string[] }): Promise<{ success: boolean; data: { category: AdminGlobalCategory }; message: string }> => {
     const { data } = await api.post('/admin/categories', payload)
     return data
   },
 
-  updateGlobalCategory: async (id: string, payload: { name?: string; description?: string; icon?: string; color?: string; isActive?: boolean }): Promise<{ success: boolean; data: { category: AdminGlobalCategory }; message: string }> => {
+  updateGlobalCategory: async (id: string, payload: { name?: string; description?: string; icon?: string; color?: string; isActive?: boolean; allowedExtensions?: string[] }): Promise<{ success: boolean; data: { category: AdminGlobalCategory }; message: string }> => {
     const { data } = await api.patch(`/admin/categories/${id}`, payload)
     return data
   },

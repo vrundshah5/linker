@@ -6,7 +6,7 @@ import { queryKeys } from '../../constants/queryKeys'
 export function useUpdateGlobalCategory() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: { name?: string; description?: string; icon?: string; color?: string; isActive?: boolean } }) =>
+    mutationFn: ({ id, payload }: { id: string; payload: { name?: string; description?: string; icon?: string; color?: string; isActive?: boolean; allowedExtensions?: string[] } }) =>
       adminService.updateGlobalCategory(id, payload),
     onSuccess: ({ message }) => {
       toast.success(message)

@@ -81,7 +81,7 @@ export default function OnboardPersonal() {
         )}
 
         {/* Category grid */}
-        {!loadingCategories && globalCategories && (
+        {!loadingCategories && globalCategories && globalCategories.length > 0 && (
           <div className="grid grid-cols-4 gap-3 mb-10">
             {globalCategories.map((cat) => {
               const isSelected = selected.has(cat._id)
@@ -97,7 +97,6 @@ export default function OnboardPersonal() {
                       : 'border-border bg-surface text-muted-foreground hover:border-primary/30 hover:text-foreground'
                   }`}
                 >
-                  {/* Checkmark badge */}
                   {isSelected && (
                     <div className="absolute -top-1 -right-1 size-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
                       <Check className="size-3" strokeWidth={3} />
@@ -117,6 +116,12 @@ export default function OnboardPersonal() {
           </div>
         )}
 
+        {!loadingCategories && (!globalCategories || globalCategories.length === 0) && (
+          <div className="flex flex-col items-center justify-center py-10 mb-6 text-center">
+            <p className="text-sm text-muted-foreground">No categories available yet. You can create your own after signing in.</p>
+          </div>
+        )}
+
         {/* Footer actions */}
         <div className="flex items-center justify-between">
           <button
@@ -129,7 +134,7 @@ export default function OnboardPersonal() {
           <button
             type="button"
             onClick={handleContinue}
-            disabled={isPending || selected.size === 0}
+            disabled={isPending}
             className="px-8 py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-sm hover:opacity-90 transition-opacity flex items-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isPending && (

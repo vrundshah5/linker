@@ -7,12 +7,14 @@ import {
   Users,
   Archive,
   ChevronDown,
+  Folder,
 } from 'lucide-react'
 import UserMenuPopover from '../ui/UserMenuPopover'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/categories', label: 'Categories', icon: Folder, end: false },
   { to: '/messages', label: 'Messages', icon: MessageSquare, end: true },
   { to: '/requests', label: 'Requests', icon: Users, end: true },
   { to: '/archived', label: 'Archived Links', icon: Archive, end: true },
@@ -24,12 +26,13 @@ interface AppLayoutProps {
 
 export default function AppLayout({ children }: AppLayoutProps) {
   const user = useCurrentUser()
+
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-56 shrink-0 bg-surface border-r border-border flex flex-col">
+      <aside className="w-56 shrink-0 bg-surface border-r border-border flex flex-col overflow-hidden">
         {/* Logo */}
-        <div className="flex items-center gap-2.5 px-5 pt-7 pb-6">
+        <div className="flex items-center gap-2.5 px-5 pt-7 pb-6 shrink-0">
           <div className="size-9 bg-primary text-primary-foreground rounded-xl flex items-center justify-center shrink-0">
             <Link className="size-[18px]" />
           </div>
@@ -68,7 +71,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         </div>
 
         {/* User */}
-        <div className="p-3 border-t border-border">
+        <div className="p-3 border-t border-border shrink-0">
           <UserMenuPopover
             accentClass="text-primary"
             accentBg="bg-primary/10"

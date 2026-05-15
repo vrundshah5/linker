@@ -25,6 +25,11 @@ const globalCategorySchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // File/link extensions allowed in this category (e.g. ['mp4', 'jpg', 'pdf'])
+    allowedExtensions: {
+      type: [String],
+      default: [],
+    },
   },
   { timestamps: true }
 );

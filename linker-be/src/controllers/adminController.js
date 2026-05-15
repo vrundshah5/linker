@@ -104,7 +104,7 @@ export const listGlobalCategories = async (req, res) => {
 
 // POST /api/admin/categories
 export const createGlobalCategory = async (req, res) => {
-  const { name, description, icon, color } = req.body;
+  const { name, description, icon, color, allowedExtensions } = req.body;
 
   if (!name || name.trim().length < 2) {
     return res.status(400).json({
@@ -119,6 +119,7 @@ export const createGlobalCategory = async (req, res) => {
     description: description?.trim() || '',
     icon: icon || 'Folder',
     color: color || '#6c5dd3',
+    allowedExtensions: Array.isArray(allowedExtensions) ? allowedExtensions : [],
   });
 
   return res.status(201).json({
@@ -130,7 +131,7 @@ export const createGlobalCategory = async (req, res) => {
 
 // PATCH /api/admin/categories/:id
 export const updateGlobalCategory = async (req, res) => {
-  const { name, description, icon, color, isActive } = req.body;
+  const { name, description, icon, color, isActive, allowedExtensions } = req.body;
 
   const category = await GlobalCategory.findById(req.params.id);
   if (!category) {
@@ -142,6 +143,7 @@ export const updateGlobalCategory = async (req, res) => {
   if (icon !== undefined) category.icon = icon;
   if (color !== undefined) category.color = color;
   if (isActive !== undefined) category.isActive = isActive;
+  if (allowedExtensions !== undefined) category.allowedExtensions = Array.isArray(allowedExtensions) ? allowedExtensions : [];
 
   await category.save();
 

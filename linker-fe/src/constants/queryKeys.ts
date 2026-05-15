@@ -14,4 +14,8 @@ export const queryKeys = {
     userDetail: (id: string) => [...queryKeys.admin.all, 'users', id] as const,
     globalCategories: (search?: string) => [...queryKeys.admin.all, 'globalCategories', search] as const,
   },
+  links: {
+    all: ['links'] as const,
+    byCategory: (categoryId: string) => [...queryKeys.links.all, 'byCategory', categoryId] as const,
+  },
 } as const
