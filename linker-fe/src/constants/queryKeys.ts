@@ -34,4 +34,7 @@ export const queryKeys = {
     conversations: () => [...['messages'], 'conversations'] as const,
     thread: (userId: string) => [...['messages'], 'thread', userId] as const,
   },
+  profile: {
+    me: ['profile', 'me'] as const,
+  },
 } as const

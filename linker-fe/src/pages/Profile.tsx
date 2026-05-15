@@ -1,22 +1,64 @@
-import { useState } from 'react'
-import { Camera, Mail, Phone, MapPin, Briefcase, Globe } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Mail, Phone, MapPin, Briefcase, Globe, Loader2, ArrowRight } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import AppLayout from '../components/layouts/AppLayout'
 import ConfirmModal from '../components/ui/ConfirmModal'
 import PageHeader from '../components/ui/PageHeader'
+import { useProfile, useUpdateProfile, useSwitchWorkspace } from '../hooks/useProfile'
+
+function getInitials(name: string) {
+  const parts = name.trim().split(' ')
+  return parts.length >= 2
+    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    : name.slice(0, 2).toUpperCase()
+}
 
 export default function Profile() {
-  const [name, setName] = useState('Jason Doe')
-  const [email, setEmail] = useState('jason@example.com')
-  const [phone, setPhone] = useState('+1 (555) 234-5678')
-  const [location, setLocation] = useState('San Francisco, CA')
-  const [jobTitle, setJobTitle] = useState('Product Designer')
-  const [company, setCompany] = useState('Acme Corp')
-  const [website, setWebsite] = useState('https://jasondoe.com')
-  const [bio, setBio] = useState('Passionate about building beautiful products and sharing useful resources with the world.')
-  const [emailNotifs, setEmailNotifs] = useState(true)
-  const [pushNotifs, setPushNotifs] = useState(false)
-  const [search, setSearch] = useState('')
+  const navigate = useNavigate()
+  const { data: profile, isLoading } = useProfile()
+  const { mutate: saveProfile, isPending: saving } = useUpdateProfile()
+  const { mutate: switchWorkspace, isPending: switching } = useSwitchWorkspace()
+
+  const [name, setName]         = useState('')
+  const [phone, setPhone]       = useState('')
+  const [location, setLocation] = useState('')
+  const [jobTitle, setJobTitle] = useState('')
+  const [company, setCompany]   = useState('')
+  const [website, setWebsite]   = useState('')
+  const [bio, setBio]           = useState('')
+  const [search, setSearch]     = useState('')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+
+  // Populate form once profile loads
+  useEffect(() => {
+    if (profile) {
+      setName(profile.name ?? '')
+      setPhone(profile.phone ?? '')
+      setLocation(profile.location ?? '')
+      setJobTitle(profile.jobTitle ?? '')
+      setCompany(profile.company ?? '')
+      setWebsite(profile.website ?? '')
+      setBio(profile.bio ?? '')
+    }
+  }, [profile])
+
+  function handleDiscard() {
+    if (!profile) return
+    setName(profile.name ?? '')
+    setPhone(profile.phone ?? '')
+    setLocation(profile.location ?? '')
+    setJobTitle(profile.jobTitle ?? '')
+    setCompany(profile.company ?? '')
+    setWebsite(profile.website ?? '')
+    setBio(profile.bio ?? '')
+  }
+
+  function handleSave() {
+    saveProfile({ name, phone, location, jobTitle, company, website, bio })
+  }
+
+  const isPersonal = profile?.workspaceType === 'personal'
+  const hasPro     = profile?.hasProfessionalWorkspace === true
 
   return (
     <>
@@ -32,29 +74,70 @@ export default function Profile() {
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-8 py-7 pb-28">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="size-6 text-muted-foreground animate-spin" />
+            </div>
+          ) : (
           <div className="max-w-2xl flex flex-col gap-5">
 
             {/* Avatar card */}
             <div className="bg-surface border border-border rounded-2xl p-6 flex items-center gap-6">
-              <div className="relative shrink-0">
-                <div className="size-20 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-primary">JD</span>
+              <div className="size-20 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <span className="text-2xl font-bold text-primary">
+                  {name ? getInitials(name) : '?'}
+                </span>
+              </div>
+              <div>
+                <p className="text-base font-bold text-foreground">{name || '—'}</p>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  {[jobTitle, company].filter(Boolean).join(' · ') || 'No title set'}
+                </p>
+                <span className="mt-2 inline-block px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+                  Personal workspace
+                </span>
+              </div>
+            </div>
+
+            {/* Professional workspace prompt — only for personal users who haven't set up pro yet */}
+            {isPersonal && !hasPro && (
+              <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-2xl p-5 flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-bold text-foreground">Want a Professional workspace?</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Collaborate with teams, manage projects, and share resources professionally.
+                  </p>
                 </div>
                 <button
                   type="button"
-                  className="absolute -bottom-1 -right-1 size-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:opacity-90 transition-opacity cursor-pointer shadow-sm"
+                  onClick={() => navigate('/onboard/professional')}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground text-sm font-bold rounded-xl hover:opacity-90 transition-opacity cursor-pointer shrink-0"
                 >
-                  <Camera className="size-3.5" />
+                  Set up <ArrowRight className="size-4" />
                 </button>
               </div>
-              <div>
-                <p className="text-base font-bold text-foreground">{name || 'Jason Doe'}</p>
-                <p className="text-sm text-muted-foreground mt-0.5">{jobTitle} · {company}</p>
-                <button type="button" className="mt-2 text-xs font-semibold text-primary hover:opacity-75 transition-opacity cursor-pointer">
-                  Change avatar
+            )}
+
+            {/* Switch workspace — only show if user has both workspaces */}
+            {hasPro && isPersonal && (
+              <div className="bg-surface border border-border rounded-2xl p-5 flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-bold text-foreground">Switch to Professional</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    You have a professional workspace set up.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={switching}
+                  onClick={() => switchWorkspace('professional')}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground text-sm font-bold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer shrink-0"
+                >
+                  {switching ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
+                  Switch
                 </button>
               </div>
-            </div>
+            )}
 
             {/* Personal Information */}
             <div className="bg-surface border border-border rounded-2xl p-6">
@@ -77,9 +160,9 @@ export default function Profile() {
                   </label>
                   <input
                     type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                    value={profile?.email ?? ''}
+                    readOnly
+                    className="w-full px-4 py-2.5 bg-muted border border-border rounded-xl text-sm text-muted-foreground cursor-not-allowed"
                   />
                 </div>
 
@@ -153,33 +236,6 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* Notification Preferences */}
-            <div className="bg-surface border border-border rounded-2xl p-6">
-              <h2 className="text-base font-bold text-foreground mb-1">Notification Preferences</h2>
-              <div className="flex flex-col divide-y divide-border mt-3">
-                {[
-                  { label: 'Email Notifications', description: 'Receive updates and alerts via email.', value: emailNotifs, onChange: setEmailNotifs },
-                  { label: 'Push Notifications', description: 'Get in-app push notifications.', value: pushNotifs, onChange: setPushNotifs },
-                ].map(({ label, description, value, onChange }) => (
-                  <div key={label} className="flex items-center justify-between py-4 gap-6">
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">{label}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
-                    </div>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={value}
-                      onClick={() => onChange(!value)}
-                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors duration-200 focus:outline-none ${value ? 'bg-primary' : 'bg-border'}`}
-                    >
-                      <span className={`inline-block size-5 rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5 ${value ? 'translate-x-5' : 'translate-x-0.5'}`} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {/* Danger Zone */}
             <div className="bg-danger/5 border border-danger/25 rounded-2xl p-6">
               <h2 className="text-base font-bold text-danger mb-1.5">Danger Zone</h2>
@@ -196,17 +252,31 @@ export default function Profile() {
             </div>
 
           </div>
+          )}
         </div>
 
         {/* Sticky footer */}
-        <div className="sticky bottom-0 bg-background border-t border-border px-8 py-4 flex items-center justify-end gap-3">
-          <button type="button" className="px-6 py-2.5 bg-surface border border-border text-foreground font-semibold text-sm rounded-full hover:bg-muted transition-colors cursor-pointer">
-            Discard Changes
-          </button>
-          <button type="button" className="px-6 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer">
-            Save Changes
-          </button>
-        </div>
+        {!isLoading && (
+          <div className="sticky bottom-0 bg-background border-t border-border px-8 py-4 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={handleDiscard}
+              disabled={saving}
+              className="px-6 py-2.5 bg-surface border border-border text-foreground font-semibold text-sm rounded-full hover:bg-muted transition-colors cursor-pointer disabled:opacity-50"
+            >
+              Discard Changes
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving}
+              className="flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
+            >
+              {saving && <Loader2 className="size-4 animate-spin" />}
+              Save Changes
+            </button>
+          </div>
+        )}
       </div>
     </AppLayout>
 

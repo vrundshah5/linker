@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom'
 import { Link, Briefcase, Users, Settings, ChevronDown, BookMarked, MessageSquare, ChevronUp } from 'lucide-react'
 import UserMenuPopover from '../ui/UserMenuPopover'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
+import { useSwitchWorkspace } from '../../hooks/useProfile'
 
 const NAV_ITEMS = [
   { to: '/professional-dashboard', label: 'Projects', icon: Briefcase, end: true },
@@ -24,6 +25,7 @@ interface WorkspaceLayoutProps {
 
 export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
   const user = useCurrentUser()
+  const { mutate: switchWorkspace } = useSwitchWorkspace()
   const [activeProject, setActiveProject] = useState(PROJECTS[0])
   const [projectOpen, setProjectOpen] = useState(false)
   const projectRef = useRef<HTMLDivElement>(null)
@@ -137,7 +139,7 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
           <UserMenuPopover
             accentClass="text-warning"
             accentBg="bg-warning/10"
-            switchTo={{ label: 'Switch to Personal', path: '/dashboard' }}
+            switchTo={{ label: 'Switch to Personal', path: '/dashboard', onSwitch: () => switchWorkspace('personal') }}
           >
             {(open) => (
               <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors text-left">

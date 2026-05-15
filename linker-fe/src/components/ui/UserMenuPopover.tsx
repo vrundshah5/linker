@@ -7,7 +7,7 @@ interface UserMenuPopoverProps {
   accentClass: string
   accentBg: string
   /** Route to switch workspace mode. If provided shows a Switch option. */
-  switchTo?: { label: string; path: string }
+  switchTo?: { label: string; path: string; onSwitch?: () => void }
 }
 
 export default function UserMenuPopover({ children, accentClass, accentBg, switchTo }: UserMenuPopoverProps) {
@@ -55,7 +55,14 @@ export default function UserMenuPopover({ children, accentClass, accentBg, switc
               <div className="border-t border-border" />
               <button
                 type="button"
-                onClick={() => { setOpen(false); navigate(switchTo.path) }}
+                onClick={() => {
+                  setOpen(false)
+                  if (switchTo.onSwitch) {
+                    switchTo.onSwitch()
+                  } else {
+                    navigate(switchTo.path)
+                  }
+                }}
                 className="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
               >
                 <div className="size-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">

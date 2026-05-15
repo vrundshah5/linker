@@ -49,6 +49,15 @@ const userSchema = new mongoose.Schema(
       invitedEmails: { type: [String], default: [] },
       resources: { type: [String], default: [] },
     },
+    // Profile fields
+    phone: { type: String, default: '' },
+    location: { type: String, default: '' },
+    jobTitle: { type: String, default: '' },
+    company: { type: String, default: '' },
+    website: { type: String, default: '' },
+    bio: { type: String, default: '' },
+    // Whether user has ever completed professional onboarding
+    hasProfessionalWorkspace: { type: Boolean, default: false },
     resetPasswordToken: {
       type: String,
       default: null,

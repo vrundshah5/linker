@@ -9,6 +9,7 @@ import linkRoutes from './routes/links.js';
 import publicRoutes from './routes/public.js';
 import notificationRoutes from './routes/notifications.js';
 import requestRoutes from './routes/requests.js';
+import profileRoutes from './routes/profile.js';
 import messageRoutes from './routes/messages.js';
 import GlobalCategory from './models/GlobalCategory.js';
 
@@ -76,6 +77,9 @@ app.use('/api/notifications', notificationRoutes);
 
 // Request routes
 app.use('/api/requests', requestRoutes);
+
+// Profile routes
+app.use('/api/profile', profileRoutes);
 
 // Message routes
 app.use('/api/messages', messageRoutes);
