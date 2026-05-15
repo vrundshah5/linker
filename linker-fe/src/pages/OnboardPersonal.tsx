@@ -2,44 +2,21 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Link,
-  Palette,
-  Code2,
-  TrendingUp,
-  Lightbulb,
-  BookOpen,
-  Coffee,
-  DollarSign,
-  Map,
   Check,
   ArrowRight,
+  Loader2,
 } from 'lucide-react'
 import { useCompletePersonalOnboard } from '../hooks/onboard/useCompletePersonalOnboard'
 import OnboardSplash from '../components/ui/OnboardSplash'
 import { useCurrentUser } from '../hooks/useCurrentUser'
-
-interface Category {
-  id: string
-  label: string
-  icon: React.ReactNode
-}
-
-const CATEGORIES: Category[] = [
-  { id: 'design', label: 'Design Inspiration', icon: <Palette className="size-6" /> },
-  { id: 'devtools', label: 'Dev Tools', icon: <Code2 className="size-6" /> },
-  { id: 'marketing', label: 'Marketing', icon: <TrendingUp className="size-6" /> },
-  { id: 'ideas', label: 'Project Ideas', icon: <Lightbulb className="size-6" /> },
-  { id: 'readlater', label: 'Read Later', icon: <BookOpen className="size-6" /> },
-  { id: 'recipes', label: 'Recipes', icon: <Coffee className="size-6" /> },
-  { id: 'finance', label: 'Finance', icon: <DollarSign className="size-6" /> },
-  { id: 'travel', label: 'Travel Plans', icon: <Map className="size-6" /> },
-]
+import { useGlobalCategories } from '../hooks/categories/useGlobalCategories'
+import { getCategoryIcon } from '../lib/categoryIcons'
 
 export default function OnboardPersonal() {
   const navigate = useNavigate()
   const user = useCurrentUser()
-  const [selected, setSelected] = useState<Set<string>>(
-    new Set(['design', 'devtools', 'readlater']),
-  )
+  const { data: globalCategories, isLoading: loadingCategories } = useGlobalCategories()
+  const [selected, setSelected] = useState<Set<string>>(new Set())
   const [showSplash, setShowSplash] = useState(false)
   const { mutateAsync: completeOnboard, isPending } = useCompletePersonalOnboard()
 
@@ -96,39 +73,49 @@ export default function OnboardPersonal() {
           Pick some default categories to start organizing your personal links immediately.
         </p>
 
+        {/* Loading */}
+        {loadingCategories && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="size-6 animate-spin text-muted-foreground" />
+          </div>
+        )}
+
         {/* Category grid */}
-        <div className="grid grid-cols-4 gap-3 mb-10">
-          {CATEGORIES.map((cat) => {
-            const isSelected = selected.has(cat.id)
-            return (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => toggleCategory(cat.id)}
-                className={`relative flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border-2 transition-all cursor-pointer ${
-                  isSelected
-                    ? 'border-primary bg-secondary text-primary'
-                    : 'border-border bg-surface text-muted-foreground hover:border-primary/30 hover:text-foreground'
-                }`}
-              >
-                {/* Checkmark badge */}
-                {isSelected && (
-                  <div className="absolute -top-1 -right-1 size-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
-                    <Check className="size-3" strokeWidth={3} />
-                  </div>
-                )}
-                {cat.icon}
-                <span
-                  className={`text-xs font-bold text-center leading-tight ${
-                    isSelected ? 'text-primary' : 'text-muted-foreground'
+        {!loadingCategories && globalCategories && (
+          <div className="grid grid-cols-4 gap-3 mb-10">
+            {globalCategories.map((cat) => {
+              const isSelected = selected.has(cat._id)
+              const Icon = getCategoryIcon(cat.icon)
+              return (
+                <button
+                  key={cat._id}
+                  type="button"
+                  onClick={() => toggleCategory(cat._id)}
+                  className={`relative flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border-2 transition-all cursor-pointer ${
+                    isSelected
+                      ? 'border-primary bg-secondary text-primary'
+                      : 'border-border bg-surface text-muted-foreground hover:border-primary/30 hover:text-foreground'
                   }`}
                 >
-                  {cat.label}
-                </span>
-              </button>
-            )
-          })}
-        </div>
+                  {/* Checkmark badge */}
+                  {isSelected && (
+                    <div className="absolute -top-1 -right-1 size-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                      <Check className="size-3" strokeWidth={3} />
+                    </div>
+                  )}
+                  <Icon className="size-6" />
+                  <span
+                    className={`text-xs font-bold text-center leading-tight ${
+                      isSelected ? 'text-primary' : 'text-muted-foreground'
+                    }`}
+                  >
+                    {cat.name}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        )}
 
         {/* Footer actions */}
         <div className="flex items-center justify-between">

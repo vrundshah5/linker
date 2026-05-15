@@ -8,74 +8,21 @@ import {
   Sparkles,
   LayoutGrid,
   List,
-  Folder,
+  Loader2,
+  FolderOpen,
 } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
 import PageHeader from '../components/ui/PageHeader'
-
-interface Category {
-  id: number
-  name: string
-  links: number
-  iconBg: string
-  iconColor: string
-  btnBg: string
-}
-
-const CATEGORIES: Category[] = [
-  {
-    id: 1,
-    name: 'Design Inspiration',
-    links: 42,
-    iconBg: 'bg-primary/10',
-    iconColor: 'text-primary',
-    btnBg: 'bg-primary',
-  },
-  {
-    id: 2,
-    name: 'Dev Tools',
-    links: 18,
-    iconBg: 'bg-success/10',
-    iconColor: 'text-success',
-    btnBg: 'bg-success',
-  },
-  {
-    id: 3,
-    name: 'Marketing',
-    links: 8,
-    iconBg: 'bg-warning/10',
-    iconColor: 'text-warning',
-    btnBg: 'bg-warning',
-  },
-  {
-    id: 4,
-    name: 'Project Ideas',
-    links: 12,
-    iconBg: 'bg-danger/10',
-    iconColor: 'text-danger',
-    btnBg: 'bg-danger',
-  },
-  {
-    id: 5,
-    name: 'Read Later',
-    links: 56,
-    iconBg: 'bg-primary/10',
-    iconColor: 'text-primary',
-    btnBg: 'bg-primary',
-  },
-  {
-    id: 6,
-    name: 'Recipes',
-    links: 24,
-    iconBg: 'bg-success/10',
-    iconColor: 'text-success',
-    btnBg: 'bg-success',
-  },
-]
+import CreateCategoryModal from '../components/ui/CreateCategoryModal'
+import { useMyCategories } from '../hooks/categories/useMyCategories'
+import { getCategoryIcon } from '../lib/categoryIcons'
 
 export default function Dashboard() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [modalOpen, setModalOpen] = useState(false)
   const navigate = useNavigate()
+  const { data: categories, isLoading } = useMyCategories()
+
   return (
     <AppLayout>
       <div className="h-full flex flex-col overflow-hidden">
@@ -84,7 +31,7 @@ export default function Dashboard() {
           subtitle="Manage your categories and links."
           actions={
             <button
-              onClick={() => navigate('/categories/new')}
+              onClick={() => setModalOpen(true)}
               className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
             >
               <Plus className="size-4" />
@@ -132,10 +79,13 @@ export default function Dashboard() {
 
         {/* Categories header */}
         <div className="flex items-center justify-between mb-5">
-          <h2
-            className="text-lg font-bold text-foreground"
-          >
+          <h2 className="text-lg font-bold text-foreground">
             Your Categories
+            {categories && (
+              <span className="ml-2 text-sm font-normal text-muted-foreground">
+                ({categories.length})
+              </span>
+            )}
           </h2>
           <div className="flex items-center gap-1">
             <button
@@ -165,77 +115,128 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Category cards */}
-        <div
-          className={
-            viewMode === 'grid'
-              ? 'grid grid-cols-3 gap-4'
-              : 'flex flex-col gap-3'
-          }
-        >
-          {CATEGORIES.map((cat) => (
-            <div
-              key={cat.id}
-              onClick={() => navigate(`/categories/${cat.name.toLowerCase().replace(/\s+/g, '-')}`)}
-              className={`bg-surface border border-border rounded-2xl p-5 hover:shadow-md transition-all cursor-pointer ${
-                viewMode === 'list' ? 'flex items-center gap-4' : ''
-              }`}
-            >
-              <div
-                className={`flex items-start justify-between ${
-                  viewMode === 'list' ? 'mb-0 shrink-0' : 'mb-4'
-                }`}
-              >
-                <div
-                  className={`size-10 rounded-xl flex items-center justify-center ${cat.iconBg} ${cat.iconColor}`}
-                >
-                  <Folder className="size-5" />
-                </div>
-                {viewMode === 'grid' && (
-                  <button className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer p-1">
-                    <MoreHorizontal className="size-4" />
-                  </button>
-                )}
-              </div>
+        {/* Loading */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="size-6 animate-spin text-muted-foreground" />
+          </div>
+        )}
 
-              <div className={viewMode === 'list' ? 'flex flex-1 items-center justify-between' : ''}>
-                <h3
-                  className={`font-bold text-foreground ${
-                    viewMode === 'list' ? 'text-sm' : 'text-base mb-4'
-                  }`}
-                >
-                  {cat.name}
-                </h3>
-
-                <div
-                  className={`flex items-center ${
-                    viewMode === 'list' ? 'gap-6' : 'justify-between'
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5 text-muted-foreground text-sm">
-                    <Link2 className="size-4" />
-                    <span>{cat.links} Links</span>
-                  </div>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); navigate(`/categories/${cat.name.toLowerCase().replace(/\s+/g, '-')}`); }}
-                    className={`px-4 py-1.5 text-primary-foreground text-xs font-bold rounded-full hover:opacity-90 transition-opacity cursor-pointer ${cat.btnBg}`}
-                  >
-                    View
-                  </button>
-                </div>
-              </div>
-
-              {viewMode === 'list' && (
-                <button className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer p-1 shrink-0">
-                  <MoreHorizontal className="size-4" />
-                </button>
-              )}
+        {/* Empty state */}
+        {!isLoading && (!categories || categories.length === 0) && (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="size-16 rounded-2xl bg-secondary flex items-center justify-center mb-4">
+              <FolderOpen className="size-8 text-primary" />
             </div>
-          ))}
-        </div>
+            <h3 className="text-base font-bold text-foreground mb-1">No categories yet</h3>
+            <p className="text-sm text-muted-foreground mb-5 max-w-xs">
+              Create your first category to start organising your links.
+            </p>
+            <button
+              type="button"
+              onClick={() => setModalOpen(true)}
+              className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
+            >
+              <Plus className="size-4" />
+              Create Category
+            </button>
+          </div>
+        )}
+
+        {/* Category cards */}
+        {!isLoading && categories && categories.length > 0 && (
+          <div
+            className={
+              viewMode === 'grid'
+                ? 'grid grid-cols-3 gap-4'
+                : 'flex flex-col gap-3'
+            }
+          >
+            {categories.map((cat) => {
+              const Icon = getCategoryIcon(cat.icon)
+              return (
+                <div
+                  key={cat._id}
+                  onClick={() => navigate(`/categories/${cat._id}`)}
+                  className={`bg-surface border border-border rounded-2xl p-5 hover:shadow-md transition-all cursor-pointer ${
+                    viewMode === 'list' ? 'flex items-center gap-4' : ''
+                  }`}
+                >
+                  <div
+                    className={`flex items-start justify-between ${
+                      viewMode === 'list' ? 'mb-0 shrink-0' : 'mb-4'
+                    }`}
+                  >
+                    <div
+                      className="size-10 rounded-xl flex items-center justify-center"
+                      style={{ backgroundColor: `${cat.themeColor}20`, color: cat.themeColor }}
+                    >
+                      <Icon className="size-5" />
+                    </div>
+                    {viewMode === 'grid' && (
+                      <button
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer p-1"
+                      >
+                        <MoreHorizontal className="size-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className={viewMode === 'list' ? 'flex flex-1 items-center justify-between' : ''}>
+                    <div className={viewMode === 'list' ? '' : 'mb-4'}>
+                      <h3
+                        className={`font-bold text-foreground ${
+                          viewMode === 'list' ? 'text-sm' : 'text-base'
+                        }`}
+                      >
+                        {cat.name}
+                      </h3>
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">
+                        {cat.isGlobal ? 'Global' : 'User'}
+                      </span>
+                    </div>
+
+                    <div
+                      className={`flex items-center ${
+                        viewMode === 'list' ? 'gap-6' : 'justify-between'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5 text-muted-foreground text-sm">
+                        <Link2 className="size-4" />
+                        <span>{cat.linkCount} Links</span>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          navigate(`/categories/${cat._id}`)
+                        }}
+                        className="px-4 py-1.5 text-primary-foreground text-xs font-bold rounded-full hover:opacity-90 transition-opacity cursor-pointer"
+                        style={{ backgroundColor: cat.themeColor }}
+                      >
+                        View
+                      </button>
+                    </div>
+                  </div>
+
+                  {viewMode === 'list' && (
+                    <button
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer p-1 shrink-0"
+                    >
+                      <MoreHorizontal className="size-4" />
+                    </button>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
         </div>
       </div>
+
+      <CreateCategoryModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </AppLayout>
   )
 }

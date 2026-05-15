@@ -1,4 +1,5 @@
 import api from '../lib/axios'
+import type { UserCategory } from './categoryService'
 
 export interface AdminUser {
   _id: string
@@ -25,6 +26,17 @@ export interface ListUsersResponse {
   message: string
 }
 
+export interface AdminGlobalCategory {
+  _id: string
+  name: string
+  description: string
+  icon: string
+  color: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
 export const adminService = {
   listUsers: async (params: { search?: string; page?: number; limit?: number }): Promise<ListUsersResponse> => {
     const { data } = await api.get<ListUsersResponse>('/admin/users', { params })
@@ -33,6 +45,31 @@ export const adminService = {
 
   toggleBan: async (userId: string): Promise<{ success: boolean; data: { user: AdminUser }; message: string }> => {
     const { data } = await api.patch(`/admin/users/${userId}/ban`)
+    return data
+  },
+
+  getUserDetail: async (userId: string): Promise<{ success: boolean; data: { user: AdminUser; customCategories: UserCategory[] }; message: string }> => {
+    const { data } = await api.get(`/admin/users/${userId}`)
+    return data
+  },
+
+  listGlobalCategories: async (search?: string): Promise<{ success: boolean; data: { categories: AdminGlobalCategory[] }; message: string }> => {
+    const { data } = await api.get('/admin/categories', { params: { search } })
+    return data
+  },
+
+  createGlobalCategory: async (payload: { name: string; description?: string; icon?: string; color?: string }): Promise<{ success: boolean; data: { category: AdminGlobalCategory }; message: string }> => {
+    const { data } = await api.post('/admin/categories', payload)
+    return data
+  },
+
+  updateGlobalCategory: async (id: string, payload: { name?: string; description?: string; icon?: string; color?: string; isActive?: boolean }): Promise<{ success: boolean; data: { category: AdminGlobalCategory }; message: string }> => {
+    const { data } = await api.patch(`/admin/categories/${id}`, payload)
+    return data
+  },
+
+  deleteGlobalCategory: async (id: string): Promise<{ success: boolean; data: null; message: string }> => {
+    const { data } = await api.delete(`/admin/categories/${id}`)
     return data
   },
 }

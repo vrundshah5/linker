@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { SquarePen, Ban, Loader2 } from 'lucide-react'
+import { Ban, Loader2, Eye } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import AdminLayout from '../components/layouts/AdminLayout'
 import ConfirmModal from '../components/ui/ConfirmModal'
 import PageHeader from '../components/ui/PageHeader'
@@ -35,6 +36,7 @@ export default function AdminManageUsers() {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [page, setPage] = useState(1)
   const [banTarget, setBanTarget] = useState<AdminUser | null>(null)
+  const navigate = useNavigate()
 
   const { data, isLoading } = useAdminUsers({ search: debouncedSearch, page, limit: 10 })
   const { mutate: toggleBan, isPending: isBanning } = useToggleBan()
@@ -114,8 +116,13 @@ export default function AdminManageUsers() {
 
                     {/* Actions */}
                     <div className="flex items-center gap-3">
-                      <button type="button" title="Edit user" className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-                        <SquarePen className="size-4" />
+                      <button
+                        type="button"
+                        title="View user"
+                        onClick={() => navigate(`/admin/users/${user._id}`)}
+                        className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                      >
+                        <Eye className="size-4" />
                       </button>
                       {user.role !== 'admin' && (
                         <button

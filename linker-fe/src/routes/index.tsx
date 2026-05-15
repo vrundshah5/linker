@@ -9,7 +9,6 @@ const Onboard = lazy(() => import('../pages/Onboard'))
 const OnboardProfessional = lazy(() => import('../pages/OnboardProfessional'))
 const OnboardPersonal = lazy(() => import('../pages/OnboardPersonal'))
 const Dashboard = lazy(() => import('../pages/Dashboard'))
-const CreateCategory = lazy(() => import('../pages/CreateCategory'))
 const CategoryDetail = lazy(() => import('../pages/CategoryDetail'))
 const Requests = lazy(() => import('../pages/Requests'))
 const Messages = lazy(() => import('../pages/Messages'))
@@ -22,6 +21,7 @@ const ProjectSettings = lazy(() => import('../pages/ProjectSettings'))
 const AdminOverview = lazy(() => import('../pages/AdminOverview'))
 const AdminGlobalCategories = lazy(() => import('../pages/AdminGlobalCategories'))
 const AdminManageUsers = lazy(() => import('../pages/AdminManageUsers'))
+const AdminUserDetail = lazy(() => import('../pages/AdminUserDetail'))
 const AdminSystemReports = lazy(() => import('../pages/AdminSystemReports'))
 const AdminPlatformSettings = lazy(() => import('../pages/AdminPlatformSettings'))
 const Profile = lazy(() => import('../pages/Profile'))
@@ -42,8 +42,8 @@ export const routes: RouteObject[] = [
   // App
   { path: '/dashboard', element: <Dashboard /> },
   { path: '/messages', element: <Messages /> },
+  // /categories/new is removed — creation is handled via modal on the dashboard
   { path: '/categories', element: <Navigate to="/dashboard" replace /> },
-  { path: '/categories/new', element: <CreateCategory /> },
   { path: '/categories/:id', element: <CategoryDetail /> },
   { path: '/requests', element: <Requests /> },
   { path: '/archived', element: <ArchivedLinks /> },
@@ -55,6 +55,7 @@ export const routes: RouteObject[] = [
   { path: '/admin/overview', element: <AdminOverview /> },
   { path: '/admin/categories', element: <AdminGlobalCategories /> },
   { path: '/admin/users', element: <AdminManageUsers /> },
+  { path: '/admin/users/:id', element: <AdminUserDetail /> },
   { path: '/admin/reports', element: <AdminSystemReports /> },
   { path: '/admin/settings', element: <AdminPlatformSettings /> },
   { path: '/profile', element: <Profile /> },

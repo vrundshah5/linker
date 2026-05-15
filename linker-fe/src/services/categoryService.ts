@@ -1,4 +1,29 @@
-const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000'
+import api from '../lib/axios'
+
+export interface GlobalCategory {
+  _id: string
+  name: string
+  description: string
+  icon: string
+  color: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface UserCategory {
+  _id: string
+  userId: string
+  name: string
+  description: string
+  themeColor: string
+  icon: string
+  isGlobal: boolean
+  globalCategoryId: string | null
+  linkCount: number
+  createdAt: string
+  updatedAt: string
+}
 
 export interface CreateCategoryPayload {
   name: string
@@ -7,28 +32,23 @@ export interface CreateCategoryPayload {
   icon?: string
 }
 
-export interface Category {
-  _id: string
-  name: string
-  description: string
-  themeColor: string
-  icon: string
-  createdAt: string
-  updatedAt: string
-}
+export const categoryService = {
+  getGlobalCategories: async (): Promise<{ data: { categories: GlobalCategory[] } }> => {
+    const { data } = await api.get('/categories/global')
+    return data
+  },
 
-export async function createCategory(payload: CreateCategoryPayload): Promise<Category> {
-  const res = await fetch(`${BASE_URL}/api/categories`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  })
+  getMyCategories: async (): Promise<{ data: { categories: UserCategory[] } }> => {
+    const { data } = await api.get('/categories')
+    return data
+  },
 
-  const json = await res.json()
+  createCategory: async (payload: CreateCategoryPayload): Promise<{ data: { category: UserCategory } }> => {
+    const { data } = await api.post('/categories', payload)
+    return data
+  },
 
-  if (!res.ok || !json.success) {
-    throw new Error(json.message ?? 'Failed to create category')
-  }
-
-  return json.data as Category
+  deleteCategory: async (id: string): Promise<void> => {
+    await api.delete(`/categories/${id}`)
+  },
 }

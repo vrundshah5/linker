@@ -4,6 +4,7 @@ import 'dotenv/config';
 import authRoutes from './routes/auth.js';
 import onboardRoutes from './routes/onboard.js';
 import adminRoutes from './routes/admin.js';
+import categoryRoutes from './routes/categories.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -31,6 +32,9 @@ app.use('/api/auth', authRoutes);
 
 // Onboard routes
 app.use('/api/onboard', onboardRoutes);
+
+// Category routes (user categories + global categories picker)
+app.use('/api/categories', categoryRoutes);
 
 // Admin routes
 app.use('/api/admin', adminRoutes);

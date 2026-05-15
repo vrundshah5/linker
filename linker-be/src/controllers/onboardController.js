@@ -1,4 +1,6 @@
 import User from '../models/User.js';
+import GlobalCategory from '../models/GlobalCategory.js';
+import UserCategory from '../models/UserCategory.js';
 
 // PATCH /api/onboard/workspace-type
 // Called when user selects Personal or Professional on the /onboard screen
@@ -31,7 +33,8 @@ export const selectWorkspaceType = async (req, res) => {
 };
 
 // PATCH /api/onboard/personal
-// Completes personal onboarding — saves selected categories + marks onboardingComplete
+// Completes personal onboarding — saves selected global category IDs,
+// creates UserCategory documents, and marks onboardingComplete
 export const completePersonalOnboard = async (req, res) => {
   const { categories } = req.body;
 
@@ -43,12 +46,48 @@ export const completePersonalOnboard = async (req, res) => {
     });
   }
 
+  // Validate that all IDs are real active global categories
+  const globalCats = await GlobalCategory.find({
+    _id: { $in: categories },
+    isActive: true,
+  });
+
+  if (globalCats.length === 0) {
+    return res.status(400).json({
+      success: false,
+      data: null,
+      message: 'No valid global categories found',
+    });
+  }
+
+  // Upsert UserCategory records for each selected global category
+  const upsertOps = globalCats.map((gc) => ({
+    updateOne: {
+      filter: { userId: req.user.id, globalCategoryId: gc._id },
+      update: {
+        $setOnInsert: {
+          userId: req.user.id,
+          name: gc.name,
+          description: gc.description,
+          themeColor: gc.color,
+          icon: gc.icon,
+          isGlobal: true,
+          globalCategoryId: gc._id,
+          linkCount: 0,
+        },
+      },
+      upsert: true,
+    },
+  }));
+
+  await UserCategory.bulkWrite(upsertOps);
+
   const user = await User.findByIdAndUpdate(
     req.user.id,
     {
       onboardingComplete: true,
       workspaceType: 'personal',
-      'onboardingData.categories': categories,
+      'onboardingData.categories': globalCats.map((gc) => gc._id.toString()),
     },
     { new: true, select: '-password -resetPasswordToken -resetPasswordExpires' }
   );
