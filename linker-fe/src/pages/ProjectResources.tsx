@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Search, Globe } from 'lucide-react'
-import ProjectLayout from '../components/layouts/ProjectLayout'
+import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
 import BellButton from '../components/ui/BellButton'
 
 interface Resource {
@@ -71,7 +71,7 @@ export default function ProjectResources() {
   })
 
   return (
-    <ProjectLayout>
+    <WorkspaceLayout>
       <div className="h-full flex flex-col overflow-hidden">
 
         {/* Top bar */}
@@ -193,6 +193,6 @@ export default function ProjectResources() {
           </div>
         </div>
       </div>
-    </ProjectLayout>
+    </WorkspaceLayout>
   )
 }

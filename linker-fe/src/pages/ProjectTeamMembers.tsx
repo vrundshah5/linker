@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Search, UserMinus, ChevronDown } from 'lucide-react'
-import ProjectLayout from '../components/layouts/ProjectLayout'
+import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
 import ConfirmModal from '../components/ui/ConfirmModal'
 import BellButton from '../components/ui/BellButton'
 
@@ -80,7 +80,7 @@ export default function ProjectTeamMembers() {
 
   return (
     <>
-    <ProjectLayout>
+    <WorkspaceLayout>
       <div className="h-full flex flex-col overflow-hidden">
 
         {/* Top bar */}
@@ -205,7 +205,7 @@ export default function ProjectTeamMembers() {
           </div>
         </div>
       </div>
-    </ProjectLayout>
+    </WorkspaceLayout>
 
     <ConfirmModal
       open={removeTarget !== null}

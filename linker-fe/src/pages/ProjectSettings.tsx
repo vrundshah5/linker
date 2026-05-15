@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Search, Briefcase, ChevronDown, Pencil } from 'lucide-react'
-import ProjectLayout from '../components/layouts/ProjectLayout'
+import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
 import ConfirmModal from '../components/ui/ConfirmModal'
 import BellButton from '../components/ui/BellButton'
 
@@ -40,7 +40,7 @@ export default function ProjectSettings() {
 
   return (
     <>
-    <ProjectLayout>
+    <WorkspaceLayout>
       <div className="h-full flex flex-col overflow-hidden">
 
         {/* Top bar */}
@@ -226,7 +226,7 @@ export default function ProjectSettings() {
           </button>
         </div>
       </div>
-    </ProjectLayout>
+    </WorkspaceLayout>
 
     <ConfirmModal
       open={showDeleteModal}

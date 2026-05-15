@@ -11,7 +11,7 @@ import {
   Smile,
   Send,
 } from 'lucide-react'
-import ProjectLayout from '../components/layouts/ProjectLayout'
+import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
 
 interface Message {
   id: number
@@ -73,7 +73,7 @@ export default function ProjectChat() {
   const inputRef = useRef<HTMLInputElement>(null)
 
   return (
-    <ProjectLayout>
+    <WorkspaceLayout>
       <div className="h-full flex flex-col overflow-hidden bg-[#fcfcfc]">
 
         {/* Chat header */}
@@ -244,6 +244,6 @@ export default function ProjectChat() {
         </div>
 
       </div>
-    </ProjectLayout>
+    </WorkspaceLayout>
   )
 }

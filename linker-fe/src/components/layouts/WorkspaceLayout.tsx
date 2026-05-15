@@ -1,14 +1,21 @@
-import { type ReactNode } from 'react'
+import { useState, useRef, useEffect, type ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
-import { Link, Briefcase, Users, Settings, ChevronDown, BookMarked } from 'lucide-react'
+import { Link, Briefcase, Users, Settings, ChevronDown, BookMarked, MessageSquare, ChevronUp } from 'lucide-react'
 import UserMenuPopover from '../ui/UserMenuPopover'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 
 const NAV_ITEMS = [
   { to: '/professional-dashboard', label: 'Projects', icon: Briefcase, end: true },
   { to: '/projects/acme-corp-redesign/resources', label: 'Resources', icon: BookMarked, end: true },
+  { to: '/projects/acme-corp-redesign/chat', label: 'Project Chat', icon: MessageSquare, end: true },
   { to: '/projects/acme-corp-redesign/members', label: 'Team Members', icon: Users, end: true },
   { to: '/projects/acme-corp-redesign/settings', label: 'Project Settings', icon: Settings, end: true },
+]
+
+const PROJECTS = [
+  { id: 'acme-corp-redesign', name: 'Acme Corp Redesign', iconBg: 'bg-warning', textColor: 'text-warning' },
+  { id: 'marketing-q4', name: 'Marketing Q4 Campaign', iconBg: 'bg-primary', textColor: 'text-primary' },
+  { id: 'internal-wiki', name: 'Internal Wiki Migration', iconBg: 'bg-success', textColor: 'text-success' },
 ]
 
 interface WorkspaceLayoutProps {
@@ -17,6 +24,19 @@ interface WorkspaceLayoutProps {
 
 export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
   const user = useCurrentUser()
+  const [activeProject, setActiveProject] = useState(PROJECTS[0])
+  const [projectOpen, setProjectOpen] = useState(false)
+  const projectRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (projectRef.current && !projectRef.current.contains(e.target as Node)) {
+        setProjectOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       {/* Sidebar */}
@@ -63,6 +83,53 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
               </NavLink>
             ))}
           </nav>
+        </div>
+
+        {/* Project selector */}
+        <div className="px-3 pb-2 border-t border-border pt-3" ref={projectRef}>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-3 mb-2">
+            Active Project
+          </p>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setProjectOpen((v) => !v)}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-muted transition-colors text-left"
+            >
+              <div className={`size-6 rounded-lg ${activeProject.iconBg} flex items-center justify-center shrink-0`}>
+                <Briefcase className="size-3 text-white" />
+              </div>
+              <span className="flex-1 min-w-0 text-sm font-bold text-foreground truncate">{activeProject.name}</span>
+              {PROJECTS.length > 1 && (
+                projectOpen
+                  ? <ChevronUp className="size-3.5 text-muted-foreground shrink-0" />
+                  : <ChevronDown className="size-3.5 text-muted-foreground shrink-0" />
+              )}
+            </button>
+
+            {/* Dropdown */}
+            {projectOpen && PROJECTS.length > 1 && (
+              <div className="absolute bottom-full left-0 w-full mb-1 bg-surface border border-border rounded-xl shadow-lg z-50 overflow-hidden py-1">
+                {PROJECTS.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => { setActiveProject(p); setProjectOpen(false) }}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm font-bold transition-colors text-left ${
+                      activeProject.id === p.id
+                        ? `${p.textColor} bg-muted`
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    }`}
+                  >
+                    <div className={`size-5 rounded ${p.iconBg} flex items-center justify-center shrink-0`}>
+                      <Briefcase className="size-2.5 text-white" />
+                    </div>
+                    <span className="truncate">{p.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* User */}
