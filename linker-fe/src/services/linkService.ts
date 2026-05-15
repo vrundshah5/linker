@@ -70,4 +70,8 @@ export const linkService = {
   deleteLink: async (id: string): Promise<void> => {
     await api.delete(`/links/${id}`)
   },
+
+  bulkDeleteLinks: async (ids: string[]): Promise<void> => {
+    await api.delete('/links/bulk', { data: { ids } })
+  },
 }

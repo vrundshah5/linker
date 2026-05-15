@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
-import { Globe, Loader2 } from 'lucide-react'
+import { Globe, Loader2, Trash2, CheckSquare, Square } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
 import PageHeader from '../components/ui/PageHeader'
 import { useArchivedLinks } from '../hooks/links/useArchivedLinks'
+import { useBulkDeleteLinks } from '../hooks/links/useBulkDeleteLinks'
 
 function getFavicon(url: string) {
   try {
@@ -20,8 +21,10 @@ function formatDate(iso: string) {
 export default function ArchivedLinks() {
   const [activeFilter, setActiveFilter] = useState('All')
   const [search, setSearch] = useState('')
+  const [selected, setSelected] = useState<Set<string>>(new Set())
 
   const { data: archivedLinks = [], isLoading, isError } = useArchivedLinks()
+  const { mutate: bulkDelete, isPending: deleting } = useBulkDeleteLinks()
 
   const categoryFilters = useMemo(() => {
     const names = archivedLinks.map((l) => l.categoryId.name)
@@ -40,6 +43,31 @@ export default function ArchivedLinks() {
 
   const headingText =
     activeFilter === 'All' ? 'Showing All Categories' : `Showing "${activeFilter}"`
+
+  const allVisibleIds = visibleLinks.map((l) => l._id)
+  const allSelected = allVisibleIds.length > 0 && allVisibleIds.every((id) => selected.has(id))
+  const someSelected = selected.size > 0
+
+  function toggleOne(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  function toggleAll() {
+    if (allSelected) {
+      setSelected(new Set())
+    } else {
+      setSelected(new Set(allVisibleIds))
+    }
+  }
+
+  function handleDeleteSelected() {
+    const ids = Array.from(selected)
+    bulkDelete(ids, { onSuccess: () => setSelected(new Set()) })
+  }
 
   return (
     <AppLayout>
@@ -92,6 +120,40 @@ export default function ArchivedLinks() {
                 </span>
               </p>
 
+              {/* Select-all + delete bar */}
+              {visibleLinks.length > 0 && (
+              <div className="flex items-center justify-between mb-4">
+                <button
+                  type="button"
+                  onClick={toggleAll}
+                  className="flex items-center gap-2 text-sm font-semibold text-foreground hover:text-primary transition-colors cursor-pointer"
+                >
+                  {allSelected ? (
+                    <CheckSquare className="size-4 text-primary" />
+                  ) : (
+                    <Square className="size-4 text-muted-foreground" />
+                  )}
+                  {allSelected ? 'Deselect All' : 'Select All'}
+                </button>
+
+                {someSelected && (
+                  <button
+                    type="button"
+                    disabled={deleting}
+                    onClick={handleDeleteSelected}
+                    className="flex items-center gap-2 px-4 py-2 bg-danger/10 text-danger text-sm font-bold rounded-xl hover:bg-danger/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    {deleting ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="size-4" />
+                    )}
+                    Delete {selected.size} selected
+                  </button>
+                )}
+              </div>
+              )}
+
               {/* Link rows */}
               <div className="flex flex-col gap-3">
                 {visibleLinks.length === 0 ? (
@@ -101,11 +163,28 @@ export default function ArchivedLinks() {
                 ) : (
                   visibleLinks.map((link) => {
                     const favicon = getFavicon(link.url)
+                    const isChecked = selected.has(link._id)
                     return (
                       <div
                         key={link._id}
-                        className="flex items-center gap-5 px-6 py-5 bg-surface border border-border rounded-2xl hover:border-primary/30 hover:shadow-sm transition-all"
+                        className={`flex items-center gap-5 px-6 py-5 bg-surface border rounded-2xl hover:border-primary/30 hover:shadow-sm transition-all ${
+                          isChecked ? 'border-primary/40 bg-primary/5' : 'border-border'
+                        }`}
                       >
+                        {/* Checkbox */}
+                        <button
+                          type="button"
+                          onClick={() => toggleOne(link._id)}
+                          className="shrink-0 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                          aria-label={isChecked ? 'Deselect' : 'Select'}
+                        >
+                          {isChecked ? (
+                            <CheckSquare className="size-5 text-primary" />
+                          ) : (
+                            <Square className="size-5" />
+                          )}
+                        </button>
+
                         {/* Favicon / Globe icon */}
                         <div className="size-11 rounded-xl bg-muted flex items-center justify-center shrink-0 overflow-hidden">
                           {favicon ? (

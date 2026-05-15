@@ -153,6 +153,44 @@ export const createExtensionLink = async (req, res) => {
   }
 };
 
+// DELETE /api/links/bulk  — body: { ids: string[] }
+export const bulkDeleteLinks = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, data: null, message: 'ids must be a non-empty array' });
+    }
+
+    // Only delete links owned by this user
+    const links = await Link.find({ _id: { $in: ids }, userId: req.user.id }).select('_id categoryId');
+
+    if (links.length === 0) {
+      return res.status(404).json({ success: false, data: null, message: 'No matching links found' });
+    }
+
+    const foundIds = links.map((l) => l._id);
+    await Link.deleteMany({ _id: { $in: foundIds } });
+
+    // Decrement link count per category
+    const categoryMap = {};
+    for (const l of links) {
+      const cid = l.categoryId.toString();
+      categoryMap[cid] = (categoryMap[cid] ?? 0) + 1;
+    }
+    await Promise.all(
+      Object.entries(categoryMap).map(([cid, count]) =>
+        UserCategory.findByIdAndUpdate(cid, { $inc: { linkCount: -count } })
+      )
+    );
+
+    return res.json({ success: true, data: { deleted: foundIds.length }, message: `${foundIds.length} link(s) deleted` });
+  } catch (err) {
+    console.error('bulkDeleteLinks error:', err);
+    return res.status(500).json({ success: false, data: null, message: 'Server error' });
+  }
+};
+
 // DELETE /api/links/:id
 export const deleteLink = async (req, res) => {
   try {

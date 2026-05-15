@@ -5,6 +5,7 @@ import {
   createLink,
   updateLink,
   deleteLink,
+  bulkDeleteLinks,
   getArchivedLinks,
   createExtensionLink,
 } from '../controllers/linkController.js';
@@ -18,6 +19,7 @@ router.post('/extension', createExtensionLink);
 router.get('/', getLinks);
 router.post('/', createLink);
 router.patch('/:id', updateLink);
+router.delete('/bulk', bulkDeleteLinks);
 router.delete('/:id', deleteLink);
 
 export default router;
