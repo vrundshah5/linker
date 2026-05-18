@@ -5,6 +5,7 @@ export interface UserProfile {
   name: string
   email: string
   role: string
+  avatar: string
   phone: string
   location: string
   jobTitle: string
@@ -18,12 +19,19 @@ export interface UserProfile {
 
 export interface UpdateProfilePayload {
   name?: string
+  avatar?: string
   phone?: string
   location?: string
   jobTitle?: string
   company?: string
   website?: string
   bio?: string
+}
+
+export interface ChangePasswordPayload {
+  currentPassword: string
+  newPassword: string
+  confirmPassword: string
 }
 
 export const profileService = {
@@ -43,5 +51,9 @@ export const profileService = {
       { workspaceType }
     )
     return data.data.user
+  },
+
+  changePassword: async (payload: ChangePasswordPayload): Promise<void> => {
+    await api.patch('/profile/password', payload)
   },
 }

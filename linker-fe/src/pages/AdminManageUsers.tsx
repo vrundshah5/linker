@@ -60,16 +60,15 @@ export default function AdminManageUsers() {
     <AdminLayout>
       <div className="h-full flex flex-col overflow-hidden">
 
-        <PageHeader
-          title="Manage Users"
-          subtitle="View, edit, or ban users from the platform."
-          searchValue={search}
-          onSearch={handleSearch}
-          searchPlaceholder="Search users by name or email..."
-        />
-
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-8 py-7">
+        <div className="flex-1 overflow-y-auto px-8 py-6">
+          <PageHeader
+            title="Manage Users"
+            subtitle="View, edit, or ban users from the platform."
+            searchValue={search}
+            onSearch={handleSearch}
+            searchPlaceholder="Search users by name or email..."
+          />
           <div className="bg-surface border border-border rounded-2xl overflow-hidden">
 
             {/* Table header */}

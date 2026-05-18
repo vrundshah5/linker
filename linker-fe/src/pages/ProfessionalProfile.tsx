@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import { Mail, Phone, MapPin, Briefcase, Globe, Loader2, ArrowRight } from 'lucide-react'
+import { Mail, Phone, MapPin, Briefcase, Globe, Loader2 } from 'lucide-react'
 import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
 import ConfirmModal from '../components/ui/ConfirmModal'
-import { useProfile, useUpdateProfile, useSwitchWorkspace } from '../hooks/useProfile'
+import { useProfile, useUpdateProfile } from '../hooks/useProfile'
 
 function getInitials(name: string) {
   const parts = name.trim().split(' ')
@@ -14,7 +14,6 @@ function getInitials(name: string) {
 export default function ProfessionalProfile() {
   const { data: profile, isLoading } = useProfile()
   const { mutate: saveProfile, isPending: saving } = useUpdateProfile()
-  const { mutate: switchWorkspace, isPending: switching } = useSwitchWorkspace()
 
   const [name, setName]         = useState('')
   const [phone, setPhone]       = useState('')
@@ -25,6 +24,7 @@ export default function ProfessionalProfile() {
   const [bio, setBio]           = useState('')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   useEffect(() => {
     if (profile) {
       setName(profile.name ?? '')
@@ -51,8 +51,6 @@ export default function ProfessionalProfile() {
   function handleSave() {
     saveProfile({ name, phone, location, jobTitle, company, website, bio })
   }
-
-  const hasPersonal = profile?.workspaces?.includes('personal') === true
 
   return (
     <>
@@ -98,27 +96,6 @@ export default function ProfessionalProfile() {
                 </span>
               </div>
             </div>
-
-            {/* Switch to personal */}
-            {hasPersonal && (
-              <div className="bg-surface border border-border rounded-2xl p-5 flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-bold text-foreground">Switch to Personal</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    You have a personal workspace set up.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  disabled={switching}
-                  onClick={() => switchWorkspace('personal')}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground text-sm font-bold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer shrink-0"
-                >
-                  {switching ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
-                  Switch
-                </button>
-              </div>
-            )}
 
             {/* Personal Information */}
             <div className="bg-surface border border-border rounded-2xl p-6">

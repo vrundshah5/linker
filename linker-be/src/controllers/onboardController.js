@@ -119,7 +119,8 @@ export const completeProfessionalOnboard = async (req, res) => {
   try {
     const { projectName, projectDescription, invitedEmails, resources } = req.body;
 
-    if (!projectName || projectName.trim().length < 2) {
+    // If projectName is provided, validate it
+    if (projectName && projectName.trim().length < 2) {
       return res.status(400).json({
         success: false,
         data: null,
@@ -127,17 +128,23 @@ export const completeProfessionalOnboard = async (req, res) => {
       });
     }
 
+    const updateFields = {
+      onboardingComplete: true,
+      workspaceType: 'professional',
+      $addToSet: { workspaces: 'professional' },
+    };
+
+    // Only store onboarding project data if a project is being created
+    if (projectName && projectName.trim()) {
+      updateFields['onboardingData.projectName'] = projectName.trim();
+      updateFields['onboardingData.projectDescription'] = projectDescription?.trim() || null;
+      updateFields['onboardingData.invitedEmails'] = Array.isArray(invitedEmails) ? invitedEmails : [];
+      updateFields['onboardingData.resources'] = Array.isArray(resources) ? resources : [];
+    }
+
     const user = await User.findByIdAndUpdate(
       req.user.id,
-      {
-        onboardingComplete: true,
-        workspaceType: 'professional',
-        'onboardingData.projectName': projectName.trim(),
-        'onboardingData.projectDescription': projectDescription?.trim() || null,
-        'onboardingData.invitedEmails': Array.isArray(invitedEmails) ? invitedEmails : [],
-        'onboardingData.resources': Array.isArray(resources) ? resources : [],
-        $addToSet: { workspaces: 'professional' },
-      },
+      updateFields,
       { new: true, select: '-password -resetPasswordToken -resetPasswordExpires' }
     );
 
@@ -145,24 +152,26 @@ export const completeProfessionalOnboard = async (req, res) => {
       return res.status(404).json({ success: false, data: null, message: 'User not found' });
     }
 
-    // Create the first project from onboarding data
-    const project = await Project.create({
-      name: projectName.trim(),
-      description: projectDescription?.trim() || '',
-      ownerId: user._id,
-      members: [{ userId: user._id, role: 'admin' }],
-    });
+    // Create the first project only if projectName was provided
+    if (projectName && projectName.trim()) {
+      const project = await Project.create({
+        name: projectName.trim(),
+        description: projectDescription?.trim() || '',
+        ownerId: user._id,
+        members: [{ userId: user._id, role: 'admin' }],
+      });
 
-    // Save onboarding resources to the project
-    const resourceUrls = Array.isArray(resources) ? resources.filter((r) => r && r.trim()) : [];
-    if (resourceUrls.length > 0) {
-      const resourceDocs = resourceUrls.map((url) => ({
-        projectId: project._id,
-        addedBy: user._id,
-        title: '',
-        url: url.trim(),
-      }));
-      await ProjectResource.insertMany(resourceDocs);
+      // Save onboarding resources to the project
+      const resourceUrls = Array.isArray(resources) ? resources.filter((r) => r && r.trim()) : [];
+      if (resourceUrls.length > 0) {
+        const resourceDocs = resourceUrls.map((url) => ({
+          projectId: project._id,
+          addedBy: user._id,
+          title: '',
+          url: url.trim(),
+        }));
+        await ProjectResource.insertMany(resourceDocs);
+      }
     }
 
     return res.status(200).json({

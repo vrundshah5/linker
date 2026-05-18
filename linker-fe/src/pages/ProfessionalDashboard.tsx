@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Briefcase, Users, Link2, Search, Plus, Loader2 } from 'lucide-react'
+import { Briefcase, Users, Link2, Search, Plus, Loader2, ArrowLeftRight } from 'lucide-react'
 import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
+import WorkspaceSwitchSplash from '../components/ui/WorkspaceSwitchSplash'
 import CreateProjectModal from '../components/ui/CreateProjectModal'
+import BellButton from '../components/ui/BellButton'
 import { useCurrentUser } from '../hooks/useCurrentUser'
+import { useSwitchWorkspace } from '../hooks/useProfile'
 import { useProjects, useCreateProject } from '../hooks/useProjects'
 
 const PROJECT_COLORS = [
@@ -42,6 +45,8 @@ export default function ProfessionalDashboard() {
   const navigate = useNavigate()
   const { data: projects, isLoading } = useProjects()
   const { mutate: createProject, isPending: creating } = useCreateProject()
+  const { mutate: switchWorkspace, isPending: isSwitching, switchTarget } = useSwitchWorkspace()
+  const hasMultipleWorkspaces = user.workspaces.length > 1
   const [search, setSearch] = useState('')
   const [showCreate, setShowCreate] = useState(false)
 
@@ -75,14 +80,27 @@ export default function ProfessionalDashboard() {
                 You have {projects?.length ?? 0} active project{(projects?.length ?? 0) !== 1 ? 's' : ''}. Let's get to work.
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setShowCreate(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-warning text-white font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer shrink-0"
-            >
-              <Plus className="size-4" />
-              New Project
-            </button>
+            <div className="flex items-center gap-3 shrink-0">
+              {hasMultipleWorkspaces && (
+                <button
+                  type="button"
+                  onClick={() => switchWorkspace('personal')}
+                  className="size-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground cursor-pointer"
+                  aria-label="Switch workspace"
+                >
+                  <ArrowLeftRight className="size-[18px]" />
+                </button>
+              )}
+              <BellButton context="professional" />
+              <button
+                type="button"
+                onClick={() => setShowCreate(true)}
+                className="flex items-center gap-2 px-5 py-2.5 bg-warning text-white font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
+              >
+                <Plus className="size-4" />
+                New Project
+              </button>
+            </div>
           </div>
 
           {/* Create project modal */}
@@ -213,6 +231,7 @@ export default function ProfessionalDashboard() {
           </div>
         </div>
       </div>
+      {isSwitching && switchTarget && <WorkspaceSwitchSplash targetWorkspace={switchTarget} />}
     </WorkspaceLayout>
   )
 }

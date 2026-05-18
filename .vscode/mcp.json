@@ -6,6 +6,21 @@
       "headers": {
         "Authorization": "Bearer bnni_9TfNx3FMkJK9ttB7cl4syCSS4QW7tIzV"
       }
+    },
+    "sonarqube": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "sonarqube-mcp-server@latest"
+      ],
+      "env": {}
+    },
+    "gitkraken": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-git",
+        "--repository"
+      ]
     }
   }
 }

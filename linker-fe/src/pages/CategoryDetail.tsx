@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { Globe, Plus, Copy, Trash2, Loader2, Link2, Star } from 'lucide-react'
+import { useParams, Link as RouterLink } from 'react-router-dom'
+import { Globe, Plus, Copy, Trash2, Loader2, Link2, Star, ChevronRight, MoreVertical } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
 import PageHeader from '../components/ui/PageHeader'
 import AddLinkModal from '../components/ui/AddLinkModal'
@@ -21,7 +21,7 @@ function getFavicon(url: string) {
 }
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: '2-digit' })
 }
 
 export default function CategoryDetail() {
@@ -51,42 +51,54 @@ export default function CategoryDetail() {
   return (
     <AppLayout>
       <div className="h-full flex flex-col overflow-hidden">
-        <PageHeader
-          title={category?.name ?? 'Category'}
-          subtitle={category?.description || 'Your saved links.'}
-          actions={
-            activeTab === 'all' ? (
-              <button
-                type="button"
-                onClick={() => setModalOpen(true)}
-                className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
-              >
-                <Plus className="size-4" />
-                Add Link
-              </button>
-            ) : undefined
-          }
-        />
+        <div className="flex-1 overflow-y-auto px-8 py-6">
 
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-8 py-7">
+          {/* Breadcrumb */}
+          <nav className="mb-6 flex items-center gap-2 text-sm text-muted-foreground font-bold">
+            <RouterLink
+              to="/dashboard"
+              className="hover:text-primary cursor-pointer transition-colors"
+            >
+              Dashboard
+            </RouterLink>
+            <ChevronRight className="size-4" />
+            <span className="text-foreground">
+              {category?.name ?? 'Category'}
+            </span>
+          </nav>
+
+          {/* Header */}
+          <PageHeader
+            title={category?.name ?? 'Category'}
+            subtitle={category?.description || 'Your saved links.'}
+            actions={
+              activeTab === 'all' ? (
+                <button
+                  type="button"
+                  onClick={() => setModalOpen(true)}
+                  className="bg-primary text-primary-foreground px-6 py-3 rounded-full font-bold text-sm flex items-center gap-2 shadow-sm hover:opacity-90 transition-opacity cursor-pointer"
+                >
+                  <Plus className="size-[18px]" />
+                  Add Link
+                </button>
+              ) : undefined
+            }
+          />
+
           {/* Tabs */}
-          <div className="inline-flex items-center bg-surface border border-border rounded-full p-1 mb-6">
+          <div className="inline-flex items-center gap-1 bg-surface p-2 rounded-2xl shadow-sm mb-6">
             {tabs.map(({ key, label, count }) => (
               <button
                 key={key}
                 type="button"
                 onClick={() => setActiveTab(key)}
-                className={`px-5 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer ${
+                className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-colors cursor-pointer ${
                   activeTab === key
-                    ? 'bg-secondary text-primary shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-[#f4f7fe] text-primary'
+                    : 'text-muted-foreground hover:bg-[#f4f7fe]'
                 }`}
               >
-                {label}
-                <span className={`ml-1.5 text-xs ${activeTab === key ? 'text-primary' : 'text-muted-foreground'}`}>
-                  ({count})
-                </span>
+                {label} ({count})
               </button>
             ))}
           </div>
@@ -100,81 +112,92 @@ export default function CategoryDetail() {
 
           {/* Links list */}
           {!isLoading && (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-4">
               {visibleLinks.map((link) => {
                 const favicon = getFavicon(link.url)
                 return (
                   <div
                     key={link._id}
-                    className="group flex items-center gap-4 px-5 py-4 bg-surface border border-border rounded-2xl hover:border-primary/40 hover:shadow-sm transition-all"
+                    className="bg-surface p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-transparent hover:border-primary/20"
                   >
-                    {/* Favicon */}
-                    <div className="size-10 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden">
-                      {favicon ? (
-                        <img
-                          src={favicon}
-                          alt=""
-                          className="size-5"
-                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
-                        />
-                      ) : (
-                        <Globe className="size-5 text-muted-foreground" />
-                      )}
-                    </div>
+                    <div className="bg-surface rounded-xl p-4 border border-border shadow-sm flex items-center gap-4 hover:border-primary transition-colors group">
+                      {/* Favicon */}
+                      <div className="size-12 rounded-lg bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+                        {favicon ? (
+                          <img
+                            src={favicon}
+                            alt=""
+                            className="size-6"
+                            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+                          />
+                        ) : (
+                          <Globe className="size-6 text-muted-foreground" />
+                        )}
+                      </div>
 
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-foreground truncate">{link.title}</p>
-                      <a
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-primary hover:underline truncate block mt-0.5"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {link.url}
-                      </a>
-                      {link.description && (
-                        <p className="text-xs text-muted-foreground mt-0.5 truncate">{link.description}</p>
-                      )}
-                    </div>
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-base font-bold text-foreground truncate mb-1">
+                          {link.title}
+                        </h4>
+                        <a
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-primary truncate hover:underline block"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {link.url}
+                        </a>
+                      </div>
 
-                    {/* Date */}
-                    <span className="text-sm text-muted-foreground shrink-0 w-14 text-right">
-                      {formatDate(link.createdAt)}
-                    </span>
+                      {/* Date */}
+                      <div className="text-sm text-muted-foreground shrink-0 w-24 text-right">
+                        {formatDate(link.createdAt)}
+                      </div>
 
-                    {/* Actions */}
-                    <div className="flex items-center gap-1 shrink-0">
-                      {/* Star — always visible when favorited, otherwise shown on hover */}
-                      <button
-                        type="button"
-                        title={link.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                        onClick={() => updateLink({ id: link._id, payload: { isFavorite: !link.isFavorite } })}
-                        className={`size-8 flex items-center justify-center rounded-lg transition-colors cursor-pointer ${
-                          link.isFavorite
-                            ? 'text-warning'
-                            : 'text-muted-foreground hover:text-warning opacity-0 group-hover:opacity-100'
-                        }`}
-                      >
-                        <Star className={`size-4 ${link.isFavorite ? 'fill-warning' : ''}`} />
-                      </button>
-                      <button
-                        type="button"
-                        title="Copy link"
-                        onClick={() => navigator.clipboard.writeText(link.url)}
-                        className="size-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
-                      >
-                        <Copy className="size-4" />
-                      </button>
-                      <button
-                        type="button"
-                        title="Delete"
-                        onClick={() => deleteLink(link._id)}
-                        className="size-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-danger hover:bg-danger/10 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
-                      >
-                        <Trash2 className="size-4" />
-                      </button>
+                      {/* Actions */}
+                      <div className="flex items-center gap-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {/* Star */}
+                        <button
+                          type="button"
+                          title={link.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                          onClick={() => updateLink({ id: link._id, payload: { isFavorite: !link.isFavorite } })}
+                          className={`p-2 rounded-lg transition-colors cursor-pointer ${
+                            link.isFavorite
+                              ? 'text-warning !opacity-100'
+                              : 'text-muted-foreground hover:text-warning'
+                          }`}
+                        >
+                          <Star className={`size-[18px] ${link.isFavorite ? 'fill-warning' : ''}`} />
+                        </button>
+                        {/* Copy */}
+                        <button
+                          type="button"
+                          title="Copy link"
+                          onClick={() => navigator.clipboard.writeText(link.url)}
+                          className="p-2 text-muted-foreground hover:text-primary rounded-lg hover:bg-secondary transition-colors cursor-pointer"
+                        >
+                          <Copy className="size-[18px]" />
+                        </button>
+                        {/* Delete */}
+                        <button
+                          type="button"
+                          title="Delete"
+                          onClick={() => deleteLink(link._id)}
+                          className="p-2 text-muted-foreground hover:text-danger rounded-lg hover:bg-danger/10 transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="size-[18px]" />
+                        </button>
+                        {/* More */}
+                        <button
+                          type="button"
+                          title="More options"
+                          className="p-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition-colors cursor-pointer"
+                        >
+                          <MoreVertical className="size-[18px]" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )

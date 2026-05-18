@@ -3,10 +3,10 @@ import { toast } from 'sonner'
 import { onboardService } from '../../services/onboard.service'
 
 interface ProfessionalPayload {
-  projectName: string
+  projectName?: string
   projectDescription?: string
-  invitedEmails: string[]
-  resources: string[]
+  invitedEmails?: string[]
+  resources?: string[]
 }
 
 export function useCompleteProfessionalOnboard() {
@@ -16,7 +16,12 @@ export function useCompleteProfessionalOnboard() {
       const stored = localStorage.getItem('user')
       if (stored) {
         const user = JSON.parse(stored)
-        localStorage.setItem('user', JSON.stringify({ ...user, onboardingComplete: true, workspaceType: 'professional' }))
+        localStorage.setItem('user', JSON.stringify({
+          ...user,
+          onboardingComplete: true,
+          workspaceType: data.user.workspaceType ?? 'professional',
+          workspaces: data.user.workspaces ?? [...(user.workspaces ?? []), 'professional'],
+        }))
       }
       toast.success(data.user.name ? `Welcome, ${data.user.name.split(' ')[0]}!` : 'Onboarding complete!')
     },

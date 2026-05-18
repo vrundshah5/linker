@@ -14,35 +14,42 @@ function getFavicon(url: string) {
   }
 }
 
+function getDomain(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    return 'unknown'
+  }
+}
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
 export default function ArchivedLinks() {
-  const [activeFilter, setActiveFilter] = useState('All')
+  const [activeDomain, setActiveDomain] = useState('All')
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<Set<string>>(new Set())
 
   const { data: archivedLinks = [], isLoading, isError } = useArchivedLinks()
   const { mutate: bulkDelete, isPending: deleting } = useBulkDeleteLinks()
 
-  const categoryFilters = useMemo(() => {
-    const names = archivedLinks.map((l) => l.categoryId.name)
-    return ['All', ...Array.from(new Set(names))]
+  const domainFilters = useMemo(() => {
+    const domains = archivedLinks.map((l) => getDomain(l.url))
+    return ['All', ...Array.from(new Set(domains)).sort()]
   }, [archivedLinks])
 
   const visibleLinks = archivedLinks.filter((link) => {
-    const matchesCategory =
-      activeFilter === 'All' || link.categoryId.name === activeFilter
+    const matchesDomain =
+      activeDomain === 'All' || getDomain(link.url) === activeDomain
     const matchesSearch =
       search.trim() === '' ||
       link.title.toLowerCase().includes(search.toLowerCase()) ||
       link.url.toLowerCase().includes(search.toLowerCase())
-    return matchesCategory && matchesSearch
+    return matchesDomain && matchesSearch
   })
 
-  const headingText =
-    activeFilter === 'All' ? 'Showing All Categories' : `Showing "${activeFilter}"`
+  const headingText = activeDomain === 'All' ? 'Showing All' : `Showing ${activeDomain}`
 
   const allVisibleIds = visibleLinks.map((l) => l._id)
   const allSelected = allVisibleIds.length > 0 && allVisibleIds.every((id) => selected.has(id))
@@ -72,31 +79,31 @@ export default function ArchivedLinks() {
   return (
     <AppLayout>
       <div className="h-full flex flex-col overflow-hidden">
-        <PageHeader
-          title="Archived Links"
-          subtitle="Access and manage all your archived resources from across categories."
-          searchValue={search}
-          onSearch={setSearch}
-        />
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-8 py-7">
-          {/* Filter by category */}
+        <div className="flex-1 overflow-y-auto px-8 py-6">
+          <PageHeader
+            title="Archived Links"
+            subtitle="Access and manage all your archived resources from across categories."
+            searchValue={search}
+            onSearch={setSearch}
+          />
+          {/* Filter by domain */}
           <div className="mb-6">
-            <p className="text-sm font-bold text-foreground mb-3">Filter by Category</p>
+            <p className="text-sm font-bold text-foreground mb-3">Filter by Domain</p>
             <div className="flex flex-wrap items-center gap-2">
-              {categoryFilters.map((filter) => (
+              {domainFilters.map((domain) => (
                 <button
-                  key={filter}
+                  key={domain}
                   type="button"
-                  onClick={() => setActiveFilter(filter)}
+                  onClick={() => setActiveDomain(domain)}
                   className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors cursor-pointer ${
-                    activeFilter === filter
+                    activeDomain === domain
                       ? 'bg-primary text-primary-foreground border-primary'
                       : 'bg-surface text-foreground border-border hover:border-primary/40 hover:bg-secondary/50'
                   }`}
                 >
-                  {filter}
+                  {domain}
                 </button>
               ))}
             </div>
@@ -216,12 +223,9 @@ export default function ArchivedLinks() {
                           </a>
                         </div>
 
-                        {/* Category badge */}
-                        <span
-                          className="px-3 py-1 bg-secondary text-primary text-xs font-semibold rounded-full shrink-0"
-                          style={{ borderColor: link.categoryId.themeColor, borderWidth: 1 }}
-                        >
-                          {link.categoryId.name}
+                        {/* Domain tag */}
+                        <span className="px-3 py-1 bg-muted text-muted-foreground text-xs font-semibold rounded-full shrink-0">
+                          {getDomain(link.url)}
                         </span>
 
                         {/* Date */}

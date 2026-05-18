@@ -9,7 +9,12 @@ export function useCompletePersonalOnboard() {
       const stored = localStorage.getItem('user')
       if (stored) {
         const user = JSON.parse(stored)
-        localStorage.setItem('user', JSON.stringify({ ...user, onboardingComplete: true, workspaceType: 'personal' }))
+        localStorage.setItem('user', JSON.stringify({
+          ...user,
+          onboardingComplete: true,
+          workspaceType: data.user.workspaceType ?? 'personal',
+          workspaces: data.user.workspaces ?? [...(user.workspaces ?? []), 'personal'],
+        }))
       }
       toast.success(data.user.name ? `Welcome, ${data.user.name.split(' ')[0]}!` : 'Onboarding complete!')
     },

@@ -15,7 +15,7 @@ export const getLinks = async (req, res) => {
       return res.status(404).json({ success: false, data: null, message: 'Category not found' });
     }
 
-    const links = await Link.find({ userId: req.user.id, categoryId })
+    const links = await Link.find({ userId: req.user.id, categoryId, isArchived: { $ne: true } })
       .sort({ createdAt: -1 });
 
     return res.json({ success: true, data: { links }, message: 'Links fetched' });

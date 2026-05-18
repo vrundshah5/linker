@@ -366,25 +366,24 @@ export default function AdminGlobalCategories() {
     <AdminLayout>
       <div className="h-full flex flex-col overflow-hidden">
 
-        <PageHeader
-          title="Global Categories"
-          subtitle="Manage default categories available to all new users."
-          searchValue={search}
-          onSearch={handleSearch}
-          actions={
-            <button
-              type="button"
-              onClick={() => setAddOpen(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
-            >
-              <Plus className="size-4" />
-              Add Category
-            </button>
-          }
-        />
-
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-8 py-7">
+        <div className="flex-1 overflow-y-auto px-8 py-6">
+          <PageHeader
+            title="Global Categories"
+            subtitle="Manage default categories available to all new users."
+            searchValue={search}
+            onSearch={handleSearch}
+            actions={
+              <button
+                type="button"
+                onClick={() => setAddOpen(true)}
+                className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
+              >
+                <Plus className="size-4" />
+                Add Category
+              </button>
+            }
+          />
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
               <Loader2 className="size-6 animate-spin text-muted-foreground" />

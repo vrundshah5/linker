@@ -8,6 +8,11 @@ const notificationSchema = new mongoose.Schema(
       enum: ['new_user', 'request_received', 'request_accepted', 'request_rejected'],
       required: true,
     },
+    context: {
+      type: String,
+      enum: ['personal', 'professional'],
+      default: 'personal',
+    },
     title: { type: String, required: true },
     body: { type: String, required: true },
     read: { type: Boolean, default: false },

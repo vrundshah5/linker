@@ -34,7 +34,7 @@ function timeAgo(iso: string) {
 export default function Notifications() {
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<FilterTab>('All')
-  const { data: notifications = [] } = useNotifications()
+  const { data: notifications = [] } = useNotifications('personal')
   const { mutate: markAllRead } = useMarkAllRead()
   const { mutate: markOneRead } = useMarkOneRead()
   const { mutate: deleteOne } = useDeleteNotification()
@@ -60,63 +60,65 @@ export default function Notifications() {
     <AppLayout>
       <div className="h-full flex flex-col overflow-hidden">
 
-        <PageHeader
-          title="Notifications"
-          subtitle={unread > 0 ? `${unread} unread notification${unread > 1 ? 's' : ''}` : 'All caught up!'}
-          actions={
-            unread > 0 ? (
-              <button
-                type="button"
-                onClick={() => markAllRead()}
-                className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-primary border border-primary/30 rounded-xl hover:bg-secondary transition-colors cursor-pointer"
-              >
-                <CheckCheck className="size-4" />
-                Mark all as read
-              </button>
-            ) : undefined
-          }
-        />
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto px-8 py-6">
+          <PageHeader
+            title="Notifications"
+            subtitle={unread > 0 ? `${unread} unread notification${unread > 1 ? 's' : ''}` : 'All caught up!'}
+            actions={
+              unread > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => markAllRead()}
+                  className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-primary border border-primary/30 rounded-xl hover:bg-secondary transition-colors cursor-pointer"
+                >
+                  <CheckCheck className="size-4" />
+                  Mark all as read
+                </button>
+              ) : undefined
+            }
+          />
 
-        {/* Filter tabs */}
-        <div className="px-8 pt-5 pb-2 flex items-center gap-2 flex-wrap shrink-0">
-          {FILTER_TABS.map((tab) => {
-            const count = tab === 'Unread'
-              ? notifications.filter((n) => !n.read).length
-              : tab === 'All'
-              ? notifications.length
-              : tab === 'Request'
-              ? notifications.filter((n) => n.type === 'request_received' || n.type === 'request_accepted' || n.type === 'request_rejected').length
-              : notifications.filter((n) => n.type === 'new_user').length
+          {/* Filter tabs */}
+          <div className="pb-4 flex items-center gap-2 flex-wrap">
+            {FILTER_TABS.map((tab) => {
+              const count = tab === 'Unread'
+                ? notifications.filter((n) => !n.read).length
+                : tab === 'All'
+                ? notifications.length
+                : tab === 'Request'
+                ? notifications.filter((n) => n.type === 'request_received' || n.type === 'request_accepted' || n.type === 'request_rejected').length
+                : notifications.filter((n) => n.type === 'new_user').length
 
-            return (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setActiveTab(tab)}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-bold transition-colors cursor-pointer ${
-                  activeTab === tab
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-surface border border-border text-muted-foreground hover:text-foreground hover:bg-muted'
-                }`}
-              >
-                {tab}
-                {count > 0 && (
-                  <span
-                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                      activeTab === tab ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    {count}
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
+              return (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setActiveTab(tab)}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-bold transition-colors cursor-pointer ${
+                    activeTab === tab
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-surface border border-border text-muted-foreground hover:text-foreground hover:bg-muted'
+                  }`}
+                >
+                  {tab}
+                  {count > 0 && (
+                    <span
+                      className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                        activeTab === tab ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground'
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
 
-        {/* List */}
-        <div className="flex-1 overflow-y-auto px-8 py-4">
-          {filtered.length === 0 ? (
+          {/* List */}
+          <div className="py-4">
+            {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center">
               <div className="size-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
                 <Bell className="size-7 text-muted-foreground" />
@@ -171,6 +173,7 @@ export default function Notifications() {
               })}
             </div>
           )}
+          </div>
         </div>
 
       </div>

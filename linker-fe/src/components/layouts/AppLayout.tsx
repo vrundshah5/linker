@@ -12,7 +12,6 @@ import {
 } from 'lucide-react'
 import UserMenuPopover from '../ui/UserMenuPopover'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
-import { useSwitchWorkspace } from '../../hooks/useProfile'
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -29,7 +28,6 @@ interface AppLayoutProps {
 
 export default function AppLayout({ children }: AppLayoutProps) {
   const user = useCurrentUser()
-  const { mutate: switchWorkspace } = useSwitchWorkspace()
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
@@ -79,7 +77,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
           <UserMenuPopover
             accentClass="text-primary"
             accentBg="bg-primary/10"
-            switchTo={user.workspaces.includes('professional') ? { label: 'Switch to Professional', path: '/professional-dashboard', onSwitch: () => switchWorkspace('professional') } : undefined}
           >
             {(open) => (
               <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors text-left">

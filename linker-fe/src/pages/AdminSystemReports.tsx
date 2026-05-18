@@ -95,15 +95,14 @@ export default function AdminSystemReports() {
     <AdminLayout>
       <div className="h-full flex flex-col overflow-hidden">
 
-        <PageHeader
-          title="System Reports"
-          subtitle="Export data and view automated system analytics."
-          searchValue={search}
-          onSearch={setSearch}
-        />
-
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-8 py-7">
+        <div className="flex-1 overflow-y-auto px-8 py-6">
+          <PageHeader
+            title="System Reports"
+            subtitle="Export data and view automated system analytics."
+            searchValue={search}
+            onSearch={setSearch}
+          />
 
           {/* Available Exports */}
           <h2 className="text-base font-bold text-foreground mb-4">Available Exports</h2>

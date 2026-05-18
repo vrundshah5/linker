@@ -24,22 +24,20 @@ export default function Categories() {
   return (
     <AppLayout>
       <div className="h-full flex flex-col overflow-hidden">
-        <PageHeader
-          title="Categories"
-          subtitle="Organise your links into categories."
-          actions={
-            <button
-              onClick={() => setModalOpen(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
-            >
-              <Plus className="size-4" />
-              New Category
-            </button>
-          }
-        />
-
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-8">
+        <div className="flex-1 overflow-y-auto px-8 py-6">
+          <PageHeader
+            title="Categories"
+            subtitle="Organise your links into categories."
+            actions={
+              <button
+                onClick={() => setModalOpen(true)}
+                className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
+              >
+                <Plus className="size-4" />
+                New Category
+              </button>
+            }
+          />
 
             {/* Header row with view toggle */}
             <div className="flex items-center justify-between mb-5">
@@ -186,7 +184,6 @@ export default function Categories() {
                 })}
               </div>
             )}
-          </div>
         </div>
       </div>
 

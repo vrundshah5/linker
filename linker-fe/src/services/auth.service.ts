@@ -7,6 +7,7 @@ export interface AuthUser {
   role: 'user' | 'admin'
   onboardingComplete: boolean
   workspaceType: 'personal' | 'professional' | null
+  workspaces: string[]
 }
 
 export interface AuthResponse {

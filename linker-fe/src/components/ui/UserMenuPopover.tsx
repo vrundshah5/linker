@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { User, LogOut, ChevronDown, ChevronUp, ArrowLeftRight } from 'lucide-react'
+import { User, LogOut, ChevronDown, ChevronUp, ArrowLeftRight, Lock } from 'lucide-react'
 
 interface UserMenuPopoverProps {
   children: (open: boolean) => ReactNode
@@ -51,6 +51,19 @@ export default function UserMenuPopover({ children, accentClass, accentBg, profi
             View Profile
           </button>
 
+          {/* Change password option */}
+          <div className="border-t border-border" />
+          <button
+            type="button"
+            onClick={() => { setOpen(false); navigate('/change-password') }}
+            className="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
+          >
+            <div className={`size-7 rounded-lg ${accentBg} flex items-center justify-center shrink-0`}>
+              <Lock className={`size-3.5 ${accentClass}`} />
+            </div>
+            Change Password
+          </button>
+
           {/* Switch workspace option */}
           {switchTo && (
             <>
@@ -80,7 +93,7 @@ export default function UserMenuPopover({ children, accentClass, accentBg, profi
           {/* Logout option */}
           <button
             type="button"
-            onClick={() => { setOpen(false); navigate('/login') }}
+            onClick={() => { setOpen(false); localStorage.removeItem('token'); localStorage.removeItem('user'); navigate('/login') }}
             className="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-semibold text-danger hover:bg-danger/5 transition-colors cursor-pointer"
           >
             <div className="size-7 rounded-lg bg-danger/10 flex items-center justify-center shrink-0">

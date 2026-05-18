@@ -49,22 +49,6 @@ export default function ProjectResources() {
     <WorkspaceLayout>
       <div className="h-full flex flex-col overflow-hidden">
 
-        <PageHeader
-          title="Project Resources"
-          subtitle={`All saved links and documents for ${projectName}.`}
-          searchValue={topSearch}
-          onSearch={setTopSearch}
-          actions={
-            <button
-              type="button"
-              onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
-            >
-              + Add Resource
-            </button>
-          }
-        />
-
         <AddResourceModal
           open={showAddModal}
           onClose={() => setShowAddModal(false)}
@@ -73,7 +57,22 @@ export default function ProjectResources() {
         />
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-8 py-7">
+        <div className="flex-1 overflow-y-auto px-8 py-6">
+          <PageHeader
+            title="Project Resources"
+            subtitle={`All saved links and documents for ${projectName}.`}
+            searchValue={topSearch}
+            onSearch={setTopSearch}
+            actions={
+              <button
+                type="button"
+                onClick={() => setShowAddModal(true)}
+                className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
+              >
+                + Add Resource
+              </button>
+            }
+          />
 
           {/* Inline search */}
           <div className="flex items-center justify-end mb-6">

@@ -45,24 +45,23 @@ export default function ProjectTeamMembers() {
     <WorkspaceLayout>
       <div className="h-full flex flex-col overflow-hidden">
 
-        <PageHeader
-          title="Team Members"
-          subtitle="Manage who has access to this project."
-          searchValue={search}
-          onSearch={setSearch}
-          actions={
-            <button
-              type="button"
-              onClick={() => setShowInvite(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
-            >
-              Invite Member
-            </button>
-          }
-        />
-
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-8 py-7">
+        <div className="flex-1 overflow-y-auto px-8 py-6">
+          <PageHeader
+            title="Team Members"
+            subtitle="Manage who has access to this project."
+            searchValue={search}
+            onSearch={setSearch}
+            actions={
+              <button
+                type="button"
+                onClick={() => setShowInvite(true)}
+                className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
+              >
+                Invite Member
+              </button>
+            }
+          />
           <div className="bg-surface border border-border rounded-2xl overflow-hidden">
 
             {/* Table header */}

@@ -1,6 +1,8 @@
+import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
 
 const SAFE_SELECT = '-password -resetPasswordToken -resetPasswordExpires';
+const SALT_ROUNDS = 12;
 
 // GET /api/profile
 export const getProfile = async (req, res) => {
@@ -18,7 +20,7 @@ export const getProfile = async (req, res) => {
 // PATCH /api/profile
 export const updateProfile = async (req, res) => {
   try {
-    const { name, phone, location, jobTitle, company, website, bio } = req.body;
+    const { name, avatar, phone, location, jobTitle, company, website, bio } = req.body;
 
     const update = {};
 
@@ -28,6 +30,7 @@ export const updateProfile = async (req, res) => {
       }
       update.name = name.trim();
     }
+    if (avatar    !== undefined) update.avatar    = avatar.trim();
     if (phone     !== undefined) update.phone     = phone.trim();
     if (location  !== undefined) update.location  = location.trim();
     if (jobTitle  !== undefined) update.jobTitle  = jobTitle.trim();
@@ -70,19 +73,62 @@ export const switchWorkspace = async (req, res) => {
       });
     }
 
-    const updateFields = { workspaceType };
+    // Verify the user has the target workspace set up
+    const currentUser = await User.findById(req.user.id).select('workspaces');
+    if (!currentUser) return res.status(404).json({ success: false, data: null, message: 'User not found' });
+
+    if (!currentUser.workspaces.includes(workspaceType)) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: `You don't have a ${workspaceType} workspace set up`,
+      });
+    }
 
     const user = await User.findByIdAndUpdate(
       req.user.id,
-      { $set: updateFields },
+      { $set: { workspaceType } },
       { new: true, select: SAFE_SELECT }
     );
-
-    if (!user) return res.status(404).json({ success: false, data: null, message: 'User not found' });
 
     return res.json({ success: true, data: { user }, message: 'Workspace switched' });
   } catch (err) {
     console.error('switchWorkspace error:', err);
+    return res.status(500).json({ success: false, data: null, message: 'Server error' });
+  }
+};
+
+// PATCH /api/profile/password
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({ success: false, data: null, message: 'All fields are required' });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ success: false, data: null, message: 'New password must be at least 8 characters' });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ success: false, data: null, message: 'New password and confirmation do not match' });
+    }
+
+    const user = await User.findById(req.user.id).select('password');
+    if (!user) return res.status(404).json({ success: false, data: null, message: 'User not found' });
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, data: null, message: 'Current password is incorrect' });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    await User.findByIdAndUpdate(req.user.id, { $set: { password: hashed } });
+
+    return res.json({ success: true, data: null, message: 'Password changed successfully' });
+  } catch (err) {
+    console.error('changePassword error:', err);
     return res.status(500).json({ success: false, data: null, message: 'Server error' });
   }
 };

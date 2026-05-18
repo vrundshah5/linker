@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "custom-package": "github:vrundshah5/custom-structure"
+  }
+}

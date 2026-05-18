@@ -57,13 +57,6 @@ export default function OnboardPersonal() {
 
       {/* Card */}
       <div className="w-full max-w-2xl bg-surface border border-border rounded-3xl p-10 shadow-sm">
-        {/* Progress bar */}
-        <div className="flex items-center gap-2 mb-8">
-          <div className="flex-1 h-2 bg-primary rounded-full" />
-          <div className="flex-1 h-2 bg-primary rounded-full" />
-          <div className="flex-1 h-2 bg-muted rounded-full" />
-        </div>
-
         <h1
           className="text-3xl font-bold text-foreground mb-2"
         >

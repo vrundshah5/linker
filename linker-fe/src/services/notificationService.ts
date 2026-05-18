@@ -1,11 +1,13 @@
 import api from '../lib/axios'
 
 export type NotificationType = 'new_user' | 'request_received' | 'request_accepted' | 'request_rejected'
+export type NotificationContext = 'personal' | 'professional'
 
 export interface AppNotification {
   _id: string
   userId: string
   type: NotificationType
+  context: NotificationContext
   title: string
   body: string
   read: boolean
@@ -17,12 +19,14 @@ export interface AppNotification {
 }
 
 export const notificationService = {
-  getAll: async (): Promise<AppNotification[]> => {
-    const res = await api.get<{ success: boolean; data: AppNotification[] }>('/notifications')
+  getAll: async (context?: NotificationContext): Promise<AppNotification[]> => {
+    const params = context ? { context } : {}
+    const res = await api.get<{ success: boolean; data: AppNotification[] }>('/notifications', { params })
     return res.data.data
   },
-  markAllRead: async (): Promise<void> => {
-    await api.patch('/notifications/read-all')
+  markAllRead: async (context?: NotificationContext): Promise<void> => {
+    const params = context ? { context } : {}
+    await api.patch('/notifications/read-all', null, { params })
   },
   markOneRead: async (id: string): Promise<void> => {
     await api.patch(`/notifications/${id}/read`)

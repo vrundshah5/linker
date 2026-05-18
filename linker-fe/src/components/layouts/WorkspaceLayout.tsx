@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect, type ReactNode } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useParams, useNavigate, useLocation } from 'react-router-dom'
 import { Link, Briefcase, Users, Settings, ChevronDown, BookMarked, MessageSquare, ChevronUp } from 'lucide-react'
 import UserMenuPopover from '../ui/UserMenuPopover'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
-import { useSwitchWorkspace } from '../../hooks/useProfile'
 import { useProjects } from '../../hooks/useProjects'
 
 const PROJECT_NAV = [
@@ -26,19 +25,16 @@ interface WorkspaceLayoutProps {
 
 export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
   const user = useCurrentUser()
-  const { mutate: switchWorkspace } = useSwitchWorkspace()
   const { data: projects } = useProjects()
-  const [activeProjectId, setActiveProjectId] = useState<string | null>(null)
+  const { projectId: urlProjectId } = useParams<{ projectId: string }>()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
   const [projectOpen, setProjectOpen] = useState(false)
   const projectRef = useRef<HTMLDivElement>(null)
 
-  // Default to first project when data loads
-  useEffect(() => {
-    if (projects?.length && !activeProjectId) {
-      setActiveProjectId(projects[0]._id)
-    }
-  }, [projects, activeProjectId])
-
+  // URL takes priority, then manual selection, then first project
+  const activeProjectId = urlProjectId ?? selectedProjectId ?? projects?.[0]?._id ?? null
   const activeProject = projects?.find((p) => p._id === activeProjectId) ?? projects?.[0]
 
   useEffect(() => {
@@ -144,7 +140,15 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
                     <button
                       key={p._id}
                       type="button"
-                      onClick={() => { setActiveProjectId(p._id); setProjectOpen(false) }}
+                      onClick={() => {
+                        setSelectedProjectId(p._id)
+                        setProjectOpen(false)
+                        // If currently on a project sub-page, navigate to the same sub-page for the new project
+                        const projectPageMatch = location.pathname.match(/^\/projects\/[^/]+\/(.+)$/)
+                        if (projectPageMatch) {
+                          navigate(`/projects/${p._id}/${projectPageMatch[1]}`)
+                        }
+                      }}
                       className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm font-bold transition-colors text-left ${
                         activeProject._id === p._id
                           ? `${colors.textColor} bg-muted`
@@ -170,7 +174,6 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
             accentClass="text-warning"
             accentBg="bg-warning/10"
             profilePath="/professional-profile"
-            switchTo={user.workspaces.includes('personal') ? { label: 'Switch to Personal', path: '/dashboard', onSwitch: () => switchWorkspace('personal') } : undefined}
           >
             {(open) => (
               <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors text-left">

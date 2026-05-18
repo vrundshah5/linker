@@ -104,19 +104,6 @@ export default function Requests() {
   return (
     <AppLayout>
       <div className="h-full flex flex-col overflow-hidden">
-        <PageHeader
-          title="Chat Requests"
-          subtitle="Manage your incoming and outgoing friend requests."
-          actions={
-            <button
-              type="button"
-              onClick={() => setShowSendModal(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
-            >
-              Send New Request
-            </button>
-          }
-        />
 
         {/* Send Request Modal */}
         {showSendModal && (
@@ -202,7 +189,20 @@ export default function Requests() {
         )}
 
       {/* Body */}
-      <div className="flex-1 overflow-y-auto px-8 py-7">
+      <div className="flex-1 overflow-y-auto px-8 py-6">
+        <PageHeader
+          title="Chat Requests"
+          subtitle="Manage your incoming and outgoing friend requests."
+          actions={
+            <button
+              type="button"
+              onClick={() => setShowSendModal(true)}
+              className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
+            >
+              Send New Request
+            </button>
+          }
+        />
         {/* Underline tabs */}
         <div className="flex items-center border-b border-border mb-6 gap-2">
           {TABS.map(({ key, label, count }) => (

@@ -50,6 +50,7 @@ const userSchema = new mongoose.Schema(
       resources: { type: [String], default: [] },
     },
     // Profile fields
+    avatar: { type: String, default: '' },
     phone: { type: String, default: '' },
     location: { type: String, default: '' },
     jobTitle: { type: String, default: '' },

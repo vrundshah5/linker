@@ -20,15 +20,14 @@ export default function AdminPlatformSettings() {
     <AdminLayout>
       <div className="h-full flex flex-col overflow-hidden">
 
-        <PageHeader
-          title="Platform Settings"
-          subtitle="Configure global application settings and security rules."
-          searchValue={search}
-          onSearch={setSearch}
-        />
-
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-8 py-7 pb-28">
+        <div className="flex-1 overflow-y-auto px-8 py-6 pb-28">
+          <PageHeader
+            title="Platform Settings"
+            subtitle="Configure global application settings and security rules."
+            searchValue={search}
+            onSearch={setSearch}
+          />
 
           {/* General Information */}
           <div className="bg-surface border border-border rounded-2xl p-7 mb-5 max-w-3xl">

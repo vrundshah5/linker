@@ -1,11 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { notificationService } from '../services/notificationService'
+import { notificationService, type NotificationContext } from '../services/notificationService'
 import { queryKeys } from '../constants/queryKeys'
 
-export function useNotifications() {
+export function useNotifications(context?: NotificationContext) {
   return useQuery({
-    queryKey: queryKeys.notifications.all,
-    queryFn: notificationService.getAll,
+    queryKey: [...queryKeys.notifications.all, context ?? 'all'],
+    queryFn: () => notificationService.getAll(context),
     refetchInterval: 30_000, // poll every 30s
   })
 }
@@ -13,7 +13,7 @@ export function useNotifications() {
 export function useMarkAllRead() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: notificationService.markAllRead,
+    mutationFn: (context?: NotificationContext) => notificationService.markAllRead(context),
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.notifications.all }),
   })
 }

@@ -7,10 +7,15 @@ import {
   useMarkOneRead,
   useDeleteNotification,
 } from '../../hooks/useNotifications'
+import type { NotificationContext } from '../../services/notificationService'
 
-export default function BellButton() {
+interface BellButtonProps {
+  context?: NotificationContext
+}
+
+export default function BellButton({ context }: BellButtonProps) {
   const [open, setOpen] = useState(false)
-  const { data: notifications = [] } = useNotifications()
+  const { data: notifications = [] } = useNotifications(context)
   const { mutate: markAllRead } = useMarkAllRead()
   const { mutate: markOneRead } = useMarkOneRead()
   const { mutate: deleteOne } = useDeleteNotification()
@@ -34,9 +39,10 @@ export default function BellButton() {
         open={open}
         notifications={notifications}
         onClose={() => setOpen(false)}
-        onMarkAllRead={() => markAllRead()}
+        onMarkAllRead={() => markAllRead(context)}
         onMarkRead={(id) => markOneRead(id)}
         onDismiss={(id) => deleteOne(id)}
+        context={context}
       />
     </div>
   )

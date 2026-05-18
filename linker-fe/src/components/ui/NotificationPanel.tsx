@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Bell, X, UserPlus, UserCheck, UserX, Users, CheckCheck } from 'lucide-react'
-import type { AppNotification, NotificationType } from '../../services/notificationService'
+import type { AppNotification, NotificationType, NotificationContext } from '../../services/notificationService'
 
 const TYPE_META: Record<NotificationType, { icon: React.ElementType; bg: string; color: string }> = {
   new_user:         { icon: Users,     bg: 'bg-primary/10',  color: 'text-primary'  },
@@ -27,6 +27,7 @@ interface NotificationPanelProps {
   onMarkAllRead: () => void
   onDismiss: (id: string) => void
   onMarkRead: (id: string) => void
+  context?: NotificationContext
 }
 
 export default function NotificationPanel({
@@ -36,6 +37,7 @@ export default function NotificationPanel({
   onMarkAllRead,
   onDismiss,
   onMarkRead,
+  context,
 }: NotificationPanelProps) {
   const ref = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
@@ -146,7 +148,7 @@ export default function NotificationPanel({
       <div className="border-t border-border px-4 py-2.5 text-center">
         <button
           type="button"
-          onClick={() => { onClose(); navigate('/notifications') }}
+          onClick={() => { onClose(); navigate(context === 'professional' ? '/professional-dashboard' : '/notifications') }}
           className="text-xs font-semibold text-primary hover:opacity-75 transition-opacity cursor-pointer"
         >
           View all notifications

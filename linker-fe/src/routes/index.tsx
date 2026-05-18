@@ -1,5 +1,7 @@
 import { lazy } from 'react'
 import { Navigate, type RouteObject } from 'react-router-dom'
+import PrivateRoute from '../components/guards/PrivateRoute'
+import PublicRoute from '../components/guards/PublicRoute'
 
 const Login = lazy(() => import('../pages/Login'))
 const Signup = lazy(() => import('../pages/Signup'))
@@ -27,49 +29,61 @@ const AdminSystemReports = lazy(() => import('../pages/AdminSystemReports'))
 const AdminPlatformSettings = lazy(() => import('../pages/AdminPlatformSettings'))
 const AdminProfile = lazy(() => import('../pages/AdminProfile'))
 const Profile = lazy(() => import('../pages/Profile'))
+const ChangePassword = lazy(() => import('../pages/ChangePassword'))
 const ProfessionalProfile = lazy(() => import('../pages/ProfessionalProfile'))
 const Notifications = lazy(() => import('../pages/Notifications'))
 const Collection = lazy(() => import('../pages/Collection'))
 const PublicCollection = lazy(() => import('../pages/PublicCollection'))
 
 export const routes: RouteObject[] = [
-  // Auth
-  { path: '/login', element: <Login /> },
-  { path: '/signup', element: <Signup /> },
-  { path: '/forgot-password', element: <ForgotPassword /> },
-  { path: '/reset-password', element: <ResetPassword /> },
+  // Public auth routes — redirect to dashboard if already logged in
+  {
+    element: <PublicRoute />,
+    children: [
+      { path: '/login', element: <Login /> },
+      { path: '/signup', element: <Signup /> },
+      { path: '/forgot-password', element: <ForgotPassword /> },
+      { path: '/reset-password', element: <ResetPassword /> },
+    ],
+  },
 
-  // Onboarding
-  { path: '/onboard', element: <Onboard /> },
-  { path: '/onboard/professional', element: <OnboardProfessional /> },
-  { path: '/onboard/personal', element: <OnboardPersonal /> },
+  // Private routes — redirect to login if not authenticated
+  {
+    element: <PrivateRoute />,
+    children: [
+      // Onboarding
+      { path: '/onboard', element: <Onboard /> },
+      { path: '/onboard/professional', element: <OnboardProfessional /> },
+      { path: '/onboard/personal', element: <OnboardPersonal /> },
 
-  // App
-  { path: '/dashboard', element: <Dashboard /> },
-  { path: '/messages', element: <Messages /> },
-  // /categories/new is removed — creation is handled via modal on the categories page
-  { path: '/categories', element: <Categories /> },
-  { path: '/categories/:id', element: <CategoryDetail /> },
-  { path: '/requests', element: <Requests /> },
-  { path: '/archived', element: <ArchivedLinks /> },
-  { path: '/professional-dashboard', element: <ProfessionalDashboard /> },
-  { path: '/projects/:projectId/resources', element: <ProjectResources /> },
-  { path: '/projects/:projectId/chat', element: <ProjectChat /> },
-  { path: '/projects/:projectId/members', element: <ProjectTeamMembers /> },
-  { path: '/projects/:projectId/settings', element: <ProjectSettings /> },
-  { path: '/admin/overview', element: <AdminOverview /> },
-  { path: '/admin/categories', element: <AdminGlobalCategories /> },
-  { path: '/admin/users', element: <AdminManageUsers /> },
-  { path: '/admin/users/:id', element: <AdminUserDetail /> },
-  { path: '/admin/reports', element: <AdminSystemReports /> },
-  { path: '/admin/settings', element: <AdminPlatformSettings /> },
-  { path: '/admin/profile', element: <AdminProfile /> },
-  { path: '/profile', element: <Profile /> },
-  { path: '/professional-profile', element: <ProfessionalProfile /> },
-  { path: '/notifications', element: <Notifications /> },
-  { path: '/collection', element: <Collection /> },
+      // App
+      { path: '/dashboard', element: <Dashboard /> },
+      { path: '/messages', element: <Messages /> },
+      { path: '/categories', element: <Categories /> },
+      { path: '/categories/:id', element: <CategoryDetail /> },
+      { path: '/requests', element: <Requests /> },
+      { path: '/archived', element: <ArchivedLinks /> },
+      { path: '/professional-dashboard', element: <ProfessionalDashboard /> },
+      { path: '/projects/:projectId/resources', element: <ProjectResources /> },
+      { path: '/projects/:projectId/chat', element: <ProjectChat /> },
+      { path: '/projects/:projectId/members', element: <ProjectTeamMembers /> },
+      { path: '/projects/:projectId/settings', element: <ProjectSettings /> },
+      { path: '/admin/overview', element: <AdminOverview /> },
+      { path: '/admin/categories', element: <AdminGlobalCategories /> },
+      { path: '/admin/users', element: <AdminManageUsers /> },
+      { path: '/admin/users/:id', element: <AdminUserDetail /> },
+      { path: '/admin/reports', element: <AdminSystemReports /> },
+      { path: '/admin/settings', element: <AdminPlatformSettings /> },
+      { path: '/admin/profile', element: <AdminProfile /> },
+      { path: '/profile', element: <Profile /> },
+      { path: '/change-password', element: <ChangePassword /> },
+      { path: '/professional-profile', element: <ProfessionalProfile /> },
+      { path: '/notifications', element: <Notifications /> },
+      { path: '/collection', element: <Collection /> },
+    ],
+  },
 
-  // Public (no auth)
+  // Public (no auth required, no redirect)
   { path: '/c/:userId', element: <PublicCollection /> },
 
   // Fallback

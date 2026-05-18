@@ -58,15 +58,14 @@ export default function AdminProfile() {
     <AdminLayout>
       <div className="h-full flex flex-col overflow-hidden">
 
-        <PageHeader
-          title="Admin Profile"
-          subtitle="Manage your administrator account information."
-          searchValue={search}
-          onSearch={setSearch}
-        />
-
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-8 py-7 pb-28">
+        <div className="flex-1 overflow-y-auto px-8 py-6 pb-28">
+          <PageHeader
+            title="Admin Profile"
+            subtitle="Manage your administrator account information."
+            searchValue={search}
+            onSearch={setSearch}
+          />
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="size-6 text-muted-foreground animate-spin" />

@@ -1,9 +1,14 @@
 import Notification from '../models/Notification.js';
 
-// GET /api/notifications
+// GET /api/notifications?context=personal|professional
 export const getNotifications = async (req, res) => {
   try {
-    const notifications = await Notification.find({ userId: req.user.id })
+    const filter = { userId: req.user.id };
+    if (req.query.context && ['personal', 'professional'].includes(req.query.context)) {
+      filter.context = req.query.context;
+    }
+
+    const notifications = await Notification.find(filter)
       .sort({ createdAt: -1 })
       .limit(50)
       .populate('meta.fromUserId', 'name email');
@@ -15,10 +20,14 @@ export const getNotifications = async (req, res) => {
   }
 };
 
-// PATCH /api/notifications/read-all
+// PATCH /api/notifications/read-all?context=personal|professional
 export const markAllRead = async (req, res) => {
   try {
-    await Notification.updateMany({ userId: req.user.id, read: false }, { read: true });
+    const filter = { userId: req.user.id, read: false };
+    if (req.query.context && ['personal', 'professional'].includes(req.query.context)) {
+      filter.context = req.query.context;
+    }
+    await Notification.updateMany(filter, { read: true });
     return res.json({ success: true, data: null, message: 'All marked as read' });
   } catch (err) {
     console.error('markAllRead error:', err);
@@ -52,6 +61,6 @@ export const deleteNotification = async (req, res) => {
 };
 
 // Helper — create a notification (called internally from other controllers)
-export const createNotification = async ({ userId, type, title, body, meta = {} }) => {
-  return Notification.create({ userId, type, title, body, meta });
+export const createNotification = async ({ userId, type, title, body, meta = {}, context = 'personal' }) => {
+  return Notification.create({ userId, type, title, body, meta, context });
 };

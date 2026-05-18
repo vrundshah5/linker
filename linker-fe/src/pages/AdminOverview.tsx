@@ -68,14 +68,14 @@ export default function AdminOverview() {
   return (
     <AdminLayout>
       <div className="h-full flex flex-col overflow-hidden">
-        <PageHeader
-          title="System Overview"
-          subtitle="Monitor platform usage and global statistics."
-          searchValue={search}
-          onSearch={setSearch}
-        />
         <div className="flex-1 overflow-y-auto">
-        <div className="p-8">
+        <div className="px-8 py-6">
+          <PageHeader
+            title="System Overview"
+            subtitle="Monitor platform usage and global statistics."
+            searchValue={search}
+            onSearch={setSearch}
+          />
 
           {isLoading ? (
             <div className="flex items-center justify-center py-24">

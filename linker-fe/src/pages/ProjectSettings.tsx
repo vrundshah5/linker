@@ -48,15 +48,14 @@ export default function ProjectSettings() {
     <WorkspaceLayout>
       <div className="h-full flex flex-col overflow-hidden">
 
-        <PageHeader
-          title="Project Settings"
-          subtitle="Configure project details, permissions, and workspace preferences."
-          searchValue={search}
-          onSearch={setSearch}
-        />
-
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-8 py-7 pb-24">
+        <div className="flex-1 overflow-y-auto px-8 py-6 pb-24">
+          <PageHeader
+            title="Project Settings"
+            subtitle="Configure project details, permissions, and workspace preferences."
+            searchValue={search}
+            onSearch={setSearch}
+          />
 
           {/* ── Active Project ── */}
           <div className="bg-surface border border-border rounded-2xl p-6 mb-5">

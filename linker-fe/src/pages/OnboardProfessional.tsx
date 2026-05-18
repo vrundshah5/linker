@@ -11,8 +11,9 @@ import { useCurrentUser } from '../hooks/useCurrentUser'
 const schema = yup.object({
   projectName: yup
     .string()
-    .min(2, 'Project name must be at least 2 characters')
-    .required('Project name is required'),
+    .transform((val) => (val === '' ? undefined : val))
+    .notRequired()
+    .min(2, 'Project name must be at least 2 characters'),
   description: yup.string().optional(),
 })
 
@@ -96,12 +97,20 @@ export default function OnboardProfessional() {
   }
 
   async function onSubmit(data: ProfessionalFormData) {
+    const projectName = data.projectName?.trim()
     await completeOnboard({
-      projectName: data.projectName,
-      projectDescription: data.description,
-      invitedEmails: members.map((m) => m.email),
-      resources: resources.map((r) => r.url),
+      ...(projectName ? {
+        projectName,
+        projectDescription: data.description,
+        invitedEmails: members.map((m) => m.email),
+        resources: resources.map((r) => r.url),
+      } : {}),
     })
+    setShowSplash(true)
+  }
+
+  async function handleSkip() {
+    await completeOnboard({})
     setShowSplash(true)
   }
 
@@ -129,13 +138,6 @@ export default function OnboardProfessional() {
 
       {/* Card */}
       <div className="w-full max-w-2xl bg-surface border border-border rounded-3xl p-10 shadow-sm">
-        {/* Progress bar */}
-        <div className="flex items-center gap-2 mb-8">
-          <div className="flex-1 h-2 bg-primary rounded-full" />
-          <div className="flex-1 h-2 bg-primary rounded-full" />
-          <div className="flex-1 h-2 bg-muted rounded-full" />
-        </div>
-
         <h1
           className="text-3xl font-bold text-foreground mb-2"
         >
@@ -334,19 +336,29 @@ export default function OnboardProfessional() {
             >
               Back
             </button>
-            <button
-              type="submit"
-              disabled={isPending}
-              className="px-8 py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {isPending && (
-                <svg className="animate-spin size-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                </svg>
-              )}
-              {isPending ? 'Creating...' : 'Create Workspace'}
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleSkip}
+                disabled={isPending}
+                className="px-6 py-3 text-muted-foreground font-bold hover:text-foreground transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                Skip
+              </button>
+              <button
+                type="submit"
+                disabled={isPending}
+                className="px-8 py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isPending && (
+                  <svg className="animate-spin size-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                  </svg>
+                )}
+                {isPending ? 'Creating...' : 'Create Workspace'}
+              </button>
+            </div>
           </div>
         </form>
       </div>

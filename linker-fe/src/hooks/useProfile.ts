@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { profileService, type UpdateProfilePayload } from '../services/profileService'
+import type { ChangePasswordPayload } from '../services/profileService'
 import { queryKeys } from '../constants/queryKeys'
 
 export function useProfile() {
@@ -31,11 +33,22 @@ export function useUpdateProfile() {
   })
 }
 
+const SPLASH_MIN_MS = 1200
+
 export function useSwitchWorkspace() {
   const qc = useQueryClient()
   const navigate = useNavigate()
-  return useMutation({
-    mutationFn: (type: 'personal' | 'professional') => profileService.switchWorkspace(type),
+  const [switchTarget, setSwitchTarget] = useState<'personal' | 'professional' | null>(null)
+
+  const mutation = useMutation({
+    mutationFn: async (type: 'personal' | 'professional') => {
+      setSwitchTarget(type)
+      const [result] = await Promise.all([
+        profileService.switchWorkspace(type),
+        new Promise((r) => setTimeout(r, SPLASH_MIN_MS)),
+      ])
+      return result
+    },
     onSuccess: (user) => {
       qc.setQueryData(queryKeys.profile.me, user)
       const raw = localStorage.getItem('user')
@@ -51,9 +64,25 @@ export function useSwitchWorkspace() {
       } else {
         navigate('/dashboard')
       }
+      setSwitchTarget(null)
     },
     onError: (err: { response?: { data?: { message?: string } } }) => {
+      setSwitchTarget(null)
       toast.error(err?.response?.data?.message || 'Failed to switch workspace')
+    },
+  })
+
+  return { mutate: mutation.mutate, isPending: mutation.isPending, switchTarget }
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: (payload: ChangePasswordPayload) => profileService.changePassword(payload),
+    onSuccess: () => {
+      toast.success('Password changed successfully')
+    },
+    onError: (err: { response?: { data?: { message?: string } } }) => {
+      toast.error(err?.response?.data?.message || 'Failed to change password')
     },
   })
 }

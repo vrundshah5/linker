@@ -19,10 +19,10 @@ export const onboardService = {
   },
 
   completeProfessional: async (payload: {
-    projectName: string
+    projectName?: string
     projectDescription?: string
-    invitedEmails: string[]
-    resources: string[]
+    invitedEmails?: string[]
+    resources?: string[]
   }): Promise<OnboardResponse> => {
     const { data } = await api.patch<OnboardResponse>('/onboard/professional', payload)
     return data
