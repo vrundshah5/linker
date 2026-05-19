@@ -60,9 +60,6 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^6.0.1
         version: 6.0.1(vite@8.0.12(@types/node@24.12.4)(jiti@2.7.0))
-      custom-package:
-        specifier: github:vrundshah5/custom-structure
-        version: https://codeload.github.com/vrundshah5/custom-structure/tar.gz/09d2fd6cc881ccc7558e21b3d8feb13e1e1d373f
       eslint:
         specifier: ^10.3.0
         version: 10.3.0(jiti@2.7.0)
@@ -611,11 +608,6 @@ packages:
 
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
-
-  custom-package@https://codeload.github.com/vrundshah5/custom-structure/tar.gz/09d2fd6cc881ccc7558e21b3d8feb13e1e1d373f:
-    resolution: {tarball: https://codeload.github.com/vrundshah5/custom-structure/tar.gz/09d2fd6cc881ccc7558e21b3d8feb13e1e1d373f}
-    version: 1.1.0
-    hasBin: true
 
   debug@4.4.3:
     resolution: {integrity: sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==}
@@ -1795,8 +1787,6 @@ snapshots:
       which: 2.0.2
 
   csstype@3.2.3: {}
-
-  custom-package@https://codeload.github.com/vrundshah5/custom-structure/tar.gz/09d2fd6cc881ccc7558e21b3d8feb13e1e1d373f: {}
 
   debug@4.4.3:
     dependencies:
