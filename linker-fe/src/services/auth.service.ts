@@ -37,4 +37,20 @@ export const authService = {
     const { data } = await api.post<AuthResponse>('/auth/login', payload)
     return data
   },
+
+  forgotPassword: async (email: string) => {
+    const { data } = await api.post<{ success: boolean; data: null; message: string }>(
+      '/auth/forgot-password',
+      { email },
+    )
+    return data
+  },
+
+  resetPassword: async (token: string, password: string) => {
+    const { data } = await api.post<{ success: boolean; data: null; message: string }>(
+      `/auth/reset-password/${token}`,
+      { password },
+    )
+    return data
+  },
 }

@@ -139,7 +139,7 @@ export default function CreateProjectModal({ open, onClose, onSubmit, isPending 
             <button
               type="submit"
               disabled={isPending}
-              className="px-8 py-3 bg-warning text-white font-bold rounded-xl shadow-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-8 py-3 bg-primary text-white font-bold rounded-xl shadow-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {isPending && (
                 <Loader2 className="size-4 animate-spin shrink-0" />

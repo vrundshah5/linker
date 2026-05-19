@@ -10,7 +10,7 @@ export default function WorkspaceSwitchSplash({ targetWorkspace }: WorkspaceSwit
   return (
     <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background">
       <div
-        className={`size-14 ${isProfessional ? 'bg-warning' : 'bg-primary'} text-white rounded-2xl flex items-center justify-center mb-6 animate-pulse`}
+        className="size-14 bg-primary text-white rounded-2xl flex items-center justify-center mb-6 animate-pulse"
       >
         <Link className="size-7" />
       </div>

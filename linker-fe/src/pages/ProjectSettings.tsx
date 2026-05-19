@@ -5,9 +5,10 @@ import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
 import ConfirmModal from '../components/ui/ConfirmModal'
 import PageHeader from '../components/ui/PageHeader'
 import { useProject, useProjects, useUpdateProject, useDeleteProject } from '../hooks/useProjects'
+import { useCurrentUser } from '../hooks/useCurrentUser'
 
 const PROJECT_COLORS = [
-  { iconBg: 'bg-warning/15', iconColor: 'text-warning' },
+  { iconBg: 'bg-primary/15', iconColor: 'text-primary' },
   { iconBg: 'bg-primary/10', iconColor: 'text-primary' },
   { iconBg: 'bg-success/15', iconColor: 'text-success' },
   { iconBg: 'bg-danger/10', iconColor: 'text-danger' },
@@ -19,6 +20,8 @@ export default function ProjectSettings() {
   const { data: projects } = useProjects()
   const { mutate: updateProject } = useUpdateProject()
   const { mutate: deleteProject } = useDeleteProject()
+  const user = useCurrentUser()
+  const isOwner = project?.ownerId?._id === user.id
   const [projectName, setProjectName] = useState('')
   const [canInvite, setCanInvite] = useState(false)
   const [canAddResources, setCanAddResources] = useState(true)
@@ -99,14 +102,14 @@ export default function ProjectSettings() {
                         href={`/projects/${p._id}/settings`}
                         className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors cursor-pointer ${
                           p._id === projectId
-                            ? 'bg-warning/10'
+                            ? 'bg-primary/10'
                             : 'hover:bg-muted'
                         }`}
                       >
                         <div className={`size-7 rounded-lg ${colors.iconBg} flex items-center justify-center shrink-0`}>
                           <Briefcase className={`size-3.5 ${colors.iconColor}`} />
                         </div>
-                        <span className={`text-sm font-semibold ${p._id === projectId ? 'text-warning' : 'text-foreground'}`}>
+                        <span className={`text-sm font-semibold ${p._id === projectId ? 'text-primary' : 'text-foreground'}`}>
                           {p.name}
                         </span>
                       </a>
@@ -133,8 +136,8 @@ export default function ProjectSettings() {
             <div>
               <p className="text-sm font-bold text-foreground mb-3">Project Icon</p>
               <div className="flex items-center gap-4">
-                <div className="size-16 rounded-2xl bg-warning/15 flex items-center justify-center">
-                  <Briefcase className="size-8 text-warning" />
+                <div className="size-16 rounded-2xl bg-primary/15 flex items-center justify-center">
+                  <Briefcase className="size-8 text-primary" />
                 </div>
                 <button
                   type="button"
@@ -193,6 +196,7 @@ export default function ProjectSettings() {
           </div>
 
           {/* ── Danger Zone ── */}
+          {isOwner && (
           <div className="bg-danger/5 border border-danger/25 rounded-2xl p-6">
             <h2 className="text-base font-bold text-danger mb-1.5">Danger Zone</h2>
             <p className="text-sm text-danger/70 mb-5">
@@ -206,6 +210,7 @@ export default function ProjectSettings() {
               Delete Project
             </button>
           </div>
+          )}
         </div>
 
         {/* Sticky footer */}
@@ -214,7 +219,7 @@ export default function ProjectSettings() {
             type="button"
             onClick={() => projectId && updateProject({ id: projectId, name: projectName.trim() })}
             disabled={!projectName.trim() || projectName.trim() === project?.name}
-            className="px-6 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2.5 bg-primary text-white font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Save Changes
           </button>

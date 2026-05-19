@@ -81,8 +81,8 @@ export default function ProfessionalProfile() {
 
             {/* Avatar card */}
             <div className="bg-surface border border-border rounded-2xl p-6 flex items-center gap-6">
-              <div className="size-20 rounded-full bg-warning/10 flex items-center justify-center shrink-0">
-                <span className="text-2xl font-bold text-warning">
+              <div className="size-20 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <span className="text-2xl font-bold text-primary">
                   {name ? getInitials(name) : '?'}
                 </span>
               </div>
@@ -91,7 +91,7 @@ export default function ProfessionalProfile() {
                 <p className="text-sm text-muted-foreground mt-0.5">
                   {[jobTitle, company].filter(Boolean).join(' · ') || 'No title set'}
                 </p>
-                <span className="mt-2 inline-block px-2.5 py-0.5 rounded-full bg-warning/10 text-warning text-xs font-semibold">
+                <span className="mt-2 inline-block px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-semibold">
                   Professional workspace
                 </span>
               </div>
@@ -228,7 +228,7 @@ export default function ProfessionalProfile() {
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-2 px-6 py-2.5 bg-warning text-white font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
             >
               {saving && <Loader2 className="size-4 animate-spin" />}
               Save Changes

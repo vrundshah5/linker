@@ -5,6 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import AuthLayout from '../components/layouts/AuthLayout'
 import InputField from '../components/ui/InputField'
+import { useForgotPassword } from '../hooks/auth/useForgotPassword'
 
 const schema = yup.object({
   email: yup.string().email('Enter a valid email address').required('Email is required'),
@@ -13,14 +14,16 @@ const schema = yup.object({
 type ForgotPasswordFormData = yup.InferType<typeof schema>
 
 export default function ForgotPassword() {
+  const { mutateAsync, isSuccess } = useForgotPassword()
+
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
+    formState: { errors, isSubmitting },
   } = useForm<ForgotPasswordFormData>({ resolver: yupResolver(schema) })
 
-  async function onSubmit(_data: ForgotPasswordFormData) {
-    // TODO: wire up to auth service
+  async function onSubmit(data: ForgotPasswordFormData) {
+    await mutateAsync(data.email)
   }
 
   return (
@@ -39,7 +42,7 @@ export default function ForgotPassword() {
 
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="mb-8">
-        {isSubmitSuccessful && (
+        {isSuccess && (
           <div className="mb-6 px-4 py-3 bg-success/10 border border-success/30 rounded-xl text-sm text-success font-medium">
             Reset instructions sent — check your inbox.
           </div>

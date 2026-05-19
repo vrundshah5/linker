@@ -43,7 +43,7 @@ export const routes: RouteObject[] = [
       { path: '/login', element: <Login /> },
       { path: '/signup', element: <Signup /> },
       { path: '/forgot-password', element: <ForgotPassword /> },
-      { path: '/reset-password', element: <ResetPassword /> },
+      { path: '/reset-password/:token', element: <ResetPassword /> },
     ],
   },
 

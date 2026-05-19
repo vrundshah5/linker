@@ -67,7 +67,7 @@ export default function ProjectResources() {
               <button
                 type="button"
                 onClick={() => setShowAddModal(true)}
-                className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
+                className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
               >
                 + Add Resource
               </button>
@@ -76,7 +76,7 @@ export default function ProjectResources() {
 
           {/* Inline search */}
           <div className="flex items-center justify-end mb-6">
-            <div className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-xl w-52 focus-within:border-primary transition-colors">
+            <div className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-xl w-52 focus-within:border-warning transition-colors">
               <Search className="size-4 text-muted-foreground shrink-0" />
               <input
                 type="text"

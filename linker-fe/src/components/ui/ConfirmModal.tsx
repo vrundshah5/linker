@@ -40,10 +40,10 @@ export default function ConfirmModal({
   const confirmCls =
     variant === 'danger'
       ? 'bg-danger text-white hover:opacity-90'
-      : 'bg-warning text-white hover:opacity-90'
+      : 'bg-primary text-primary-foreground hover:opacity-90'
 
   const iconCls =
-    variant === 'danger' ? 'bg-danger/10 text-danger' : 'bg-warning/10 text-warning'
+    variant === 'danger' ? 'bg-danger/10 text-danger' : 'bg-primary/10 text-primary'
 
   return (
     /* Backdrop */

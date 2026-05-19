@@ -37,7 +37,7 @@ const INITIAL_MEMBERS: InvitedMember[] = [
     id: 'sarah',
     email: 'sarah.k@acme.com',
     initials: 'SK',
-    color: 'bg-warning/20 text-warning',
+    color: 'bg-primary/20 text-primary',
     pending: true,
   },
 ]

@@ -13,7 +13,7 @@ const PROJECT_NAV = [
 ]
 
 const PROJECT_COLORS = [
-  { iconBg: 'bg-warning', textColor: 'text-warning' },
+  { iconBg: 'bg-primary', textColor: 'text-primary' },
   { iconBg: 'bg-primary', textColor: 'text-primary' },
   { iconBg: 'bg-success', textColor: 'text-success' },
   { iconBg: 'bg-danger', textColor: 'text-danger' },
@@ -36,6 +36,7 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
   // URL takes priority, then manual selection, then first project
   const activeProjectId = urlProjectId ?? selectedProjectId ?? projects?.[0]?._id ?? null
   const activeProject = projects?.find((p) => p._id === activeProjectId) ?? projects?.[0]
+  const isProjectOwner = activeProject?.ownerId?._id === user.id
 
   useEffect(() => {
     function handler(e: MouseEvent) {
@@ -52,7 +53,7 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
       <aside className="w-52 shrink-0 bg-surface border-r border-border flex flex-col">
         {/* Logo */}
         <div className="flex items-start gap-2.5 px-5 pt-7 pb-6">
-          <div className="size-9 bg-warning text-white rounded-xl flex items-center justify-center shrink-0">
+          <div className="size-9 bg-primary text-white rounded-xl flex items-center justify-center shrink-0">
             <Link className="size-[18px]" />
           </div>
           <div className="flex flex-col">
@@ -62,7 +63,7 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
             >
               Linker
             </span>
-            <span className="text-[10px] font-bold text-warning tracking-widest uppercase">
+            <span className="text-[10px] font-bold text-primary tracking-widest uppercase">
               Professional
             </span>
           </div>
@@ -80,7 +81,7 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-colors ${
                   isActive
-                    ? 'bg-warning/10 text-warning'
+                    ? 'bg-primary/10 text-primary'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 }`
               }
@@ -88,7 +89,9 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
               <Briefcase className="size-[18px] shrink-0" />
               Projects
             </NavLink>
-            {activeProject && PROJECT_NAV.map(({ suffix, label, icon: Icon, end }) => (
+            {activeProject && PROJECT_NAV
+              .filter(({ suffix }) => suffix !== 'settings' || isProjectOwner)
+              .map(({ suffix, label, icon: Icon, end }) => (
               <NavLink
                 key={suffix}
                 to={`/projects/${activeProject._id}/${suffix}`}
@@ -96,7 +99,7 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-colors ${
                     isActive
-                      ? 'bg-warning/10 text-warning'
+                      ? 'bg-primary/10 text-primary'
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   }`
                 }
@@ -146,7 +149,14 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
                         // If currently on a project sub-page, navigate to the same sub-page for the new project
                         const projectPageMatch = location.pathname.match(/^\/projects\/[^/]+\/(.+)$/)
                         if (projectPageMatch) {
-                          navigate(`/projects/${p._id}/${projectPageMatch[1]}`)
+                          const subPage = projectPageMatch[1]
+                          // If switching to a project where user is not owner, redirect away from settings
+                          const isNewProjectOwner = p.ownerId?._id === user.id
+                          if (subPage === 'settings' && !isNewProjectOwner) {
+                            navigate(`/projects/${p._id}/resources`)
+                          } else {
+                            navigate(`/projects/${p._id}/${subPage}`)
+                          }
                         }
                       }}
                       className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm font-bold transition-colors text-left ${
@@ -171,14 +181,14 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
         {/* User */}
         <div className="p-3 border-t border-border">
           <UserMenuPopover
-            accentClass="text-warning"
-            accentBg="bg-warning/10"
+            accentClass="text-primary"
+            accentBg="bg-primary/10"
             profilePath="/professional-profile"
           >
             {(open) => (
               <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors text-left">
-                <div className="size-8 rounded-full bg-warning/10 flex items-center justify-center shrink-0 overflow-hidden">
-                  <span className="text-xs font-bold text-warning">{user.initials}</span>
+                <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+                  <span className="text-xs font-bold text-primary">{user.initials}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-muted-foreground">Professional</p>

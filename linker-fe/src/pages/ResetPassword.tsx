@@ -1,10 +1,11 @@
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useParams, Link } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import AuthLayout from '../components/layouts/AuthLayout'
 import PasswordInput from '../components/ui/PasswordInput'
+import { useResetPassword } from '../hooks/auth/useResetPassword'
 
 const schema = yup.object({
   password: yup
@@ -21,6 +22,8 @@ type ResetPasswordFormData = yup.InferType<typeof schema>
 
 export default function ResetPassword() {
   const navigate = useNavigate()
+  const { token } = useParams<{ token: string }>()
+  const { mutateAsync } = useResetPassword()
 
   const {
     register,
@@ -28,8 +31,9 @@ export default function ResetPassword() {
     formState: { errors, isSubmitting },
   } = useForm<ResetPasswordFormData>({ resolver: yupResolver(schema) })
 
-  async function onSubmit(_data: ResetPasswordFormData) {
-    // TODO: wire up to auth service
+  async function onSubmit(data: ResetPasswordFormData) {
+    if (!token) return
+    await mutateAsync({ token, password: data.password })
     navigate('/login')
   }
 

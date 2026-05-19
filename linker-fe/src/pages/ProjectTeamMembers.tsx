@@ -9,7 +9,7 @@ import { useProject, useRemoveProjectMember } from '../hooks/useProjects'
 import { useCurrentUser } from '../hooks/useCurrentUser'
 
 const AVATAR_COLORS = [
-  'bg-warning/20 text-warning',
+  'bg-primary/20 text-primary',
   'bg-success/15 text-success',
   'bg-primary/15 text-primary',
   'bg-danger/10 text-danger',
@@ -31,6 +31,7 @@ export default function ProjectTeamMembers() {
   const [removeTarget, setRemoveTarget] = useState<{ id: string; name: string } | null>(null)
   const [showInvite, setShowInvite] = useState(false)
 
+  const isOwner = project?.ownerId?._id === currentUser.id
   const members = project?.members ?? []
 
   const visible = members.filter(
@@ -56,7 +57,7 @@ export default function ProjectTeamMembers() {
               <button
                 type="button"
                 onClick={() => setShowInvite(true)}
-                className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
+                className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
               >
                 Invite Member
               </button>
@@ -65,16 +66,18 @@ export default function ProjectTeamMembers() {
           <div className="bg-surface border border-border rounded-2xl overflow-hidden">
 
             {/* Table header */}
-            <div className="grid grid-cols-[1fr_220px_160px] px-6 py-3 border-b border-border">
+            <div className={`grid ${isOwner ? 'grid-cols-[1fr_220px_160px]' : 'grid-cols-[1fr_220px]'} px-6 py-3 border-b border-border`}>
               <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                 Member
               </span>
               <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                 Role
               </span>
-              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-right">
-                Actions
-              </span>
+              {isOwner && (
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-right">
+                  Actions
+                </span>
+              )}
             </div>
 
             {/* Rows */}
@@ -88,7 +91,7 @@ export default function ProjectTeamMembers() {
                 return (
                   <div
                     key={member.userId._id}
-                    className="grid grid-cols-[1fr_220px_160px] items-center px-6 py-4"
+                    className={`grid ${isOwner ? 'grid-cols-[1fr_220px_160px]' : 'grid-cols-[1fr_220px]'} items-center px-6 py-4`}
                   >
                     {/* Member info */}
                     <div className="flex items-center gap-3 min-w-0">
@@ -118,18 +121,20 @@ export default function ProjectTeamMembers() {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex justify-end">
-                      {!isYou && (
-                        <button
-                          type="button"
-                          onClick={() => setRemoveTarget({ id: member.userId._id, name: member.userId.name })}
-                          className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-danger transition-colors cursor-pointer"
-                        >
-                          <UserMinus className="size-4" />
-                          Remove
-                        </button>
-                      )}
-                    </div>
+                    {isOwner && (
+                      <div className="flex justify-end">
+                        {!isYou && (
+                          <button
+                            type="button"
+                            onClick={() => setRemoveTarget({ id: member.userId._id, name: member.userId.name })}
+                            className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-danger transition-colors cursor-pointer"
+                          >
+                            <UserMinus className="size-4" />
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )
               })}

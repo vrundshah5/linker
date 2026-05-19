@@ -18,10 +18,10 @@ export default function OnboardSplash({ userName, workspaceType, onDone }: Onboa
   }, [onDone])
 
   const isPersonal = workspaceType === 'personal'
-  const accentColor = isPersonal ? 'bg-primary' : 'bg-warning'
-  const accentText = isPersonal ? 'text-primary' : 'text-warning'
-  const accentBg = isPersonal ? 'bg-primary/10' : 'bg-warning/10'
-  const accentRing = isPersonal ? 'ring-primary/30' : 'ring-warning/30'
+  const accentColor = 'bg-primary'
+  const accentText = 'text-primary'
+  const accentBg = 'bg-primary/10'
+  const accentRing = 'ring-primary/30'
   const firstName = userName.split(' ')[0]
   const dashboardLabel = isPersonal ? 'Personal Dashboard' : 'Professional Workspace'
 

@@ -42,14 +42,14 @@ export default function ProjectLayout({ children }: ProjectLayoutProps) {
 
         {/* Project identity */}
         <div className="flex items-center gap-3 px-5 py-3 mb-2">
-          <div className="size-10 rounded-xl bg-warning/15 flex items-center justify-center shrink-0">
-            <Briefcase className="size-5 text-warning" />
+          <div className="size-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+            <Briefcase className="size-5 text-primary" />
           </div>
           <div className="min-w-0">
             <p className="text-sm font-bold text-foreground leading-tight truncate">
               Acme Corp Redesign
             </p>
-            <p className="text-[10px] font-bold text-warning tracking-widest uppercase mt-0.5">
+            <p className="text-[10px] font-bold text-primary tracking-widest uppercase mt-0.5">
               Professional Workspace
             </p>
           </div>
@@ -83,12 +83,12 @@ export default function ProjectLayout({ children }: ProjectLayoutProps) {
 
         {/* User */}
         <div className="p-3 border-t border-border">
-          <UserMenuPopover accentClass="text-warning" accentBg="bg-warning/10">
+          <UserMenuPopover accentClass="text-primary" accentBg="bg-primary/10">
             {(open) => (
               <div className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-muted transition-colors text-left">
-                <div className="size-8 rounded-full bg-warning/10 flex items-center justify-center shrink-0 relative">
-                  <span className="text-xs font-bold text-warning">{user.initials}</span>
-                  <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-warning border-2 border-surface" />
+                <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 relative">
+                  <span className="text-xs font-bold text-primary">{user.initials}</span>
+                  <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-primary border-2 border-surface" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-foreground truncate leading-tight">Acme Corp</p>

@@ -66,7 +66,7 @@ export default function ProjectChat() {
         {/* Chat header */}
         <div className="h-[88px] bg-surface border-b border-border px-8 flex items-center justify-between shrink-0 z-10">
           <div className="flex items-center gap-4">
-            <div className="size-12 rounded-xl bg-warning text-white flex items-center justify-center shadow-sm shrink-0">
+            <div className="size-12 rounded-xl bg-primary text-white flex items-center justify-center shadow-sm shrink-0">
               <Briefcase className="size-5" />
             </div>
             <div>
@@ -190,7 +190,7 @@ export default function ProjectChat() {
               type="button"
               onClick={handleSend}
               disabled={!input.trim() || sending}
-              className="px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-xl shadow-sm hover:opacity-90 flex items-center gap-2 transition-opacity shrink-0 disabled:opacity-50"
+              className="px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-xl shadow-sm hover:opacity-90 flex items-center gap-2 transition-opacity shrink-0 disabled:opacity-50"
             >
               Send
               <Send className="size-4" />

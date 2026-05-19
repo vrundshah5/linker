@@ -10,14 +10,14 @@ import { useSwitchWorkspace } from '../hooks/useProfile'
 import { useProjects, useCreateProject } from '../hooks/useProjects'
 
 const PROJECT_COLORS = [
-  { bg: 'bg-warning/15', text: 'text-warning' },
+  { bg: 'bg-primary/15', text: 'text-primary' },
   { bg: 'bg-primary/10', text: 'text-primary' },
   { bg: 'bg-success/15', text: 'text-success' },
   { bg: 'bg-danger/10', text: 'text-danger' },
 ]
 
 const AVATAR_COLORS = [
-  'bg-warning/20 text-warning',
+  'bg-primary/20 text-primary',
   'bg-primary/15 text-primary',
   'bg-success/15 text-success',
   'bg-danger/10 text-danger',
@@ -74,7 +74,7 @@ export default function ProfessionalDashboard() {
             <div>
               <h1 className="text-3xl font-bold text-foreground leading-tight">
                 Welcome to your Workspace,{' '}
-                <span className="text-warning">{firstName}</span>
+                <span className="text-primary">{firstName}</span>
               </h1>
               <p className="text-sm text-muted-foreground mt-2">
                 You have {projects?.length ?? 0} active project{(projects?.length ?? 0) !== 1 ? 's' : ''}. Let's get to work.
@@ -95,7 +95,7 @@ export default function ProfessionalDashboard() {
               <button
                 type="button"
                 onClick={() => setShowCreate(true)}
-                className="flex items-center gap-2 px-5 py-2.5 bg-warning text-white font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
+                className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
               >
                 <Plus className="size-4" />
                 New Project
