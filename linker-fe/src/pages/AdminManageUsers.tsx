@@ -39,7 +39,7 @@ export default function AdminManageUsers() {
   const navigate = useNavigate()
 
   const { data, isLoading } = useAdminUsers({ search: debouncedSearch, page, limit: 10 })
-  const { mutate: toggleBan, isPending: isBanning } = useToggleBan()
+  const { mutate: toggleBan } = useToggleBan()
 
   function handleSearch(value: string) {
     setSearch(value)

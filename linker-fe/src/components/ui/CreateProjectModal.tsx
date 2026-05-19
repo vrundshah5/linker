@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { X, Briefcase, Loader2 } from 'lucide-react'
+import { X, Loader2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'

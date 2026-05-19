@@ -69,7 +69,7 @@ export default function Notifications() {
               unread > 0 ? (
                 <button
                   type="button"
-                  onClick={() => markAllRead()}
+                  onClick={() => markAllRead('personal')}
                   className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-primary border border-primary/30 rounded-xl hover:bg-secondary transition-colors cursor-pointer"
                 >
                   <CheckCheck className="size-4" />

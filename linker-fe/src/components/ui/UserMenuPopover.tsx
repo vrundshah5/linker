@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { User, LogOut, ChevronDown, ChevronUp, ArrowLeftRight, Lock } from 'lucide-react'
+import { User, LogOut, ArrowLeftRight, Lock } from 'lucide-react'
 
 interface UserMenuPopoverProps {
   children: (open: boolean) => ReactNode

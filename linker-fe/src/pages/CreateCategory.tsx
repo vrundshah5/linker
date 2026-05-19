@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import AppLayout from '../components/layouts/AppLayout'
-import { createCategory } from '../services/categoryService'
+import { categoryService } from '../services/categoryService'
 
 const schema = yup.object({
   name: yup
@@ -45,7 +45,7 @@ export default function CreateCategory() {
   async function onSubmit(data: CategoryFormData) {
     setSubmitError(null)
     try {
-      await createCategory({
+      await categoryService.createCategory({
         name: data.name.trim(),
         description: data.description?.trim() || undefined,
         themeColor,

@@ -10,7 +10,6 @@ import {
   Layout,
   ArrowUpRight,
   ArrowLeftRight,
-  Plus,
   Loader2,
   PenTool,
   Code,
@@ -74,7 +73,6 @@ export default function Dashboard() {
   const { mutate: switchWorkspace, isPending: isSwitching, switchTarget } = useSwitchWorkspace()
   const hasMultipleWorkspaces = user.workspaces.length > 1
 
-  const totalLinks = categories?.reduce((sum, c) => sum + c.linkCount, 0) ?? 0
   const topCategories = categories?.slice(0, 3) ?? []
 
   return (

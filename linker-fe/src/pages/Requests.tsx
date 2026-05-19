@@ -233,7 +233,6 @@ export default function Requests() {
             </div>
           ) : (
             visible.map(({ req, direction }, i) => {
-              const badge = STATUS_STYLES[req.status]
               const avatarColor = AVATAR_COLORS[i % AVATAR_COLORS.length]
               const otherUser = direction === 'received' ? req.fromUserId : req.toUserId
               const displayStatus = direction === 'sent' && req.status === 'pending' ? 'sent' : req.status

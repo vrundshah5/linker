@@ -4,8 +4,6 @@ import {
   Folder,
   Link2,
   Star,
-  TrendingUp,
-  ArrowRight,
   Loader2,
 } from 'lucide-react'
 import AdminLayout from '../components/layouts/AdminLayout'
