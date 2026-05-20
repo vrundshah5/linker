@@ -33,6 +33,7 @@ const ChangePassword = lazy(() => import('../pages/ChangePassword'))
 const ProfessionalProfile = lazy(() => import('../pages/ProfessionalProfile'))
 const Notifications = lazy(() => import('../pages/Notifications'))
 const Collection = lazy(() => import('../pages/Collection'))
+const Insights = lazy(() => import('../pages/Insights'))
 const PublicCollection = lazy(() => import('../pages/PublicCollection'))
 
 export const routes: RouteObject[] = [
@@ -80,6 +81,7 @@ export const routes: RouteObject[] = [
       { path: '/professional-profile', element: <ProfessionalProfile /> },
       { path: '/notifications', element: <Notifications /> },
       { path: '/collection', element: <Collection /> },
+      { path: '/insights', element: <Insights /> },
     ],
   },
 

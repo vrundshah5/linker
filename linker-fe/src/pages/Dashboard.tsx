@@ -9,18 +9,14 @@ import {
   Heart,
   Layout,
   ArrowUpRight,
-  ArrowLeftRight,
   Loader2,
   PenTool,
   Code,
   TrendingUp,
 } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
-import WorkspaceSwitchSplash from '../components/ui/WorkspaceSwitchSplash'
-import BellButton from '../components/ui/BellButton'
 import { useMyCategories } from '../hooks/categories/useMyCategories'
 import { useCurrentUser } from '../hooks/useCurrentUser'
-import { useSwitchWorkspace } from '../hooks/useProfile'
 import { getCategoryIcon } from '../lib/categoryIcons'
 
 /* ── colour helpers for category cards ─────────────────────── */
@@ -70,8 +66,6 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const { data: categories, isLoading } = useMyCategories()
   const user = useCurrentUser()
-  const { mutate: switchWorkspace, isPending: isSwitching, switchTarget } = useSwitchWorkspace()
-  const hasMultipleWorkspaces = user.workspaces.length > 1
 
   const topCategories = categories?.slice(0, 3) ?? []
 
@@ -79,7 +73,7 @@ export default function Dashboard() {
     <AppLayout>
       <div className="flex-1 flex flex-col px-8 py-6 overflow-y-auto h-full">
 
-        {/* Top bar: search + switch + bell + user */}
+        {/* Top bar: search */}
         <div className="flex items-center gap-4 mb-8">
           <div className="flex-1 bg-surface border border-border rounded-2xl flex items-center px-4 py-3 shadow-sm">
             <Search className="size-5 text-muted-foreground mr-3 shrink-0" />
@@ -88,25 +82,6 @@ export default function Dashboard() {
               placeholder="Search your links..."
               className="bg-transparent outline-none flex-1 text-foreground placeholder:text-muted-foreground text-sm min-w-0"
             />
-          </div>
-          <div className="flex items-center gap-3 shrink-0">
-            {hasMultipleWorkspaces && (
-              <button
-                type="button"
-                onClick={() => switchWorkspace('professional')}
-                className="size-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground cursor-pointer"
-                aria-label="Switch workspace"
-              >
-                <ArrowLeftRight className="size-[18px]" />
-              </button>
-            )}
-            <BellButton context="personal" />
-            <div className="flex items-center gap-2 ml-2 pl-4 border-l border-border">
-              <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center border border-border">
-                <span className="text-xs font-bold text-primary">{user.initials}</span>
-              </div>
-              <span className="text-sm font-bold text-foreground">{user.name}</span>
-            </div>
           </div>
         </div>
 
@@ -286,7 +261,6 @@ export default function Dashboard() {
             </div>
           </div>
       </div>
-      {isSwitching && switchTarget && <WorkspaceSwitchSplash targetWorkspace={switchTarget} />}
     </AppLayout>
   )
 }

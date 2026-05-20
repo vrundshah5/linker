@@ -6,17 +6,17 @@ import {
   MessageSquare,
   Users,
   Archive,
-  ChevronDown,
   Folder,
   LayoutGrid,
+  BarChart2,
 } from 'lucide-react'
-import UserMenuPopover from '../ui/UserMenuPopover'
-import { useCurrentUser } from '../../hooks/useCurrentUser'
+import GlobalTopNav from '../ui/GlobalTopNav'
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/categories', label: 'Categories', icon: Folder, end: false },
   { to: '/collection', label: 'Collection', icon: LayoutGrid, end: true },
+  { to: '/insights', label: 'Insights', icon: BarChart2, end: true },
   { to: '/messages', label: 'Messages', icon: MessageSquare, end: true },
   { to: '/requests', label: 'Requests', icon: Users, end: true },
   { to: '/archived', label: 'Archived Links', icon: Archive, end: true },
@@ -27,8 +27,6 @@ interface AppLayoutProps {
 }
 
 export default function AppLayout({ children }: AppLayoutProps) {
-  const user = useCurrentUser()
-
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       {/* Sidebar */}
@@ -72,34 +70,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
           </nav>
         </div>
 
-        {/* User */}
-        <div className="p-3 border-t border-border shrink-0">
-          <UserMenuPopover
-            accentClass="text-primary"
-            accentBg="bg-primary/10"
-          >
-            {(open) => (
-              <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors text-left">
-                <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <span className="text-xs font-bold text-primary">{user.initials}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-muted-foreground">Personal</p>
-                  <p className="text-sm font-bold text-foreground truncate">{user.name}</p>
-                </div>
-                {open
-                  ? <ChevronDown className="size-4 text-muted-foreground shrink-0 rotate-180 transition-transform" />
-                  : <ChevronDown className="size-4 text-muted-foreground shrink-0 transition-transform" />
-                }
-              </div>
-            )}
-          </UserMenuPopover>
-        </div>
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-hidden bg-background">
-        {children}
+      <main className="flex-1 overflow-hidden bg-background flex flex-col">
+        <GlobalTopNav />
+        <div className="flex-1 overflow-hidden">
+          {children}
+        </div>
       </main>
     </div>
   )

@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect, type ReactNode } from 'react'
 import { NavLink, useParams, useNavigate, useLocation } from 'react-router-dom'
 import { Link, Briefcase, Users, Settings, ChevronDown, BookMarked, MessageSquare, ChevronUp } from 'lucide-react'
-import UserMenuPopover from '../ui/UserMenuPopover'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
+import GlobalTopNav from '../ui/GlobalTopNav'
 import { useProjects } from '../../hooks/useProjects'
 
 const PROJECT_NAV = [
@@ -178,35 +178,14 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
         </div>
         )}
 
-        {/* User */}
-        <div className="p-3 border-t border-border">
-          <UserMenuPopover
-            accentClass="text-primary"
-            accentBg="bg-primary/10"
-            profilePath="/professional-profile"
-          >
-            {(open) => (
-              <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors text-left">
-                <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
-                  <span className="text-xs font-bold text-primary">{user.initials}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-muted-foreground">Professional</p>
-                  <p className="text-sm font-bold text-foreground truncate">{user.name}</p>
-                </div>
-                {open
-                  ? <ChevronDown className="size-4 text-muted-foreground shrink-0 rotate-180 transition-transform" />
-                  : <ChevronDown className="size-4 text-muted-foreground shrink-0 transition-transform" />
-                }
-              </div>
-            )}
-          </UserMenuPopover>
-        </div>
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-hidden bg-background">
-        {children}
+      <main className="flex-1 overflow-hidden bg-background flex flex-col">
+        <GlobalTopNav />
+        <div className="flex-1 overflow-hidden">
+          {children}
+        </div>
       </main>
     </div>
   )

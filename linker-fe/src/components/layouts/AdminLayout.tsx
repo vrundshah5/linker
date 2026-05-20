@@ -7,10 +7,8 @@ import {
   FolderOpen,
   FileBarChart2,
   Settings,
-  ChevronDown,
 } from 'lucide-react'
-import UserMenuPopover from '../ui/UserMenuPopover'
-import { useCurrentUser } from '../../hooks/useCurrentUser'
+import GlobalTopNav from '../ui/GlobalTopNav'
 
 const NAV_ITEMS = [
   { to: '/admin/overview', label: 'Overview', icon: LayoutDashboard, end: true },
@@ -25,7 +23,6 @@ interface AdminLayoutProps {
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-  const user = useCurrentUser()
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       {/* Sidebar */}
@@ -75,31 +72,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </nav>
         </div>
 
-        {/* User */}
-        <div className="p-3 border-t border-border">
-          <UserMenuPopover accentClass="text-danger" accentBg="bg-danger/10" profilePath="/admin/profile">
-            {(open) => (
-              <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors text-left">
-                <div className="size-8 rounded-full bg-danger/10 flex items-center justify-center shrink-0">
-                  <span className="text-xs font-bold text-danger">{user.initials}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-foreground truncate leading-tight">{user.name}</p>
-                  <p className="text-xs text-muted-foreground">System Owner</p>
-                </div>
-                {open
-                  ? <ChevronDown className="size-4 text-muted-foreground shrink-0 rotate-180 transition-transform" />
-                  : <ChevronDown className="size-4 text-muted-foreground shrink-0 transition-transform" />
-                }
-              </div>
-            )}
-          </UserMenuPopover>
-        </div>
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-hidden bg-background">
-        {children}
+      <main className="flex-1 overflow-hidden bg-background flex flex-col">
+        <GlobalTopNav />
+        <div className="flex-1 overflow-hidden">
+          {children}
+        </div>
       </main>
     </div>
   )

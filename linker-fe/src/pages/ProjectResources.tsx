@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Search, Globe, Loader2, Trash2, BookMarked } from 'lucide-react'
+import { Globe, Loader2, Trash2, BookMarked } from 'lucide-react'
 import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
 import PageHeader from '../components/ui/PageHeader'
 import AddResourceModal from '../components/ui/AddResourceModal'
@@ -14,14 +14,13 @@ export default function ProjectResources() {
   const { mutate: addResources, isPending: adding } = useAddProjectResources()
   const { mutate: deleteResource } = useDeleteProjectResource()
   const [topSearch, setTopSearch] = useState('')
-  const [inlineSearch, setInlineSearch] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null)
 
   const projectName = project?.name ?? 'Project'
 
   const visibleResources = (resources ?? []).filter((r) => {
-    const q = (topSearch.trim() || inlineSearch.trim()).toLowerCase()
+    const q = topSearch.trim().toLowerCase()
     if (!q) return true
     return (
       r.title.toLowerCase().includes(q) ||
@@ -73,20 +72,6 @@ export default function ProjectResources() {
               </button>
             }
           />
-
-          {/* Inline search */}
-          <div className="flex items-center justify-end mb-6">
-            <div className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-xl w-52 focus-within:border-warning transition-colors">
-              <Search className="size-4 text-muted-foreground shrink-0" />
-              <input
-                type="text"
-                placeholder="Search resources..."
-                value={inlineSearch}
-                onChange={(e) => setInlineSearch(e.target.value)}
-                className="bg-transparent outline-none flex-1 text-foreground placeholder:text-muted-foreground text-sm min-w-0"
-              />
-            </div>
-          </div>
 
           {/* Resource rows */}
           <div className="flex flex-col gap-3">
