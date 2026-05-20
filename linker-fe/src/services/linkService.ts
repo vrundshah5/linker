@@ -31,6 +31,31 @@ export interface ArchivedLink {
   updatedAt: string
 }
 
+export interface RecentLink {
+  _id: string
+  userId: string
+  categoryId: {
+    _id: string
+    name: string
+    themeColor: string
+    icon: string
+  }
+  title: string
+  url: string
+  description: string
+  isFavorite: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface LinkStats {
+  totalLinks: number
+  totalFavorites: number
+  totalArchived: number
+  daily: { _id: string; count: number }[]
+  categoryBreakdown: { _id: string; count: number; name: string; icon: string; themeColor: string }[]
+}
+
 export interface CreateLinkPayload {
   categoryId: string
   title: string
@@ -55,6 +80,21 @@ export const linkService = {
   getArchivedLinks: async (): Promise<ArchivedLink[]> => {
     const { data } = await api.get('/links/archived')
     return data.data.links
+  },
+
+  getRecentLinks: async (limit = 6): Promise<RecentLink[]> => {
+    const { data } = await api.get('/links/recent', { params: { limit } })
+    return data.data.links
+  },
+
+  getFavoriteLinks: async (): Promise<RecentLink[]> => {
+    const { data } = await api.get('/links/favorites')
+    return data.data.links
+  },
+
+  getStats: async (days = 30): Promise<LinkStats> => {
+    const { data } = await api.get('/links/stats', { params: { days } })
+    return data.data
   },
 
   createLink: async (payload: CreateLinkPayload): Promise<Link> => {

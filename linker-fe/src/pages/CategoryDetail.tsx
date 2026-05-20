@@ -118,9 +118,8 @@ export default function CategoryDetail() {
                 return (
                   <div
                     key={link._id}
-                    className="bg-surface p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-transparent hover:border-primary/20"
+                    className="bg-surface px-5 py-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow flex items-center gap-4 group"
                   >
-                    <div className="bg-surface rounded-xl p-4 border border-border shadow-sm flex items-center gap-4 hover:border-primary transition-colors group">
                       {/* Favicon */}
                       <div className="size-12 rounded-lg bg-muted flex items-center justify-center shrink-0 overflow-hidden">
                         {favicon ? (
@@ -198,7 +197,6 @@ export default function CategoryDetail() {
                           <MoreVertical className="size-[18px]" />
                         </button>
                       </div>
-                    </div>
                   </div>
                 )
               })}

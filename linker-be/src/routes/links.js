@@ -2,6 +2,9 @@ import { Router } from 'express';
 import auth from '../middleware/auth.js';
 import {
   getLinks,
+  getRecentLinks,
+  getLinkStats,
+  getLinkFavorites,
   createLink,
   updateLink,
   deleteLink,
@@ -15,6 +18,9 @@ const router = Router();
 router.use(auth);
 
 router.get('/archived', getArchivedLinks);
+router.get('/favorites', getLinkFavorites);
+router.get('/recent', getRecentLinks);
+router.get('/stats', getLinkStats);
 router.post('/extension', createExtensionLink);
 router.get('/', getLinks);
 router.post('/', createLink);

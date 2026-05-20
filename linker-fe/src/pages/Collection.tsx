@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Share2,
   Check,
@@ -9,8 +10,6 @@ import {
   Pencil,
   MoreHorizontal,
   LayoutGrid,
-  Archive,
-  ChevronRight,
   Star,
   BarChart2,
   Calendar,
@@ -18,14 +17,15 @@ import {
   Trash2,
   Wand2,
   Settings,
-  Settings2,
+  Paintbrush,
   Image,
   Link,
 } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
 import { useCurrentUser } from '../hooks/useCurrentUser'
-import { publicService } from '../services/publicService'
+import { linkService, type RecentLink } from '../services/linkService'
 import { queryKeys } from '../constants/queryKeys'
+import { useDesignStore, THEMES, getButtonStyles } from '../store/designStore'
 
 function getFaviconUrl(url: string) {
   try {
@@ -47,13 +47,105 @@ function getInitials(name: string) {
 
 export default function Collection() {
   const user = useCurrentUser()
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [copied, setCopied] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+  const [localLinks, setLocalLinks] = useState<RecentLink[]>([])
+  const [dragIdx, setDragIdx] = useState<number | null>(null)
+  const { themeId, buttonShape, buttonFill, showFooter } = useDesignStore()
+  const theme = THEMES.find((t) => t.id === themeId) ?? THEMES[0]
+  const btnStyles = getButtonStyles(theme, buttonShape, buttonFill)
+  const dragIdxRef = useRef<number | null>(null)
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.publicCollection.byUser(user.id),
-    queryFn: () => publicService.getFavorites(user.id),
+    queryKey: queryKeys.links.favorites(),
+    queryFn: () => linkService.getFavoriteLinks(),
     enabled: !!user.id,
   })
+
+  // Sync from server, restore saved drag order
+  useEffect(() => {
+    const fetched = data ?? []
+    const savedOrder: string[] = JSON.parse(
+      localStorage.getItem(`col-order-${user.id}`) ?? '[]'
+    )
+    if (savedOrder.length) {
+      const sorted = [...fetched].sort((a, b) => {
+        const ia = savedOrder.indexOf(a._id)
+        const ib = savedOrder.indexOf(b._id)
+        return (ia === -1 ? 9999 : ia) - (ib === -1 ? 9999 : ib)
+      })
+      setLocalLinks(sorted)
+    } else {
+      setLocalLinks(fetched)
+    }
+  }, [data, user.id])
+
+  function saveOrder(links: RecentLink[]) {
+    localStorage.setItem(`col-order-${user.id}`, JSON.stringify(links.map((l) => l._id)))
+  }
+
+  // Toggle visibility (isFavorite) — keeps link in list
+  const toggleMutation = useMutation({
+    mutationFn: ({ id, isFavorite }: { id: string; isFavorite: boolean }) =>
+      linkService.updateLink(id, { isFavorite }),
+    onMutate: ({ id, isFavorite }) => {
+      setLocalLinks((prev) => prev.map((l) => (l._id === id ? { ...l, isFavorite } : l)))
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.links.favorites() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.links.recent() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.links.stats(30) })
+    },
+    onError: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.links.favorites() })
+    },
+  })
+
+  // Delete link
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => linkService.deleteLink(id),
+    onMutate: (id) => {
+      setLocalLinks((prev) => prev.filter((l) => l._id !== id))
+      setConfirmDelete(null)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.links.favorites() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.categories.mine() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.links.recent() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.links.stats(30) })
+    },
+    onError: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.links.favorites() })
+    },
+  })
+
+  // Drag and drop handlers
+  function handleDragStart(i: number) {
+    dragIdxRef.current = i
+    setDragIdx(i)
+  }
+
+  function handleDragOver(e: React.DragEvent, toIdx: number) {
+    e.preventDefault()
+    const fromIdx = dragIdxRef.current
+    if (fromIdx === null || fromIdx === toIdx) return
+    setLocalLinks((prev) => {
+      const next = [...prev]
+      const [moved] = next.splice(fromIdx, 1)
+      next.splice(toIdx, 0, moved)
+      return next
+    })
+    dragIdxRef.current = toIdx
+    setDragIdx(toIdx)
+  }
+
+  function handleDrop(reordered: RecentLink[]) {
+    dragIdxRef.current = null
+    setDragIdx(null)
+    saveOrder(reordered)
+  }
 
   const shareUrl = `${window.location.origin}/c/${user.id}`
   const handle = user.name.toLowerCase().replace(/\s+/g, '')
@@ -65,8 +157,6 @@ export default function Collection() {
       setTimeout(() => setCopied(false), 2000)
     })
   }
-
-  const links = data?.links ?? []
 
   return (
     <AppLayout>
@@ -104,36 +194,18 @@ export default function Collection() {
                 <button className="text-sm text-muted-foreground hover:text-foreground mb-4 cursor-pointer transition-colors">
                   Add bio
                 </button>
-                <div className="flex items-center gap-2">
-                  {[0, 1, 2, 3].map((i) => (
-                    <button
-                      key={i}
-                      className="size-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                    >
-                      <Plus className="size-3.5" />
-                    </button>
-                  ))}
-                </div>
               </div>
 
-              {/* Add button */}
-              <button className="w-full bg-primary text-white py-4 rounded-full font-bold text-lg mb-4 hover:opacity-90 transition-opacity shadow-sm flex items-center justify-center gap-2 cursor-pointer">
+              {/* Add link button */}
+              <button
+                onClick={() => navigate('/categories')}
+                className="w-full bg-primary text-white py-4 rounded-full font-bold text-lg mb-4 hover:opacity-90 transition-opacity shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+              >
                 <Plus className="size-5" />
-                Add
+                Add link
               </button>
 
-              {/* Toolbar */}
-              <div className="w-full flex items-center justify-between mb-8">
-                <button className="flex items-center gap-2 px-4 py-2 border border-border rounded-full text-sm font-bold text-foreground hover:bg-muted transition-colors cursor-pointer">
-                  <LayoutGrid className="size-4" />
-                  Add collection
-                </button>
-                <button className="flex items-center gap-1 text-sm font-bold text-foreground hover:opacity-70 transition-opacity cursor-pointer">
-                  <Archive className="size-4 mr-1" />
-                  View archive
-                  <ChevronRight className="size-4" />
-                </button>
-              </div>
+
 
               {/* Links / Collections */}
               {isLoading ? (
@@ -142,7 +214,7 @@ export default function Collection() {
                     <div key={i} className="h-36 rounded-[32px] bg-muted/30 animate-pulse" />
                   ))}
                 </div>
-              ) : links.length === 0 ? (
+              ) : localLinks.length === 0 ? (
                 /* Empty collection card */
                 <div className="w-full bg-muted/20 border border-border rounded-[32px] p-6 relative group">
                   <div className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground cursor-grab opacity-40 group-hover:opacity-100 transition-opacity">
@@ -192,12 +264,22 @@ export default function Collection() {
                 </div>
               ) : (
                 <div className="w-full flex flex-col gap-4">
-                  {links.map((link) => {
+                  {localLinks.map((link, i) => {
                     const favicon = getFaviconUrl(link.url)
+                    const isConfirming = confirmDelete === link._id
                     return (
                       <div
                         key={link._id}
-                        className="w-full bg-surface border border-border rounded-[32px] p-6 shadow-sm relative group"
+                        draggable
+                        onDragStart={() => handleDragStart(i)}
+                        onDragOver={(e) => handleDragOver(e, i)}
+                        onDrop={() => handleDrop(localLinks)}
+                        onDragEnd={() => { dragIdxRef.current = null; setDragIdx(null) }}
+                        className={`w-full border rounded-[32px] p-6 shadow-sm relative group transition-all select-none ${
+                          dragIdx === i
+                            ? 'bg-muted/60 border-border/40 opacity-50 scale-[0.98]'
+                            : 'bg-surface border-border opacity-100'
+                        }`}
                       >
                         {/* Drag handle */}
                         <div className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground cursor-grab opacity-40 group-hover:opacity-100 transition-opacity">
@@ -262,20 +344,52 @@ export default function Collection() {
                             </div>
                           </div>
 
-                          {/* Right: share + toggle + delete */}
+                          {/* Right: toggle + delete */}
                           <div className="flex flex-col items-end justify-between gap-8 shrink-0">
                             <div className="flex items-center gap-3">
                               <button className="text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
                                 <Share2 className="size-[18px]" />
                               </button>
-                              {/* Toggle on */}
-                              <div className="w-10 h-6 bg-success rounded-full relative cursor-pointer">
-                                <div className="absolute right-1 top-1 size-4 bg-white rounded-full shadow-sm" />
-                              </div>
+                              {/* Toggle — show/hide on public profile */}
+                              <button
+                                onClick={() => toggleMutation.mutate({ id: link._id, isFavorite: !link.isFavorite })}
+                                disabled={toggleMutation.isPending}
+                                className={`w-10 h-6 rounded-full relative cursor-pointer transition-colors focus:outline-none ${
+                                  link.isFavorite ? 'bg-success' : 'bg-border'
+                                }`}
+                                aria-label={link.isFavorite ? 'Hide from public profile' : 'Show on public profile'}
+                              >
+                                <div className={`absolute top-1 size-4 bg-white rounded-full shadow-sm transition-all ${
+                                  link.isFavorite ? 'right-1' : 'left-1'
+                                }`} />
+                              </button>
                             </div>
-                            <button className="text-muted-foreground hover:text-danger cursor-pointer transition-colors">
-                              <Trash2 className="size-[18px]" />
-                            </button>
+                            {/* Delete with inline confirm */}
+                            {isConfirming ? (
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => setConfirmDelete(null)}
+                                  className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  onClick={() => deleteMutation.mutate(link._id)}
+                                  disabled={deleteMutation.isPending}
+                                  className="text-xs text-danger font-bold cursor-pointer transition-opacity hover:opacity-70"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => setConfirmDelete(link._id)}
+                                className="text-muted-foreground hover:text-danger cursor-pointer transition-colors"
+                                aria-label="Delete link"
+                              >
+                                <Trash2 className="size-[18px]" />
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -301,45 +415,67 @@ export default function Collection() {
                 {copied ? <Check className="size-4 text-success" /> : <Share2 className="size-4" />}
               </button>
             </div>
-            <a
-              href={shareUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="size-10 flex items-center justify-center bg-surface border border-border rounded-full text-foreground hover:bg-muted shadow-sm transition-colors shrink-0"
+            <button
+              onClick={() => navigate('/design')}
+              title="Open Design editor"
+              className="size-10 flex items-center justify-center bg-surface border border-border rounded-full text-foreground hover:bg-muted shadow-sm transition-colors shrink-0 cursor-pointer"
             >
-              <Settings2 className="size-[18px]" />
-            </a>
+              <Paintbrush className="size-[18px]" />
+            </button>
           </div>
 
           {/* Phone mockup */}
-          <div className="flex-1 flex items-center justify-center p-8">
-            <div className="w-[300px] h-[620px] bg-[#111] rounded-[48px] p-[10px] shadow-2xl border-4 border-white/20 ring-1 ring-black/20 relative overflow-hidden">
+          <div className="flex-1 flex flex-col items-center justify-center gap-5 p-8">
+            <div
+              className="w-[300px] h-[620px] rounded-[48px] p-[10px] shadow-2xl border-4 border-white/20 ring-1 ring-black/20 relative overflow-hidden transition-all duration-500"
+              style={{ backgroundColor: theme.shell }}
+            >
               {/* Camera notch */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-5 bg-[#111] rounded-b-2xl z-20" />
+              <div
+                className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-5 rounded-b-2xl z-20"
+                style={{ backgroundColor: theme.shell }}
+              />
               {/* Screen */}
-              <div className="w-full h-full bg-black rounded-[38px] overflow-hidden flex flex-col items-center pt-14 pb-6 px-4 relative">
+              <div
+                className="w-full h-full rounded-[38px] overflow-hidden flex flex-col items-center pt-14 pb-6 px-4 relative transition-all duration-500"
+                style={{ background: theme.screenBg }}
+              >
                 {/* More button */}
-                <div className="absolute top-5 right-5 size-7 bg-white/10 rounded-full flex items-center justify-center text-white/80">
+                <div
+                  className="absolute top-5 right-5 size-7 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: theme.moreBg, color: theme.moreIcon }}
+                >
                   <MoreHorizontal className="size-4" />
                 </div>
 
                 {/* Avatar */}
-                <div className="size-20 rounded-full bg-primary/20 flex items-center justify-center mb-3 ring-2 ring-white/10">
-                  <span className="text-lg font-bold text-primary">{getInitials(user.name)}</span>
+                <div
+                  className="size-20 rounded-full flex items-center justify-center mb-3"
+                  style={{ backgroundColor: theme.avatarBg }}
+                >
+                  <span className="text-lg font-bold" style={{ color: theme.avatarText }}>
+                    {getInitials(user.name)}
+                  </span>
                 </div>
-                <h3 className="text-white font-bold text-base mb-6">@{handle}</h3>
+                <h3 className="font-bold text-base mb-6" style={{ color: theme.text }}>
+                  @{handle}
+                </h3>
 
                 {/* Link buttons */}
                 <div className="w-full flex flex-col gap-3">
-                  {links.length === 0 ? (
-                    <div className="w-full bg-[#1a1a1a] text-white/30 py-3 px-4 rounded-2xl text-sm flex justify-center items-center text-center">
+                  {localLinks.filter(l => l.isFavorite).length === 0 ? (
+                    <div
+                      className="w-full py-3 px-4 text-sm flex justify-center items-center text-center"
+                      style={{ ...btnStyles, color: theme.emptyText }}
+                    >
                       Your links will appear here
                     </div>
                   ) : (
-                    links.slice(0, 4).map((link) => (
+                    localLinks.filter(l => l.isFavorite).slice(0, 4).map((link) => (
                       <div
                         key={link._id}
-                        className="w-full bg-[#1a1a1a] text-white py-3 px-4 rounded-2xl font-bold text-sm flex justify-center items-center"
+                        className="w-full py-3 px-4 font-bold text-sm flex justify-center items-center"
+                        style={btnStyles}
                       >
                         <span className="truncate">{link.title}</span>
                       </div>
@@ -348,16 +484,23 @@ export default function Collection() {
                 </div>
 
                 {/* Footer CTA */}
-                <div className="mt-auto pt-6 flex flex-col items-center gap-3">
-                  <button className="bg-white text-black px-6 py-2 rounded-full font-bold text-xs shadow-lg">
-                    Join {user.name.split(' ')[0]} on Linker
-                  </button>
-                  <div className="text-[10px] text-white/30 text-center leading-tight">
-                    Report • Privacy<br />More from Linker
+                {showFooter && (
+                  <div className="mt-auto pt-6 flex flex-col items-center gap-3">
+                    <button
+                      className="px-6 py-2 rounded-full font-bold text-xs shadow-lg"
+                      style={{ backgroundColor: theme.footerBtnBg, color: theme.footerBtnText }}
+                    >
+                      Join {user.name.split(' ')[0]} on Linker
+                    </button>
+                    <div className="text-[10px] text-center leading-tight" style={{ color: theme.subText }}>
+                      Report • Privacy<br />More from Linker
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
+
+
           </div>
         </div>
 

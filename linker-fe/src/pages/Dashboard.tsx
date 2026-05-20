@@ -6,17 +6,18 @@ import {
   ChevronRight,
   ChevronLeft,
   MoreVertical,
-  Heart,
-  Layout,
   ArrowUpRight,
   Loader2,
   PenTool,
   Code,
   TrendingUp,
+  ExternalLink,
+  Link2,
 } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
 import { useMyCategories } from '../hooks/categories/useMyCategories'
 import { useCurrentUser } from '../hooks/useCurrentUser'
+import { useRecentLinks } from '../hooks/links/useRecentLinks'
 import { getCategoryIcon } from '../lib/categoryIcons'
 
 /* ── colour helpers for category cards ─────────────────────── */
@@ -26,45 +27,31 @@ const CARD_THEMES = [
   { bg: 'bg-success/10', text: 'text-success', FallbackIcon: TrendingUp },
 ]
 
-/* ── placeholder recent-link cards (static for now) ────────── */
-const RECENT_CARDS = [
-  {
-    image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&h=340&fit=crop',
-    tag: 'Front End',
-    tagColor: 'bg-primary/10 text-primary',
-    title: "Beginner's Guide to Becoming a Professional Front-End Developer",
-    author: 'Leonardo Samsul',
-    role: 'Mentor',
-    avatar: 'https://i.pravatar.cc/80?img=11',
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1559028012-481c04fa702d?w=600&h=340&fit=crop',
-    tag: 'UI/UX Design',
-    tagColor: 'bg-warning/10 text-warning',
-    title: 'Optimizing User Experience with the Best UI/UX Design',
-    author: 'Bayu Salto',
-    role: 'Mentor',
-    avatar: 'https://i.pravatar.cc/80?img=12',
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1542744094-3a31f272c490?w=600&h=340&fit=crop',
-    tag: 'Branding',
-    tagColor: 'bg-danger/10 text-danger',
-    title: 'Reviving and Refreshing Company Image',
-    author: 'Padhang Satrio',
-    role: 'Mentor',
-    avatar: 'https://i.pravatar.cc/80?img=13',
-  },
-]
+function getFavicon(url: string) {
+  try {
+    const { hostname } = new URL(url)
+    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`
+  } catch {
+    return null
+  }
+}
 
-const LESSON_ROWS = [
-  { name: 'Padhang Satrio', date: '2/16/2024', type: 'UI/UX Design', desc: 'Understand Of UI/UX Design', avatar: 'https://i.pravatar.cc/80?img=13' },
-  { name: 'Bayu Salto', date: '2/14/2024', type: 'Front End', desc: 'Advanced React Patterns', avatar: 'https://i.pravatar.cc/80?img=12' },
-]
+function getDomain(url: string) {
+  try {
+    return new URL(url).hostname.replace('www.', '')
+  } catch {
+    return url
+  }
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
 
 export default function Dashboard() {
   const navigate = useNavigate()
   const { data: categories, isLoading } = useMyCategories()
+  const { data: recentLinks, isLoading: isLoadingRecent } = useRecentLinks(6)
   const user = useCurrentUser()
 
   const topCategories = categories?.slice(0, 3) ?? []
@@ -148,11 +135,11 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Continue Watching / Recent Links */}
+          {/* Recently Added Links */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-foreground" style={{ fontFamily: 'var(--font-headings)' }}>
-                Continue Watching
+                Recently Added
               </h3>
               <div className="flex gap-2">
                 <button type="button" className="size-8 rounded-full bg-surface border border-border flex items-center justify-center text-muted-foreground hover:text-foreground cursor-pointer">
@@ -163,51 +150,87 @@ export default function Dashboard() {
                 </button>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-6">
-              {RECENT_CARDS.map((card, i) => (
-                <div
-                  key={i}
-                  className="bg-surface rounded-3xl p-3 shadow-sm border border-transparent hover:border-primary/20 transition-colors cursor-pointer group"
+
+            {isLoadingRecent && (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="size-5 animate-spin text-muted-foreground" />
+              </div>
+            )}
+
+            {!isLoadingRecent && (!recentLinks || recentLinks.length === 0) && (
+              <div className="bg-surface rounded-3xl border border-border border-dashed flex flex-col items-center justify-center py-12 gap-3">
+                <div className="size-12 bg-muted rounded-2xl flex items-center justify-center">
+                  <Link2 className="size-6 text-muted-foreground" />
+                </div>
+                <p className="text-sm font-bold text-foreground">No links yet</p>
+                <p className="text-xs text-muted-foreground">Add links to a category and they'll appear here</p>
+                <button
+                  type="button"
+                  onClick={() => navigate('/categories')}
+                  className="mt-1 px-4 py-2 bg-primary text-white text-xs font-bold rounded-full hover:opacity-90 cursor-pointer"
                 >
-                  <div className="relative w-full h-40 rounded-2xl overflow-hidden mb-4 bg-muted">
-                    <img
-                      src={card.image}
-                      alt={card.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <button
-                      type="button"
-                      className="absolute top-3 right-3 size-8 bg-black/30 backdrop-blur-md rounded-full text-white flex items-center justify-center hover:bg-black/50 transition-colors cursor-pointer"
+                  Browse Categories
+                </button>
+              </div>
+            )}
+
+            {!isLoadingRecent && recentLinks && recentLinks.length > 0 && (
+              <div className="grid grid-cols-3 gap-6">
+                {recentLinks.slice(0, 3).map((link) => {
+                  const favicon = getFavicon(link.url)
+                  const domain = getDomain(link.url)
+                  const cat = link.categoryId
+                  const CatIcon = getCategoryIcon(cat?.icon)
+                  return (
+                    <div
+                      key={link._id}
+                      className="bg-surface rounded-3xl p-3 shadow-sm border border-transparent hover:border-primary/20 transition-colors cursor-pointer group"
+                      onClick={() => window.open(link.url, '_blank', 'noopener,noreferrer')}
                     >
-                      <Heart className="size-3.5" />
-                    </button>
-                  </div>
-                  <div className="px-2 pb-2">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider mb-2 ${card.tagColor}`}>
-                      <Layout className="size-3" />
-                      {card.tag}
-                    </span>
-                    <h4 className="font-bold text-foreground text-sm leading-snug mb-4 line-clamp-2 h-10">
-                      {card.title}
-                    </h4>
-                    <div className="flex items-center gap-3 pt-4 border-t border-border">
-                      <img src={card.avatar} alt={card.author} className="size-8 rounded-full" />
-                      <div className="flex flex-col">
-                        <span className="text-xs font-bold text-foreground">{card.author}</span>
-                        <span className="text-[10px] text-muted-foreground">{card.role}</span>
+                      {/* Thumbnail area */}
+                      <div className="relative w-full h-40 rounded-2xl overflow-hidden mb-4 bg-muted flex items-center justify-center">
+                        {favicon ? (
+                          <img src={favicon} alt={domain} className="size-16 rounded-xl object-contain" />
+                        ) : (
+                          <ExternalLink className="size-10 text-muted-foreground/40" />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/10 group-hover:to-black/20 transition-colors" />
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); navigate(`/categories/${cat?._id}`) }}
+                          className="absolute top-3 right-3 px-2.5 py-1 bg-black/30 backdrop-blur-md rounded-full text-white text-[10px] font-bold hover:bg-black/50 transition-colors cursor-pointer"
+                        >
+                          {cat?.name ?? 'Link'}
+                        </button>
+                      </div>
+                      <div className="px-2 pb-2">
+                        <span className="text-[10px] text-muted-foreground font-medium mb-1 block truncate">{domain}</span>
+                        <h4 className="font-bold text-foreground text-sm leading-snug mb-4 line-clamp-2 h-10">
+                          {link.title}
+                        </h4>
+                        <div className="flex items-center gap-3 pt-4 border-t border-border">
+                          <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                            <CatIcon className="size-4 text-primary" />
+                          </div>
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-xs font-bold text-foreground truncate">{cat?.name ?? '—'}</span>
+                            <span className="text-[10px] text-muted-foreground">{formatDate(link.createdAt)}</span>
+                          </div>
+                          <ArrowUpRight className="size-4 text-muted-foreground ml-auto shrink-0 group-hover:text-primary transition-colors" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
 
-          {/* Your Lesson table */}
+          {/* Your Categories table */}
           <div>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-foreground" style={{ fontFamily: 'var(--font-headings)' }}>
-                Your Lesson
+                Your Categories
               </h3>
               <button
                 type="button"
@@ -220,43 +243,55 @@ export default function Dashboard() {
             <div className="bg-surface rounded-3xl shadow-sm border border-transparent overflow-hidden">
               {/* Table header */}
               <div className="flex items-center px-6 py-4 border-b border-border bg-muted/20 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                <div className="flex-[2]">Mentor</div>
-                <div className="flex-[1.5]">Type</div>
-                <div className="flex-[3]">Desc</div>
-                <div className="flex-[1] text-right">Action</div>
+                <div className="flex-[2]">Category</div>
+                <div className="flex-[1.5]">Links</div>
+                <div className="flex-[3]">Created</div>
+                <div className="flex-[1] text-right">Open</div>
               </div>
-              {/* Table rows */}
               <div className="flex flex-col p-2">
-                {LESSON_ROWS.map((row, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center px-4 py-3 hover:bg-muted/30 rounded-2xl transition-colors cursor-pointer group"
-                  >
-                    <div className="flex-[2] flex items-center gap-3">
-                      <img src={row.avatar} alt={row.name} className="size-10 rounded-full" />
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-foreground">{row.name}</span>
-                        <span className="text-xs text-muted-foreground">{row.date}</span>
+                {isLoading && (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="size-5 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+                {!isLoading && categories && categories.slice(0, 6).map((cat, i) => {
+                  const theme = CARD_THEMES[i % CARD_THEMES.length]
+                  const Icon = getCategoryIcon(cat.icon)
+                  return (
+                    <div
+                      key={cat._id}
+                      className="flex items-center px-4 py-3 hover:bg-muted/30 rounded-2xl transition-colors cursor-pointer group"
+                      onClick={() => navigate(`/categories/${cat._id}`)}
+                    >
+                      <div className="flex-[2] flex items-center gap-3">
+                        <div className={`size-10 rounded-xl ${theme.bg} ${theme.text} flex items-center justify-center shrink-0`}>
+                          <Icon className="size-5" />
+                        </div>
+                        <span className="text-sm font-bold text-foreground truncate">{cat.name}</span>
+                      </div>
+                      <div className="flex-[1.5]">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-primary/10 text-primary">
+                          {cat.linkCount} {cat.linkCount === 1 ? 'link' : 'links'}
+                        </span>
+                      </div>
+                      <div className="flex-[3]">
+                        <span className="text-sm text-muted-foreground">
+                          {formatDate(cat.createdAt)}
+                        </span>
+                      </div>
+                      <div className="flex-[1] flex justify-end">
+                        <span className="size-8 rounded-full border border-border flex items-center justify-center text-muted-foreground group-hover:border-primary group-hover:text-primary transition-colors">
+                          <ArrowUpRight className="size-3.5" />
+                        </span>
                       </div>
                     </div>
-                    <div className="flex-[1.5]">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary">
-                        <Layout className="size-3" />
-                        {row.type}
-                      </span>
-                    </div>
-                    <div className="flex-[3]">
-                      <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
-                        {row.desc}
-                      </span>
-                    </div>
-                    <div className="flex-[1] flex justify-end">
-                      <span className="size-8 rounded-full border border-border flex items-center justify-center text-muted-foreground group-hover:border-primary group-hover:text-primary transition-colors">
-                        <ArrowUpRight className="size-3.5" />
-                      </span>
-                    </div>
+                  )
+                })}
+                {!isLoading && (!categories || categories.length === 0) && (
+                  <div className="text-center py-8 text-sm text-muted-foreground">
+                    No categories yet. <button type="button" onClick={() => navigate('/categories')} className="text-primary font-bold hover:underline cursor-pointer">Create one</button>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>

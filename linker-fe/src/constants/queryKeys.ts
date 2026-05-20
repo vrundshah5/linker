@@ -18,6 +18,9 @@ export const queryKeys = {
   links: {
     all: ['links'] as const,
     archived: () => [...queryKeys.links.all, 'archived'] as const,
+    favorites: () => [...queryKeys.links.all, 'favorites'] as const,
+    recent: () => [...queryKeys.links.all, 'recent'] as const,
+    stats: (days: number) => [...queryKeys.links.all, 'stats', days] as const,
     byCategory: (categoryId: string) => [...queryKeys.links.all, 'byCategory', categoryId] as const,
   },
   publicCollection: {

@@ -1,5 +1,75 @@
+import mongoose from 'mongoose';
 import Link from '../models/Link.js';
 import UserCategory from '../models/UserCategory.js';
+
+// GET /api/links/stats?days=30
+export const getLinkStats = async (req, res) => {
+  try {
+    const numDays = Math.min(parseInt(req.query.days) || 30, 90)
+    const since = new Date()
+    since.setDate(since.getDate() - (numDays - 1))
+    since.setHours(0, 0, 0, 0)
+
+    const userId = new mongoose.Types.ObjectId(req.user.id)
+
+    const [totalLinks, totalFavorites, totalArchived, daily, categoryBreakdown] = await Promise.all([
+      Link.countDocuments({ userId, isArchived: { $ne: true } }),
+      Link.countDocuments({ userId, isFavorite: true, isArchived: { $ne: true } }),
+      Link.countDocuments({ userId, isArchived: true }),
+      Link.aggregate([
+        { $match: { userId, createdAt: { $gte: since }, isArchived: { $ne: true } } },
+        { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, count: { $sum: 1 } } },
+        { $sort: { _id: 1 } },
+      ]),
+      Link.aggregate([
+        { $match: { userId, isArchived: { $ne: true } } },
+        { $group: { _id: '$categoryId', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 5 },
+        { $lookup: { from: 'usercategories', localField: '_id', foreignField: '_id', as: 'cat' } },
+        { $unwind: { path: '$cat', preserveNullAndEmptyArrays: true } },
+        { $project: { _id: 1, count: 1, name: '$cat.name', icon: '$cat.icon', themeColor: '$cat.themeColor' } },
+      ]),
+    ])
+
+    return res.json({
+      success: true,
+      data: { totalLinks, totalFavorites, totalArchived, daily, categoryBreakdown },
+      message: 'Stats fetched',
+    })
+  } catch (err) {
+    console.error('getLinkStats error:', err)
+    return res.status(500).json({ success: false, data: null, message: 'Server error' })
+  }
+}
+
+// GET /api/links/favorites
+export const getLinkFavorites = async (req, res) => {
+  try {
+    const links = await Link.find({ userId: req.user.id, isFavorite: true, isArchived: { $ne: true } })
+      .sort({ createdAt: -1 })
+      .populate('categoryId', 'name themeColor icon')
+    return res.json({ success: true, data: { links }, message: 'Favorites fetched' })
+  } catch (err) {
+    console.error('getLinkFavorites error:', err)
+    return res.status(500).json({ success: false, data: null, message: 'Server error' })
+  }
+}
+
+// GET /api/links/recent?limit=6
+export const getRecentLinks = async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 6, 20)
+    const links = await Link.find({ userId: req.user.id, isArchived: { $ne: true } })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .populate('categoryId', 'name themeColor icon')
+    return res.json({ success: true, data: { links }, message: 'Recent links fetched' })
+  } catch (err) {
+    console.error('getRecentLinks error:', err)
+    return res.status(500).json({ success: false, data: null, message: 'Server error' })
+  }
+}
 
 // GET /api/links?categoryId=xxx
 export const getLinks = async (req, res) => {

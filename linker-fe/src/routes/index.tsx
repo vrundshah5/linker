@@ -34,6 +34,7 @@ const ProfessionalProfile = lazy(() => import('../pages/ProfessionalProfile'))
 const Notifications = lazy(() => import('../pages/Notifications'))
 const Collection = lazy(() => import('../pages/Collection'))
 const Insights = lazy(() => import('../pages/Insights'))
+const Design = lazy(() => import('../pages/Design'))
 const PublicCollection = lazy(() => import('../pages/PublicCollection'))
 
 export const routes: RouteObject[] = [
@@ -82,6 +83,7 @@ export const routes: RouteObject[] = [
       { path: '/notifications', element: <Notifications /> },
       { path: '/collection', element: <Collection /> },
       { path: '/insights', element: <Insights /> },
+      { path: '/design', element: <Design /> },
     ],
   },
 
