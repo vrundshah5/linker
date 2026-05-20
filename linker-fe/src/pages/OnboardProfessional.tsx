@@ -32,24 +32,15 @@ interface Resource {
   url: string
 }
 
-const INITIAL_MEMBERS: InvitedMember[] = [
-  {
-    id: 'sarah',
-    email: 'sarah.k@acme.com',
-    initials: 'SK',
-    color: 'bg-primary/20 text-primary',
-    pending: true,
-  },
-]
+const INITIAL_MEMBERS: InvitedMember[] = []
 
-const INITIAL_RESOURCES: Resource[] = [
-  { id: '1', url: 'https://figma.com/file/acme-redesign' },
-]
+const INITIAL_RESOURCES: Resource[] = []
 
 export default function OnboardProfessional() {
   const navigate = useNavigate()
   const user = useCurrentUser()
   const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteEmailError, setInviteEmailError] = useState('')
   const [members, setMembers] = useState<InvitedMember[]>(INITIAL_MEMBERS)
   const [resources, setResources] = useState<Resource[]>(INITIAL_RESOURCES)
   const [newResourceUrl, setNewResourceUrl] = useState('')
@@ -62,12 +53,22 @@ export default function OnboardProfessional() {
     formState: { errors },
   } = useForm<ProfessionalFormData>({
     resolver: yupResolver(schema),
-    defaultValues: { projectName: 'Acme Corp Redesign' },
+    defaultValues: { projectName: '' },
   })
 
   function handleInvite() {
     const email = inviteEmail.trim()
     if (!email) return
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setInviteEmailError('Enter a valid email address')
+      return
+    }
+    if (members.some((m) => m.email === email)) {
+      setInviteEmailError('This email has already been invited')
+      return
+    }
+    setInviteEmailError('')
     const initials = email
       .split('@')[0]
       .split(/[._-]/)
@@ -199,30 +200,35 @@ export default function OnboardProfessional() {
             </h3>
 
             {/* Email input + Invite button */}
-            <div className="flex items-center gap-2 mb-4">
-              <div className="flex-1 bg-input border border-border rounded-xl px-4 py-3 text-sm flex items-center gap-2 focus-within:border-primary transition-colors">
-                <Mail className="text-muted-foreground shrink-0 size-[18px]" />
-                <input
-                  type="email"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                  placeholder="colleague@company.com"
-                  className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground min-w-0"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault()
-                      handleInvite()
-                    }
-                  }}
-                />
+            <div className="mb-4">
+              <div className="flex items-center gap-2">
+                <div className={`flex-1 bg-input border rounded-xl px-4 py-3 text-sm flex items-center gap-2 focus-within:border-primary transition-colors ${inviteEmailError ? 'border-destructive' : 'border-border'}`}>
+                  <Mail className="text-muted-foreground shrink-0 size-[18px]" />
+                  <input
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(e) => { setInviteEmail(e.target.value); setInviteEmailError('') }}
+                    placeholder="colleague@company.com"
+                    className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground min-w-0"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        handleInvite()
+                      }
+                    }}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleInvite}
+                  className="px-5 py-3 bg-secondary text-primary font-bold rounded-xl hover:bg-primary hover:text-primary-foreground transition-colors shrink-0 cursor-pointer"
+                >
+                  Invite
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={handleInvite}
-                className="px-5 py-3 bg-secondary text-primary font-bold rounded-xl hover:bg-primary hover:text-primary-foreground transition-colors shrink-0 cursor-pointer"
-              >
-                Invite
-              </button>
+              {inviteEmailError && (
+                <p className="text-xs text-destructive mt-1">{inviteEmailError}</p>
+              )}
             </div>
 
             {/* Members list */}

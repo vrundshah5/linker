@@ -2,10 +2,12 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
+import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User.js';
 import { createNotification } from './notificationController.js';
 
 const SALT_ROUNDS = 12;
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const generateToken = (userId) =>
   jwt.sign({ id: userId }, process.env.JWT_SECRET, {
@@ -88,6 +90,68 @@ export const login = async (req, res) => {
     success: true,
     data: { token, user: { id: user._id, name: user.name, email: user.email, role: user.role, onboardingComplete: user.onboardingComplete, workspaceType: user.workspaceType, workspaces: user.workspaces } },
     message: 'Logged in successfully',
+  });
+};
+
+// POST /api/auth/google
+export const googleAuth = async (req, res) => {
+  const { accessToken } = req.body;
+
+  if (!accessToken) {
+    return res.status(400).json({ success: false, data: null, message: 'Google access token is required' });
+  }
+
+  let googleUser;
+  try {
+    const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) throw new Error('Invalid token');
+    googleUser = await response.json();
+  } catch {
+    return res.status(401).json({ success: false, data: null, message: 'Invalid Google access token' });
+  }
+
+  const { email, name, sub: googleId } = googleUser;
+
+  if (!email) {
+    return res.status(400).json({ success: false, data: null, message: 'Google account has no email' });
+  }
+
+  let user = await User.findOne({ email: email.toLowerCase() });
+
+  if (user) {
+    if (user.isBanned) {
+      return res.status(403).json({ success: false, data: null, message: 'Your account has been suspended. Please contact support.' });
+    }
+  } else {
+    // Create new Google user (no password)
+    user = await User.create({
+      name: name || email.split('@')[0],
+      email: email.toLowerCase(),
+      googleId,
+    });
+
+    const admins = await User.find({ role: 'admin' }).select('_id');
+    await Promise.all(
+      admins.map((admin) =>
+        createNotification({
+          userId: admin._id,
+          type: 'new_user',
+          title: 'New user registered',
+          body: `${user.name} (${user.email}) just signed up via Google.`,
+          meta: { fromUserId: user._id },
+        })
+      )
+    );
+  }
+
+  const token = generateToken(user._id);
+
+  return res.status(200).json({
+    success: true,
+    data: { token, user: { id: user._id, name: user.name, email: user.email, role: user.role, onboardingComplete: user.onboardingComplete, workspaceType: user.workspaceType, workspaces: user.workspaces } },
+    message: user.createdAt === user.updatedAt ? 'Account created successfully' : 'Logged in successfully',
   });
 };
 
