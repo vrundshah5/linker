@@ -16,7 +16,6 @@ import {
 } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
 import { useMyCategories } from '../hooks/categories/useMyCategories'
-import { useCurrentUser } from '../hooks/useCurrentUser'
 import { useRecentLinks } from '../hooks/links/useRecentLinks'
 import { getCategoryIcon } from '../lib/categoryIcons'
 
@@ -52,7 +51,6 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const { data: categories, isLoading } = useMyCategories()
   const { data: recentLinks, isLoading: isLoadingRecent } = useRecentLinks(6)
-  const user = useCurrentUser()
 
   const topCategories = categories?.slice(0, 3) ?? []
 
