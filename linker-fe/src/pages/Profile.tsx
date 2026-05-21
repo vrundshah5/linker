@@ -4,6 +4,7 @@ import {
   Building2, Loader2,
 } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
+import PageHeader from '../components/ui/PageHeader'
 import ConfirmModal from '../components/ui/ConfirmModal'
 import { AvatarPickerGrid, getAvatarById } from '../components/ui/AvatarPicker'
 import { useProfile, useUpdateProfile } from '../hooks/useProfile'
@@ -70,43 +71,67 @@ export default function Profile() {
     saveProfile({ name, avatar, phone, location, jobTitle, company, website, bio })
   }
 
+  function handleDiscard() {
+    if (!profile) return
+    setName(profile.name ?? '')
+    setAvatar(profile.avatar ?? '')
+    setPhone(profile.phone ?? '')
+    setLocation(profile.location ?? '')
+    setJobTitle(profile.jobTitle ?? '')
+    setCompany(profile.company ?? '')
+    setWebsite(profile.website ?? '')
+    setBio(profile.bio ?? '')
+  }
+
   const selectedAvatar = getAvatarById(avatar)
+  const isDirty = !!profile && (
+    name     !== (profile.name     ?? '') ||
+    avatar   !== (profile.avatar   ?? '') ||
+    phone    !== (profile.phone    ?? '') ||
+    location !== (profile.location ?? '') ||
+    jobTitle !== (profile.jobTitle ?? '') ||
+    company  !== (profile.company  ?? '') ||
+    website  !== (profile.website  ?? '') ||
+    bio      !== (profile.bio      ?? '')
+  )
 
   return (
     <>
     <AppLayout>
       <div className="h-full flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto px-8 py-6">
+          <PageHeader
+            title="Profile Settings"
+            subtitle="Manage your personal information and preferences."
+            actions={
+              <>
+                <button
+                  type="button"
+                  onClick={handleDiscard}
+                  disabled={saving || !isDirty}
+                  className="px-5 py-2.5 bg-surface border border-border text-foreground font-semibold text-sm rounded-full hover:bg-muted transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Discard
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={saving || !isDirty}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+                  Save Changes
+                </button>
+              </>
+            }
+          />
+
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="size-6 text-muted-foreground animate-spin" />
             </div>
           ) : (
           <>
-            {/* ─── Header Card ─── */}
-            <div className="bg-surface rounded-2xl p-8 mb-8 shadow-sm flex items-center justify-between">
-              <div>
-                <h1
-                  className="text-3xl font-bold text-foreground mb-2"
-                  style={{ fontFamily: 'var(--font-headings)' }}
-                >
-                  Profile Settings
-                </h1>
-                <p className="text-muted-foreground">
-                  Manage your personal information and preferences.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={saving}
-                className="bg-primary text-primary-foreground px-6 py-3 rounded-full font-bold text-sm flex items-center gap-2 shadow-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
-              >
-                {saving ? <Loader2 className="size-[18px] animate-spin" /> : <Save className="size-[18px]" />}
-                Save Changes
-              </button>
-            </div>
-
             <div className="max-w-4xl flex flex-col gap-8">
               {/* ─── Personal Information ─── */}
               <div className="bg-surface p-8 rounded-2xl shadow-sm flex flex-col">

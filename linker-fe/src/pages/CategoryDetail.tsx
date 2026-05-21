@@ -9,7 +9,7 @@ import { useDeleteLink } from '../hooks/links/useDeleteLink'
 import { useUpdateLink } from '../hooks/links/useUpdateLink'
 import { useMyCategories } from '../hooks/categories/useMyCategories'
 
-type Tab = 'all' | 'favorites' | 'archived'
+type Tab = 'all' | 'archived'
 
 function getFavicon(url: string) {
   try {
@@ -37,14 +37,12 @@ export default function CategoryDetail() {
   const { mutate: updateLink } = useUpdateLink(id ?? '')
 
   const visibleLinks = links.filter((l) => {
-    if (activeTab === 'favorites') return l.isFavorite
     if (activeTab === 'archived') return l.isArchived
     return true
   })
 
   const tabs = [
     { key: 'all' as Tab, label: 'All Links', count: links.length },
-    { key: 'favorites' as Tab, label: 'Favorites', count: links.filter((l) => l.isFavorite).length },
     { key: 'archived' as Tab, label: 'Archived', count: links.filter((l) => l.isArchived).length },
   ]
 
@@ -118,7 +116,7 @@ export default function CategoryDetail() {
                 return (
                   <div
                     key={link._id}
-                    className="bg-surface px-5 py-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow flex items-center gap-4 group"
+                    className="bg-surface px-5 py-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow flex items-center gap-4"
                   >
                       {/* Favicon */}
                       <div className="size-12 rounded-lg bg-muted flex items-center justify-center shrink-0 overflow-hidden">
@@ -156,7 +154,7 @@ export default function CategoryDetail() {
                       </div>
 
                       {/* Actions */}
-                      <div className="flex items-center gap-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-2 shrink-0">
                         {/* Star */}
                         <button
                           type="button"

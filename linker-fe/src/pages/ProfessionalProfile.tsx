@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Mail, Phone, MapPin, Briefcase, Globe, Loader2 } from 'lucide-react'
+import { Save, Camera, Mail, Phone, MapPin, Briefcase, Globe, Loader2 } from 'lucide-react'
 import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
+import PageHeader from '../components/ui/PageHeader'
 import ConfirmModal from '../components/ui/ConfirmModal'
+import { AvatarPickerGrid, getAvatarById } from '../components/ui/AvatarPicker'
 import { useProfile, useUpdateProfile } from '../hooks/useProfile'
 
 function getInitials(name: string) {
@@ -16,6 +18,7 @@ export default function ProfessionalProfile() {
   const { mutate: saveProfile, isPending: saving } = useUpdateProfile()
 
   const [name, setName]         = useState('')
+  const [avatar, setAvatar]     = useState('')
   const [phone, setPhone]       = useState('')
   const [location, setLocation] = useState('')
   const [jobTitle, setJobTitle] = useState('')
@@ -23,11 +26,13 @@ export default function ProfessionalProfile() {
   const [website, setWebsite]   = useState('')
   const [bio, setBio]           = useState('')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false)
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   useEffect(() => {
     if (profile) {
       setName(profile.name ?? '')
+      setAvatar(profile.avatar ?? '')
       setPhone(profile.phone ?? '')
       setLocation(profile.location ?? '')
       setJobTitle(profile.jobTitle ?? '')
@@ -40,6 +45,7 @@ export default function ProfessionalProfile() {
   function handleDiscard() {
     if (!profile) return
     setName(profile.name ?? '')
+    setAvatar(profile.avatar ?? '')
     setPhone(profile.phone ?? '')
     setLocation(profile.location ?? '')
     setJobTitle(profile.jobTitle ?? '')
@@ -49,29 +55,52 @@ export default function ProfessionalProfile() {
   }
 
   function handleSave() {
-    saveProfile({ name, phone, location, jobTitle, company, website, bio })
+    saveProfile({ name, avatar, phone, location, jobTitle, company, website, bio })
   }
+
+  const selectedAvatar = getAvatarById(avatar)
+  const isDirty = !!profile && (
+    name     !== (profile.name     ?? '') ||
+    avatar   !== (profile.avatar   ?? '') ||
+    phone    !== (profile.phone    ?? '') ||
+    location !== (profile.location ?? '') ||
+    jobTitle !== (profile.jobTitle ?? '') ||
+    company  !== (profile.company  ?? '') ||
+    website  !== (profile.website  ?? '') ||
+    bio      !== (profile.bio      ?? '')
+  )
 
   return (
     <>
     <WorkspaceLayout>
       <div className="h-full flex flex-col overflow-hidden">
+        <div className="flex-1 overflow-y-auto px-8 py-6">
+          <PageHeader
+            title="My Profile"
+            subtitle="Manage your professional information and preferences."
+            actions={
+              <>
+                <button
+                  type="button"
+                  onClick={handleDiscard}
+                  disabled={saving || !isDirty}
+                  className="px-5 py-2.5 bg-surface border border-border text-foreground font-semibold text-sm rounded-full hover:bg-muted transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Discard
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={saving || !isDirty}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+                  Save Changes
+                </button>
+              </>
+            }
+          />
 
-        {/* Header */}
-        <div className="sticky top-0 z-10 bg-background border-b border-border px-8 py-4 shrink-0">
-          <h1
-            className="text-2xl font-bold text-foreground leading-tight"
-            style={{ fontFamily: 'var(--font-headings)' }}
-          >
-            My Profile
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Manage your professional information and preferences.
-          </p>
-        </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-8 py-7 pb-28">
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="size-6 text-muted-foreground animate-spin" />
@@ -80,21 +109,56 @@ export default function ProfessionalProfile() {
           <div className="max-w-2xl flex flex-col gap-5">
 
             {/* Avatar card */}
-            <div className="bg-surface border border-border rounded-2xl p-6 flex items-center gap-6">
-              <div className="size-20 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <span className="text-2xl font-bold text-primary">
-                  {name ? getInitials(name) : '?'}
-                </span>
+            <div className="bg-surface border border-border rounded-2xl p-6">
+              <div className="flex items-center gap-5 mb-4">
+                <div className="relative shrink-0">
+                  <div className="size-16 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center border-2 border-background">
+                    {selectedAvatar ? (
+                      <div className="w-full h-full">{selectedAvatar.node}</div>
+                    ) : (
+                      <span className="text-xl font-bold text-primary">
+                        {name ? getInitials(name) : '?'}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowAvatarPicker((v) => !v)}
+                    className="absolute bottom-0 right-0 size-6 bg-primary text-white rounded-full flex items-center justify-center border-2 border-surface hover:scale-105 transition-transform cursor-pointer"
+                  >
+                    <Camera className="size-3" />
+                  </button>
+                </div>
+                <div>
+                  <p className="text-base font-bold text-foreground">{name || '—'}</p>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    {[jobTitle, company].filter(Boolean).join(' · ') || 'No title set'}
+                  </p>
+                  <span className="mt-2 inline-block px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+                    Professional workspace
+                  </span>
+                </div>
               </div>
-              <div>
-                <p className="text-base font-bold text-foreground">{name || '—'}</p>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  {[jobTitle, company].filter(Boolean).join(' · ') || 'No title set'}
-                </p>
-                <span className="mt-2 inline-block px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-semibold">
-                  Professional workspace
-                </span>
-              </div>
+
+              {/* Avatar picker (collapsible) */}
+              {showAvatarPicker && (
+                <div className="pt-4 border-t border-border">
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Choose Avatar</p>
+                  <AvatarPickerGrid
+                    selected={avatar}
+                    onSelect={(id) => { setAvatar(id); setShowAvatarPicker(false) }}
+                  />
+                  {avatar && (
+                    <button
+                      type="button"
+                      onClick={() => setAvatar('')}
+                      className="mt-3 text-xs text-danger font-semibold hover:underline cursor-pointer"
+                    >
+                      Remove avatar
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Personal Information */}
@@ -212,29 +276,6 @@ export default function ProfessionalProfile() {
           </div>
           )}
         </div>
-
-        {/* Sticky footer */}
-        {!isLoading && (
-          <div className="sticky bottom-0 bg-background border-t border-border px-8 py-4 flex items-center justify-end gap-3">
-            <button
-              type="button"
-              onClick={handleDiscard}
-              disabled={saving}
-              className="px-6 py-2.5 bg-surface border border-border text-foreground font-semibold text-sm rounded-full hover:bg-muted transition-colors cursor-pointer disabled:opacity-50"
-            >
-              Discard Changes
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
-            >
-              {saving && <Loader2 className="size-4 animate-spin" />}
-              Save Changes
-            </button>
-          </div>
-        )}
       </div>
     </WorkspaceLayout>
 

@@ -11,6 +11,7 @@ import {
 import AppLayout from '../components/layouts/AppLayout'
 import PageHeader from '../components/ui/PageHeader'
 import CreateCategoryModal from '../components/ui/CreateCategoryModal'
+import AddLinkModal from '../components/ui/AddLinkModal'
 import CategoryCardMenu from '../components/ui/CategoryCardMenu'
 import { useMyCategories } from '../hooks/categories/useMyCategories'
 import { getCategoryIcon } from '../lib/categoryIcons'
@@ -18,6 +19,7 @@ import { getCategoryIcon } from '../lib/categoryIcons'
 export default function Categories() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [modalOpen, setModalOpen] = useState(false)
+  const [addLinkOpen, setAddLinkOpen] = useState(false)
   const navigate = useNavigate()
   const { data: categories, isLoading } = useMyCategories()
 
@@ -29,13 +31,22 @@ export default function Categories() {
             title="Categories"
             subtitle="Organise your links into categories."
             actions={
-              <button
-                onClick={() => setModalOpen(true)}
-                className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
-              >
-                <Plus className="size-4" />
-                New Category
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setAddLinkOpen(true)}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-surface border border-border text-foreground font-bold text-sm rounded-full hover:bg-muted transition-colors cursor-pointer"
+                >
+                  <Link2 className="size-4" />
+                  Add Link
+                </button>
+                <button
+                  onClick={() => setModalOpen(true)}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer"
+                >
+                  <Plus className="size-4" />
+                  New Category
+                </button>
+              </div>
             }
           />
 
@@ -188,6 +199,7 @@ export default function Categories() {
       </div>
 
       <CreateCategoryModal open={modalOpen} onClose={() => setModalOpen(false)} />
+      <AddLinkModal open={addLinkOpen} onClose={() => setAddLinkOpen(false)} />
     </AppLayout>
   )
 }

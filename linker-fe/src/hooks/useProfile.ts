@@ -23,7 +23,7 @@ export function useUpdateProfile() {
       const raw = localStorage.getItem('user')
       if (raw) {
         const stored = JSON.parse(raw)
-        localStorage.setItem('user', JSON.stringify({ ...stored, name: user.name, email: user.email }))
+        localStorage.setItem('user', JSON.stringify({ ...stored, name: user.name, email: user.email, avatar: user.avatar }))
       }
       toast.success('Profile saved')
     },

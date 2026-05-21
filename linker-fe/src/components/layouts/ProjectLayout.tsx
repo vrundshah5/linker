@@ -10,6 +10,8 @@ import {
 } from 'lucide-react'
 import UserMenuPopover from '../ui/UserMenuPopover'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
+import { useProfile } from '../../hooks/useProfile'
+import { getAvatarById } from '../ui/AvatarPicker'
 
 const PROJECT_NAV = [
   { to: '/projects/acme-corp-redesign/resources', label: 'Resources', icon: Briefcase, end: true },
@@ -24,6 +26,8 @@ interface ProjectLayoutProps {
 
 export default function ProjectLayout({ children }: ProjectLayoutProps) {
   const user = useCurrentUser()
+  const { data: profile } = useProfile()
+  const avatarNode = profile?.avatar ? getAvatarById(profile.avatar)?.node : null
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       {/* Sidebar */}
@@ -86,8 +90,11 @@ export default function ProjectLayout({ children }: ProjectLayoutProps) {
           <UserMenuPopover accentClass="text-primary" accentBg="bg-primary/10">
             {(open) => (
               <div className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-muted transition-colors text-left">
-                <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 relative">
-                  <span className="text-xs font-bold text-primary">{user.initials}</span>
+                <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 relative overflow-hidden">
+                  {avatarNode
+                    ? <div className="w-full h-full">{avatarNode}</div>
+                    : <span className="text-xs font-bold text-primary">{user.initials}</span>
+                  }
                   <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-primary border-2 border-surface" />
                 </div>
                 <div className="flex-1 min-w-0">

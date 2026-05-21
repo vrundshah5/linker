@@ -9,15 +9,15 @@ import { useProjects, useCreateProject } from '../hooks/useProjects'
 const PROJECT_COLORS = [
   { bg: 'bg-primary/15', text: 'text-primary' },
   { bg: 'bg-primary/10', text: 'text-primary' },
-  { bg: 'bg-success/15', text: 'text-success' },
-  { bg: 'bg-danger/10', text: 'text-danger' },
+  { bg: 'bg-primary/20', text: 'text-primary' },
+  { bg: 'bg-secondary', text: 'text-primary' },
 ]
 
 const AVATAR_COLORS = [
   'bg-primary/20 text-primary',
   'bg-primary/15 text-primary',
-  'bg-success/15 text-success',
-  'bg-danger/10 text-danger',
+  'bg-primary/10 text-primary',
+  'bg-secondary text-primary',
 ]
 
 function getInitials(name: string) {
@@ -49,7 +49,11 @@ export default function ProfessionalDashboard() {
     p.name.toLowerCase().includes(search.toLowerCase()),
   )
 
-  const totalCollaborators = (projects ?? []).reduce((sum, p) => sum + p.members.length, 0)
+  const totalCollaborators = (projects ?? []).reduce(
+    (sum, p) => sum + p.members.filter((m) => m.userId._id !== user.id).length,
+    0,
+  )
+  const totalLinks = (projects ?? []).reduce((sum, p) => sum + (p.resourceCount ?? 0), 0)
   const firstName = user.name.split(' ')[0] || user.name
 
   function handleCreate(data: { name: string; description: string }) {
@@ -100,7 +104,7 @@ export default function ProfessionalDashboard() {
             {[
               { icon: Briefcase, label: 'Active Projects', value: projects?.length ?? 0 },
               { icon: Users, label: 'Collaborators', value: totalCollaborators },
-              { icon: Link2, label: 'Total Links', value: '—' },
+              { icon: Link2, label: 'Total Links', value: totalLinks },
             ].map(({ icon: Icon, label, value }) => (
               <div
                 key={label}
@@ -182,31 +186,37 @@ export default function ProfessionalDashboard() {
                         Last active {timeAgo(project.updatedAt)}
                       </p>
 
-                      {/* Members */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          {project.members.slice(0, 3).map((m, i) => (
-                            <div
-                              key={m.userId._id}
-                              className={`size-7 rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-surface ${
-                                AVATAR_COLORS[i % AVATAR_COLORS.length]
-                              } ${i > 0 ? '-ml-2' : ''}`}
-                            >
-                              {getInitials(m.userId.name)}
+                      {/* Members — exclude self */}
+                      {(() => {
+                        const otherMembers = project.members.filter(
+                          (m) => m.userId._id !== user.id,
+                        )
+                        return (
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              {otherMembers.slice(0, 3).map((m, i) => (
+                                <div
+                                  key={m.userId._id}
+                                  className={`size-7 rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-surface ${
+                                    AVATAR_COLORS[i % AVATAR_COLORS.length]
+                                  } ${i > 0 ? '-ml-2' : ''}`}
+                                >
+                                  {getInitials(m.userId.name)}
+                                </div>
+                              ))}
+                              {otherMembers.length > 3 && (
+                                <div className="size-7 rounded-full bg-muted text-muted-foreground text-[10px] font-bold flex items-center justify-center ring-2 ring-surface -ml-2">
+                                  +{otherMembers.length - 3}
+                                </div>
+                              )}
                             </div>
-                          ))}
-                          {project.members.length > 3 && (
-                            <div className="size-7 rounded-full bg-muted text-muted-foreground text-[10px] font-bold flex items-center justify-center ring-2 ring-surface -ml-2">
-                              +{project.members.length - 3}
+                            <div className="flex items-center gap-1.5 text-muted-foreground">
+                              <Users className="size-4" />
+                              <span className="text-sm font-semibold">{otherMembers.length}</span>
                             </div>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-1.5 text-muted-foreground">
-                          <Users className="size-4" />
-                          <span className="text-sm font-semibold">{project.members.length}</span>
-                        </div>
-                      </div>
+                          </div>
+                        )
+                      })()}
                     </div>
                   )
                 })}

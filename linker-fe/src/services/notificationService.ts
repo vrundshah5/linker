@@ -1,6 +1,6 @@
 import api from '../lib/axios'
 
-export type NotificationType = 'new_user' | 'request_received' | 'request_accepted' | 'request_rejected'
+export type NotificationType = 'new_user' | 'request_received' | 'request_accepted' | 'request_rejected' | 'project_invite'
 export type NotificationContext = 'personal' | 'professional'
 
 export interface AppNotification {
@@ -14,6 +14,9 @@ export interface AppNotification {
   meta: {
     requestId?: string
     fromUserId?: { _id: string; name: string; email: string } | null
+    projectId?: string | null
+    actorName?: string | null
+    projectName?: string | null
   }
   createdAt: string
 }

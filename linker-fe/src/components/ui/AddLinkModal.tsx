@@ -1,40 +1,52 @@
 import { useEffect, useRef, useState } from 'react'
 import { X, Link2, Loader2 } from 'lucide-react'
 import { useCreateLink } from '../../hooks/links/useCreateLink'
+import { useMyCategories } from '../../hooks/categories/useMyCategories'
+import { getCategoryIcon } from '../../lib/categoryIcons'
 
 interface Props {
   open: boolean
   onClose: () => void
-  categoryId: string
+  categoryId?: string
 }
 
 export default function AddLinkModal({ open, onClose, categoryId }: Props) {
   const [url, setUrl] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [selectedCategoryId, setSelectedCategoryId] = useState(categoryId ?? '')
   const [error, setError] = useState('')
 
   const urlRef = useRef<HTMLInputElement>(null)
   const { mutate: createLink, isPending } = useCreateLink(categoryId)
+  const { data: categories } = useMyCategories()
 
-  // Focus URL field when modal opens
+  // Reset form when modal opens
   useEffect(() => {
     if (open) {
       setUrl('')
       setTitle('')
       setDescription('')
+      setSelectedCategoryId(categoryId ?? '')
       setError('')
       setTimeout(() => urlRef.current?.focus(), 50)
     }
-  }, [open])
+  }, [open, categoryId])
 
   if (!open) return null
+
+  const resolvedCategoryId = categoryId ?? selectedCategoryId
+  const canSubmit = !isPending && url.trim() && title.trim() && resolvedCategoryId
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
 
-    // Validate URL
+    if (!resolvedCategoryId) {
+      setError('Please select a category.')
+      return
+    }
+
     let normalised = url.trim()
     if (!normalised.startsWith('http://') && !normalised.startsWith('https://')) {
       normalised = `https://${normalised}`
@@ -47,14 +59,10 @@ export default function AddLinkModal({ open, onClose, categoryId }: Props) {
     }
 
     createLink(
-      { categoryId, title: title.trim(), url: normalised, description: description.trim() },
+      { categoryId: resolvedCategoryId, title: title.trim(), url: normalised, description: description.trim() },
       {
-        onSuccess: () => {
-          onClose()
-        },
-        onError: () => {
-          setError('Failed to save link. Please try again.')
-        },
+        onSuccess: () => { onClose() },
+        onError: () => { setError('Failed to save link. Please try again.') },
       }
     )
   }
@@ -85,6 +93,44 @@ export default function AddLinkModal({ open, onClose, categoryId }: Props) {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="px-5 py-4 flex flex-col gap-3.5">
+
+          {/* Category selector — only when no categoryId is pre-set */}
+          {!categoryId && (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-foreground uppercase tracking-wide">
+                Category <span className="text-danger">*</span>
+              </label>
+              <div className="relative">
+                <select
+                  value={selectedCategoryId}
+                  onChange={(e) => setSelectedCategoryId(e.target.value)}
+                  required
+                  className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:border-primary transition-colors appearance-none cursor-pointer"
+                >
+                  <option value="" disabled>Select a category…</option>
+                  {categories?.map((cat) => (
+                    <option key={cat._id} value={cat._id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+                {selectedCategoryId && categories && (() => {
+                  const cat = categories.find((c) => c._id === selectedCategoryId)
+                  if (!cat) return null
+                  const Icon = getCategoryIcon(cat.icon)
+                  return (
+                    <div
+                      className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-5 rounded-md flex items-center justify-center"
+                      style={{ backgroundColor: `${cat.themeColor}20`, color: cat.themeColor }}
+                    >
+                      <Icon className="size-3" />
+                    </div>
+                  )
+                })()}
+              </div>
+            </div>
+          )}
+
           {/* URL */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-foreground uppercase tracking-wide">
@@ -147,7 +193,7 @@ export default function AddLinkModal({ open, onClose, categoryId }: Props) {
             </button>
             <button
               type="submit"
-              disabled={isPending || !url.trim() || !title.trim()}
+              disabled={!canSubmit}
               className="flex items-center gap-2 px-5 py-2 bg-primary text-primary-foreground font-bold text-sm rounded-xl hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPending && <Loader2 className="size-4 animate-spin" />}
@@ -159,3 +205,4 @@ export default function AddLinkModal({ open, onClose, categoryId }: Props) {
     </div>
   )
 }
+

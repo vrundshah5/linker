@@ -1,13 +1,14 @@
 import { useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bell, X, UserPlus, UserCheck, UserX, Users, CheckCheck } from 'lucide-react'
+import { Bell, X, UserPlus, UserCheck, UserX, Users, CheckCheck, FolderPlus } from 'lucide-react'
 import type { AppNotification, NotificationType, NotificationContext } from '../../services/notificationService'
 
 const TYPE_META: Record<NotificationType, { icon: React.ElementType; bg: string; color: string }> = {
-  new_user:         { icon: Users,     bg: 'bg-primary/10',  color: 'text-primary'  },
-  request_received: { icon: UserPlus,  bg: 'bg-success/15',  color: 'text-success'  },
-  request_accepted: { icon: UserCheck, bg: 'bg-success/15',  color: 'text-success'  },
-  request_rejected: { icon: UserX,     bg: 'bg-danger/10',   color: 'text-danger'   },
+  new_user:         { icon: Users,       bg: 'bg-primary/10',  color: 'text-primary'  },
+  request_received: { icon: UserPlus,    bg: 'bg-success/15',  color: 'text-success'  },
+  request_accepted: { icon: UserCheck,   bg: 'bg-success/15',  color: 'text-success'  },
+  request_rejected: { icon: UserX,       bg: 'bg-danger/10',   color: 'text-danger'   },
+  project_invite:   { icon: FolderPlus,  bg: 'bg-primary/10',  color: 'text-primary'  },
 }
 
 function timeAgo(iso: string) {
@@ -67,6 +68,9 @@ export default function NotificationPanel({
     if (n.type === 'request_received' || n.type === 'request_accepted' || n.type === 'request_rejected') {
       onClose()
       navigate('/requests')
+    } else if (n.type === 'project_invite') {
+      onClose()
+      navigate('/professional-dashboard')
     }
   }
 
@@ -114,21 +118,25 @@ export default function NotificationPanel({
         ) : (
           notifications.map((n) => {
             const { icon: Icon, bg, color } = TYPE_META[n.type]
-            const isRequest = n.type === 'request_received' || n.type === 'request_accepted' || n.type === 'request_rejected'
+            const isClickable = n.type === 'request_received' || n.type === 'request_accepted' || n.type === 'request_rejected' || n.type === 'project_invite'
             return (
               <div
                 key={n._id}
                 onClick={() => handleClick(n)}
                 className={`flex items-start gap-3 px-4 py-3.5 transition-colors ${
                   n.read ? 'opacity-60' : 'bg-secondary/30'
-                } ${isRequest ? 'cursor-pointer hover:bg-muted/50' : ''}`}
+                } ${isClickable ? 'cursor-pointer hover:bg-muted/50' : ''}`}
               >
                 <div className={`size-8 rounded-xl ${bg} flex items-center justify-center shrink-0 mt-0.5`}>
                   <Icon className={`size-4 ${color}`} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold text-foreground leading-snug">{n.title}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5 leading-snug line-clamp-2">{n.body}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-snug line-clamp-2">
+                    {n.type === 'project_invite' && n.meta.actorName && n.meta.projectName ? (
+                      <><span className="font-semibold text-foreground">{n.meta.actorName}</span> added you to the project &ldquo;<span className="font-semibold text-foreground">{n.meta.projectName}</span>&rdquo;.</>
+                    ) : n.body}
+                  </p>
                   <p className="text-[10px] text-muted-foreground mt-1">{timeAgo(n.createdAt)}</p>
                 </div>
                 <button

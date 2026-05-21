@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Ban, Loader2, Eye } from 'lucide-react'
+import { Ban, Loader2, Eye, Trash2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import AdminLayout from '../components/layouts/AdminLayout'
 import ConfirmModal from '../components/ui/ConfirmModal'
 import PageHeader from '../components/ui/PageHeader'
 import { useAdminUsers } from '../hooks/admin/useAdminUsers'
 import { useToggleBan } from '../hooks/admin/useToggleBan'
+import { useDeleteUser } from '../hooks/admin/useDeleteUser'
 import type { AdminUser } from '../services/admin.service'
 
 const AVATAR_COLORS = [
@@ -36,10 +37,12 @@ export default function AdminManageUsers() {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [page, setPage] = useState(1)
   const [banTarget, setBanTarget] = useState<AdminUser | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null)
   const navigate = useNavigate()
 
   const { data, isLoading } = useAdminUsers({ search: debouncedSearch, page, limit: 10 })
   const { mutate: toggleBan } = useToggleBan()
+  const { mutate: deleteUser, isPending: isDeleting } = useDeleteUser()
 
   function handleSearch(value: string) {
     setSearch(value)
@@ -72,8 +75,8 @@ export default function AdminManageUsers() {
           <div className="bg-surface border border-border rounded-2xl overflow-hidden">
 
             {/* Table header */}
-            <div className="grid grid-cols-[2fr_2fr_80px_140px_120px] px-6 py-3 border-b border-border">
-              {['User', 'Email', 'Status', 'Joined', 'Actions'].map((col) => (
+            <div className="grid grid-cols-[2fr_2fr_110px_1fr_110px_140px_130px] px-6 py-3 border-b border-border">
+              {['User', 'Email', 'Status', 'Workspace', 'Onboarding', 'Joined', 'Actions'].map((col) => (
                 <span key={col} className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                   {col}
                 </span>
@@ -92,13 +95,19 @@ export default function AdminManageUsers() {
                 users.map((user) => (
                   <div
                     key={user._id}
-                    className="grid grid-cols-[2fr_2fr_80px_140px_120px] items-center px-6 py-4"
+                    className="grid grid-cols-[2fr_2fr_110px_1fr_110px_140px_130px] items-center px-6 py-4"
                   >
                     {/* User */}
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className={`size-10 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${getAvatarColor(user._id)}`}>
-                        {getInitials(user.name)}
-                      </div>
+                      {user.avatar ? (
+                        <div className="size-10 rounded-full overflow-hidden shrink-0">
+                          <img src={`/avatars/${user.avatar}.png`} alt={user.name} className="w-full h-full object-cover" />
+                        </div>
+                      ) : (
+                        <div className={`size-10 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${getAvatarColor(user._id)}`}>
+                          {getInitials(user.name)}
+                        </div>
+                      )}
                       <span className="text-sm font-bold text-foreground truncate">{user.name}</span>
                     </div>
 
@@ -106,9 +115,35 @@ export default function AdminManageUsers() {
                     <span className="text-sm text-muted-foreground truncate pr-4">{user.email}</span>
 
                     {/* Status */}
-                    <span className={`inline-flex w-fit px-3 py-1 rounded-full text-xs font-bold ${user.isBanned ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'}`}>
+                    <div className={`inline-flex items-center gap-1.5 w-fit px-3 py-1 rounded-full text-xs font-bold ${user.isBanned ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'}`}>
+                      <span className={`size-1.5 rounded-full shrink-0 ${user.isBanned ? 'bg-danger' : 'bg-success'}`} />
                       {user.isBanned ? 'Banned' : 'Active'}
-                    </span>
+                    </div>
+
+                    {/* Workspace */}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {(user.workspaces?.length ? user.workspaces : user.workspaceType ? [user.workspaceType] : []).map((w) => (
+                        <span
+                          key={w}
+                          className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold border ${
+                            w === 'personal'
+                              ? 'border-primary/30 text-primary bg-primary/5'
+                              : 'border-success/30 text-success bg-success/5'
+                          }`}
+                        >
+                          {w.charAt(0).toUpperCase() + w.slice(1)}
+                        </span>
+                      ))}
+                      {(!user.workspaces?.length && !user.workspaceType) && (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </div>
+
+                    {/* Onboarding */}
+                    <div className={`inline-flex items-center gap-1.5 w-fit px-3 py-1 rounded-full text-xs font-bold ${user.onboardingComplete ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
+                      <span className={`size-1.5 rounded-full shrink-0 ${user.onboardingComplete ? 'bg-success' : 'bg-warning'}`} />
+                      {user.onboardingComplete ? 'Done' : 'Pending'}
+                    </div>
 
                     {/* Joined */}
                     <span className="text-sm text-muted-foreground">{formatDate(user.createdAt)}</span>
@@ -124,14 +159,24 @@ export default function AdminManageUsers() {
                         <Eye className="size-4" />
                       </button>
                       {user.role !== 'admin' && (
-                        <button
-                          type="button"
-                          title={user.isBanned ? 'Unban user' : 'Ban user'}
-                          onClick={() => setBanTarget(user)}
-                          className={`transition-colors cursor-pointer ${user.isBanned ? 'text-danger' : 'text-muted-foreground hover:text-danger'}`}
-                        >
-                          <Ban className="size-4" />
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            title={user.isBanned ? 'Unban user' : 'Ban user'}
+                            onClick={() => setBanTarget(user)}
+                            className={`transition-colors cursor-pointer ${user.isBanned ? 'text-danger' : 'text-muted-foreground hover:text-danger'}`}
+                          >
+                            <Ban className="size-4" />
+                          </button>
+                          <button
+                            type="button"
+                            title="Delete user"
+                            onClick={() => setDeleteTarget(user)}
+                            className="text-muted-foreground hover:text-danger transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="size-4" />
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -182,6 +227,18 @@ export default function AdminManageUsers() {
         setBanTarget(null)
       }}
       onCancel={() => setBanTarget(null)}
+    />
+    <ConfirmModal
+      open={deleteTarget !== null}
+      title="Delete User"
+      description={`Are you sure you want to permanently delete ${deleteTarget?.name}? This action cannot be undone and will remove all their data.`}
+      confirmLabel={isDeleting ? 'Deleting…' : 'Delete'}
+      variant="danger"
+      onConfirm={() => {
+        if (deleteTarget) deleteUser(deleteTarget._id)
+        setDeleteTarget(null)
+      }}
+      onCancel={() => setDeleteTarget(null)}
     />
     </>
   )

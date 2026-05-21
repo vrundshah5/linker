@@ -6,6 +6,7 @@ import {
   listUsers,
   toggleBan,
   getUserDetail,
+  deleteUser,
   listGlobalCategories,
   createGlobalCategory,
   updateGlobalCategory,
@@ -24,6 +25,7 @@ router.get('/stats', getStats);
 router.get('/users', listUsers);
 router.get('/users/:id', getUserDetail);
 router.patch('/users/:id/ban', toggleBan);
+router.delete('/users/:id', deleteUser);
 
 // Global categories
 router.get('/categories', listGlobalCategories);

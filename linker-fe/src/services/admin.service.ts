@@ -9,6 +9,18 @@ export interface AdminUser {
   isBanned: boolean
   onboardingComplete: boolean
   workspaceType: 'personal' | 'professional' | null
+  workspaces: string[]
+  avatar?: string
+  createdAt: string
+}
+
+export interface AdminProject {
+  _id: string
+  name: string
+  description: string
+  ownerId: string
+  color: string
+  members: { userId: string; role: string }[]
   createdAt: string
 }
 
@@ -63,8 +75,13 @@ export const adminService = {
     return data
   },
 
-  getUserDetail: async (userId: string): Promise<{ success: boolean; data: { user: AdminUser; customCategories: UserCategory[] }; message: string }> => {
+  getUserDetail: async (userId: string): Promise<{ success: boolean; data: { user: AdminUser; customCategories: UserCategory[]; projects: AdminProject[] }; message: string }> => {
     const { data } = await api.get(`/admin/users/${userId}`)
+    return data
+  },
+
+  deleteUser: async (userId: string): Promise<{ success: boolean; data: null; message: string }> => {
+    const { data } = await api.delete(`/admin/users/${userId}`)
     return data
   },
 

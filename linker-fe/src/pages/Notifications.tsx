@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { X, CheckCheck, Bell, UserPlus, UserCheck, UserX, Users } from 'lucide-react'
+import { X, CheckCheck, Bell, UserPlus, UserCheck, UserX, Users, FolderPlus } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
 import PageHeader from '../components/ui/PageHeader'
 import type { NotificationType } from '../services/notificationService'
@@ -12,10 +12,11 @@ import {
 } from '../hooks/useNotifications'
 
 const TYPE_META: Record<NotificationType, { icon: React.ElementType; bg: string; color: string; label: string }> = {
-  new_user:         { icon: Users,     bg: 'bg-primary/10',  color: 'text-primary',  label: 'New User'  },
-  request_received: { icon: UserPlus,  bg: 'bg-success/15',  color: 'text-success',  label: 'Request'   },
-  request_accepted: { icon: UserCheck, bg: 'bg-success/15',  color: 'text-success',  label: 'Accepted'  },
-  request_rejected: { icon: UserX,     bg: 'bg-danger/10',   color: 'text-danger',   label: 'Declined'  },
+  new_user:         { icon: Users,       bg: 'bg-primary/10',  color: 'text-primary',  label: 'New User'       },
+  request_received: { icon: UserPlus,    bg: 'bg-success/15',  color: 'text-success',  label: 'Request'        },
+  request_accepted: { icon: UserCheck,   bg: 'bg-success/15',  color: 'text-success',  label: 'Accepted'       },
+  request_rejected: { icon: UserX,       bg: 'bg-danger/10',   color: 'text-danger',   label: 'Declined'       },
+  project_invite:   { icon: FolderPlus,  bg: 'bg-primary/10',  color: 'text-primary',  label: 'Project Invite' },
 }
 
 const FILTER_TABS = ['All', 'Unread', 'Request', 'New User'] as const
@@ -155,7 +156,11 @@ export default function Notifications() {
                           {label}
                         </span>
                       </div>
-                      <p className="text-sm text-muted-foreground leading-snug">{n.body}</p>
+                      <p className="text-sm text-muted-foreground leading-snug">
+                        {n.type === 'project_invite' && n.meta.actorName && n.meta.projectName ? (
+                          <><span className="font-semibold text-foreground">{n.meta.actorName}</span> added you to the project &ldquo;<span className="font-semibold text-foreground">{n.meta.projectName}</span>&rdquo;.</>
+                        ) : n.body}
+                      </p>
                       <p className="text-xs text-muted-foreground mt-1.5">{timeAgo(n.createdAt)}</p>
                     </div>
 

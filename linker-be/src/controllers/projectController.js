@@ -17,7 +17,20 @@ export const listProjects = async (req, res) => {
       .populate('members.userId', 'name email')
       .sort({ updatedAt: -1 });
 
-    return res.json({ success: true, data: projects, message: 'Projects fetched' });
+    // Attach resource count to each project
+    const projectIds = projects.map((p) => p._id);
+    const resourceCounts = await ProjectResource.aggregate([
+      { $match: { projectId: { $in: projectIds } } },
+      { $group: { _id: '$projectId', count: { $sum: 1 } } },
+    ]);
+    const countMap = Object.fromEntries(resourceCounts.map((r) => [r._id.toString(), r.count]));
+
+    const data = projects.map((p) => ({
+      ...p.toObject(),
+      resourceCount: countMap[p._id.toString()] ?? 0,
+    }));
+
+    return res.json({ success: true, data, message: 'Projects fetched' });
   } catch (err) {
     console.error('listProjects error:', err);
     return res.status(500).json({ success: false, data: null, message: 'Server error' });
@@ -166,7 +179,7 @@ export const addProjectMember = async (req, res) => {
       type: 'project_invite',
       title: 'Added to a project',
       body: `${req.user.name ?? 'Someone'} added you to the project "${project.name}".`,
-      meta: { projectId: project._id },
+      meta: { projectId: project._id, fromUserId: req.user.id, actorName: req.user.name ?? null, projectName: project.name },
       context: 'professional',
     });
 

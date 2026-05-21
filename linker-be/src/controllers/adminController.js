@@ -2,6 +2,8 @@ import User from '../models/User.js';
 import GlobalCategory from '../models/GlobalCategory.js';
 import UserCategory from '../models/UserCategory.js';
 import Link from '../models/Link.js';
+import Project from '../models/Project.js';
+import Notification from '../models/Notification.js';
 
 // GET /api/admin/stats
 export const getStats = async (req, res) => {
@@ -152,16 +154,42 @@ export const getUserDetail = async (req, res) => {
     return res.status(404).json({ success: false, data: null, message: 'User not found' });
   }
 
-  const customCategories = await UserCategory.find({
-    userId: req.params.id,
-    isGlobal: false,
-  }).sort({ createdAt: -1 });
+  const [customCategories, projects] = await Promise.all([
+    UserCategory.find({ userId: req.params.id, isGlobal: false }).sort({ createdAt: -1 }),
+    Project.find({
+      $or: [{ ownerId: req.params.id }, { 'members.userId': req.params.id }],
+    }).sort({ createdAt: -1 }),
+  ]);
 
   return res.status(200).json({
     success: true,
-    data: { user, customCategories },
+    data: { user, customCategories, projects },
     message: 'User detail fetched',
   });
+};
+
+// DELETE /api/admin/users/:id
+export const deleteUser = async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    return res.status(404).json({ success: false, data: null, message: 'User not found' });
+  }
+  if (user.role === 'admin') {
+    return res.status(403).json({ success: false, data: null, message: 'Cannot delete an admin account' });
+  }
+  // Cascade-delete all user data
+  await Promise.all([
+    UserCategory.deleteMany({ userId: req.params.id }),
+    Link.deleteMany({ userId: req.params.id }),
+    Notification.deleteMany({ userId: req.params.id }),
+    Project.deleteMany({ ownerId: req.params.id }),
+    Project.updateMany(
+      { 'members.userId': req.params.id },
+      { $pull: { members: { userId: req.params.id } } }
+    ),
+    User.findByIdAndDelete(req.params.id),
+  ]);
+  return res.status(200).json({ success: true, data: null, message: 'User deleted successfully' });
 };
 
 // ── Global Category CRUD ──────────────────────────────────────────────────────

@@ -16,6 +16,7 @@ export interface Project {
   ownerId: { _id: string; name: string; email: string }
   members: ProjectMember[]
   color: string
+  resourceCount: number
   createdAt: string
   updatedAt: string
 }

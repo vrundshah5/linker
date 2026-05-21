@@ -4,11 +4,14 @@ import { User, LogOut, Lock, ArrowLeftRight } from 'lucide-react'
 import BellButton from './BellButton'
 import WorkspaceSwitchSplash from './WorkspaceSwitchSplash'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
-import { useSwitchWorkspace } from '../../hooks/useProfile'
+import { useSwitchWorkspace, useProfile } from '../../hooks/useProfile'
+import { getAvatarById } from './AvatarPicker'
 import type { NotificationContext } from '../../services/notificationService'
 
 export default function GlobalTopNav() {
   const user = useCurrentUser()
+  const { data: profile } = useProfile()
+  const avatarNode = profile?.avatar ? getAvatarById(profile.avatar)?.node : null
   const navigate = useNavigate()
   const location = useLocation()
   const [open, setOpen] = useState(false)
@@ -70,18 +73,24 @@ export default function GlobalTopNav() {
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className={`size-9 rounded-full ${accentBg} flex items-center justify-center cursor-pointer ring-2 ring-transparent hover:ring-border transition-all`}
+          className={`size-9 rounded-full ${accentBg} flex items-center justify-center cursor-pointer ring-2 ring-transparent hover:ring-border transition-all overflow-hidden`}
           aria-label="User menu"
         >
-          <span className={`text-xs font-bold ${accentClass}`}>{user.initials}</span>
+          {avatarNode
+            ? <div className="w-full h-full">{avatarNode}</div>
+            : <span className={`text-xs font-bold ${accentClass}`}>{user.initials}</span>
+          }
         </button>
 
         {open && (
           <div className="absolute right-0 top-full mt-2 w-64 bg-surface border border-border rounded-2xl shadow-lg z-50 overflow-hidden">
             {/* User info header */}
             <div className="flex items-center gap-3 px-4 py-4 border-b border-border">
-              <div className={`size-10 rounded-full ${accentBg} flex items-center justify-center shrink-0`}>
-                <span className={`text-sm font-bold ${accentClass}`}>{user.initials}</span>
+              <div className={`size-10 rounded-full ${accentBg} flex items-center justify-center shrink-0 overflow-hidden`}>
+                {avatarNode
+                  ? <div className="w-full h-full">{avatarNode}</div>
+                  : <span className={`text-sm font-bold ${accentClass}`}>{user.initials}</span>
+                }
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-foreground truncate">{user.name}</p>
