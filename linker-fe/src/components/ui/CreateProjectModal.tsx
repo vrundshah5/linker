@@ -65,81 +65,72 @@ export default function CreateProjectModal({ open, onClose, onSubmit, isPending 
       style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}
       onClick={(e) => { if (e.target === overlayRef.current) onClose() }}
     >
-      <div className="w-full max-w-2xl bg-surface border border-border rounded-3xl p-10 shadow-xl relative">
-        {/* Close button */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute top-6 right-6 size-8 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
-        >
-          <X className="size-4" />
-        </button>
-
-        <h1 className="text-3xl font-bold text-foreground mb-2">
-          Create a New Project
-        </h1>
-        <p className="text-base text-muted-foreground mb-10">
-          Add the basic details for your new project to get started.
-        </p>
-
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col gap-8">
-          {/* Project Details */}
+      <div className="w-full max-w-md bg-surface border border-border rounded-2xl shadow-xl overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <div>
-            <h3 className="text-lg font-bold text-foreground mb-4 border-b border-border pb-2">
-              Project Details
-            </h3>
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <label
-                  htmlFor="modal-projectName"
-                  className="text-sm font-bold text-foreground"
-                >
-                  Project Name
-                </label>
-                <input
-                  id="modal-projectName"
-                  type="text"
-                  placeholder="e.g. Acme Corp Redesign"
-                  {...register('projectName')}
-                  className={`w-full bg-input border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary transition-colors ${
-                    errors.projectName ? 'border-danger' : 'border-border'
-                  }`}
-                />
-                {errors.projectName && (
-                  <p className="text-xs text-danger font-medium">{errors.projectName.message}</p>
-                )}
-              </div>
-              <div className="flex flex-col gap-2">
-                <label
-                  htmlFor="modal-description"
-                  className="text-sm font-bold text-foreground"
-                >
-                  Description <span className="font-medium text-muted-foreground">(Optional)</span>
-                </label>
-                <textarea
-                  id="modal-description"
-                  rows={3}
-                  placeholder="Briefly describe what this project is about..."
-                  {...register('description')}
-                  className="w-full bg-input border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary transition-colors resize-none"
-                />
-              </div>
-            </div>
+            <h2 className="text-sm font-bold text-foreground">Create a New Project</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">Add the basic details to get started.</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="size-7 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+          >
+            <X className="size-3.5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="px-5 py-4 flex flex-col gap-3.5">
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="modal-projectName"
+              className="text-sm font-bold text-foreground"
+            >
+              Project Name
+            </label>
+            <input
+              id="modal-projectName"
+              type="text"
+              placeholder="e.g. Acme Corp Redesign"
+              {...register('projectName')}
+              className={`w-full bg-input border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary transition-colors ${
+                errors.projectName ? 'border-danger' : 'border-border'
+              }`}
+            />
+            {errors.projectName && (
+              <p className="text-xs text-danger font-medium">{errors.projectName.message}</p>
+            )}
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="modal-description"
+              className="text-sm font-bold text-foreground"
+            >
+              Description <span className="font-medium text-muted-foreground">(Optional)</span>
+            </label>
+            <textarea
+              id="modal-description"
+              rows={2}
+              placeholder="Briefly describe what this project is about..."
+              {...register('description')}
+              className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary transition-colors resize-none"
+            />
           </div>
 
           {/* Footer actions */}
-          <div className="flex items-center justify-end gap-3 pt-6 border-t border-border mt-2">
+          <div className="flex items-center justify-end gap-3 pt-1 border-t border-border">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-3 text-muted-foreground font-bold hover:text-foreground transition-colors cursor-pointer"
+              className="px-4 py-2 text-muted-foreground font-semibold text-sm hover:text-foreground transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isPending}
-              className="px-8 py-3 bg-primary text-white font-bold rounded-xl shadow-sm hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-5 py-2 bg-primary text-white font-bold text-sm rounded-xl hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {isPending && (
                 <Loader2 className="size-4 animate-spin shrink-0" />

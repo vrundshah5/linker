@@ -1,6 +1,7 @@
 import Project from '../models/Project.js';
 import Link from '../models/Link.js';
 import ProjectResource from '../models/ProjectResource.js';
+import { createNotification } from './notificationController.js';
 import ProjectMessage from '../models/ProjectMessage.js';
 import User from '../models/User.js';
 
@@ -159,6 +160,16 @@ export const addProjectMember = async (req, res) => {
     await project.populate('ownerId', 'name email');
     await project.populate('members.userId', 'name email');
 
+    // Notify the added user
+    await createNotification({
+      userId: user._id,
+      type: 'project_invite',
+      title: 'Added to a project',
+      body: `${req.user.name ?? 'Someone'} added you to the project "${project.name}".`,
+      meta: { projectId: project._id },
+      context: 'professional',
+    });
+
     return res.json({ success: true, data: project, message: 'Member added' });
   } catch (err) {
     console.error('addProjectMember error:', err);
@@ -275,6 +286,30 @@ export const deleteProjectResource = async (req, res) => {
     return res.json({ success: true, data: null, message: 'Resource deleted' });
   } catch (err) {
     console.error('deleteProjectResource error:', err);
+    return res.status(500).json({ success: false, data: null, message: 'Server error' });
+  }
+};
+
+// PATCH /api/projects/:id/resources/:resourceId — update a resource
+export const updateProjectResource = async (req, res) => {
+  try {
+    const { title, url } = req.body;
+    const resource = await ProjectResource.findOne({
+      _id: req.params.resourceId,
+      projectId: req.params.id,
+    });
+
+    if (!resource) {
+      return res.status(404).json({ success: false, data: null, message: 'Resource not found' });
+    }
+
+    if (title !== undefined) resource.title = title.trim();
+    if (url !== undefined) resource.url = url.trim();
+    await resource.save();
+
+    return res.json({ success: true, data: resource, message: 'Resource updated' });
+  } catch (err) {
+    console.error('updateProjectResource error:', err);
     return res.status(500).json({ success: false, data: null, message: 'Server error' });
   }
 };

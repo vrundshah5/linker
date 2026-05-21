@@ -67,7 +67,7 @@ export default function AddLinkModal({ open, onClose, categoryId }: Props) {
     >
       <div className="bg-surface border border-border rounded-2xl w-full max-w-md shadow-xl">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-border">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <div className="flex items-center gap-3">
             <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center">
               <Link2 className="size-4 text-primary" />
@@ -77,14 +77,14 @@ export default function AddLinkModal({ open, onClose, categoryId }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="size-8 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
+            className="size-7 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
           >
-            <X className="size-4" />
+            <X className="size-3.5" />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="px-6 py-5 flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="px-5 py-4 flex flex-col gap-3.5">
           {/* URL */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-foreground uppercase tracking-wide">
@@ -102,7 +102,7 @@ export default function AddLinkModal({ open, onClose, categoryId }: Props) {
           </div>
 
           {/* Title */}
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1">
             <label className="text-xs font-bold text-foreground uppercase tracking-wide">
               Title <span className="text-danger">*</span>
             </label>
@@ -117,7 +117,7 @@ export default function AddLinkModal({ open, onClose, categoryId }: Props) {
           </div>
 
           {/* Description */}
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1">
             <label className="text-xs font-bold text-foreground uppercase tracking-wide">
               Description{' '}
               <span className="text-muted-foreground font-normal normal-case">(optional)</span>
@@ -126,7 +126,7 @@ export default function AddLinkModal({ open, onClose, categoryId }: Props) {
               placeholder="Short note about this link…"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={3}
+              rows={2}
               className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors resize-none"
             />
           </div>
@@ -136,19 +136,19 @@ export default function AddLinkModal({ open, onClose, categoryId }: Props) {
           )}
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-1">
+          <div className="flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
               disabled={isPending}
-              className="px-5 py-2.5 rounded-full text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer disabled:opacity-50"
+              className="px-4 py-2 rounded-xl text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isPending || !url.trim() || !title.trim()}
-              className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-5 py-2 bg-primary text-primary-foreground font-bold text-sm rounded-xl hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPending && <Loader2 className="size-4 animate-spin" />}
               Save Link

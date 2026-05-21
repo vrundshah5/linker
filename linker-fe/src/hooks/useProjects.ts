@@ -128,6 +128,28 @@ export function useDeleteProjectResource() {
   })
 }
 
+export function useUpdateProjectResource() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      projectId,
+      resourceId,
+      payload,
+    }: {
+      projectId: string
+      resourceId: string
+      payload: { title?: string; url?: string }
+    }) => projectService.updateResource(projectId, resourceId, payload),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: queryKeys.projects.resources(vars.projectId) })
+      toast.success('Resource updated')
+    },
+    onError: (err: { response?: { data?: { message?: string } } }) => {
+      toast.error(err?.response?.data?.message || 'Failed to update resource')
+    },
+  })
+}
+
 // --- Messages ---
 
 export function useProjectMessages(projectId: string | undefined) {

@@ -117,6 +117,18 @@ export const projectService = {
     await api.delete(`/projects/${projectId}/resources/${resourceId}`)
   },
 
+  updateResource: async (
+    projectId: string,
+    resourceId: string,
+    payload: { title?: string; url?: string },
+  ): Promise<ProjectResourceItem> => {
+    const { data } = await api.patch<{ success: boolean; data: ProjectResourceItem }>(
+      `/projects/${projectId}/resources/${resourceId}`,
+      payload,
+    )
+    return data.data
+  },
+
   // Messages
   listMessages: async (projectId: string): Promise<ProjectMessageItem[]> => {
     const { data } = await api.get<{ success: boolean; data: ProjectMessageItem[] }>(

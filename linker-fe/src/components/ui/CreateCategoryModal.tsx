@@ -81,7 +81,7 @@ export default function CreateCategoryModal({ open, onClose }: Props) {
       {/* Panel */}
       <div className="w-full max-w-md bg-surface border border-border rounded-2xl shadow-xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <div className="flex items-center gap-3">
             <div
               className="size-10 rounded-xl flex items-center justify-center shrink-0"
@@ -97,21 +97,21 @@ export default function CreateCategoryModal({ open, onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="size-8 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+            className="size-7 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
           >
-            <X className="size-4" />
+            <X className="size-3.5" />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} noValidate className="px-6 py-5 space-y-5">
+        <form onSubmit={handleSubmit(onSubmit)} noValidate className="px-5 py-4 space-y-4">
           {/* Name */}
           <div>
-            <label htmlFor="modal-cat-name" className="block text-sm font-bold text-foreground mb-2">
+            <label htmlFor="modal-cat-name" className="block text-sm font-bold text-foreground mb-1.5">
               Category Name
             </label>
             <div
-              className={`flex items-center gap-3 px-4 py-3 bg-input border rounded-xl text-sm transition-colors focus-within:border-primary ${
+              className={`flex items-center gap-3 px-4 py-2.5 bg-input border rounded-xl text-sm transition-colors focus-within:border-primary ${
                 errors.name ? 'border-danger' : 'border-border'
               }`}
             >
@@ -131,16 +131,16 @@ export default function CreateCategoryModal({ open, onClose }: Props) {
 
           {/* Description */}
           <div>
-            <label htmlFor="modal-cat-desc" className="block text-sm font-bold text-foreground mb-2">
+            <label htmlFor="modal-cat-desc" className="block text-sm font-bold text-foreground mb-1.5">
               Description{' '}
               <span className="text-muted-foreground font-normal">(Optional)</span>
             </label>
             <textarea
               id="modal-cat-desc"
               placeholder="What kind of links will go here?"
-              rows={3}
+              rows={2}
               {...register('description')}
-              className="w-full px-4 py-3 bg-input border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground outline-none resize-none focus:border-primary transition-colors"
+              className="w-full px-4 py-2.5 bg-input border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground outline-none resize-none focus:border-primary transition-colors"
             />
           </div>
 
@@ -174,18 +174,18 @@ export default function CreateCategoryModal({ open, onClose }: Props) {
           </div>
 
           {/* Footer */}
-          <div className="flex items-center gap-3 pt-1">
+          <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 border border-border rounded-xl text-sm font-bold text-foreground hover:bg-muted transition-colors cursor-pointer"
+              className="flex-1 py-2 border border-border rounded-xl text-sm font-bold text-foreground hover:bg-muted transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isPending}
-              className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isPending && (
                 <svg className="animate-spin size-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

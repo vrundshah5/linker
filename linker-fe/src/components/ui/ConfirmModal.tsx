@@ -53,39 +53,43 @@ export default function ConfirmModal({
       onMouseDown={(e) => { e.stopPropagation(); if (e.target === e.currentTarget) onCancel() }}
     >
       {/* Panel */}
-      <div className="bg-surface rounded-2xl shadow-xl w-full max-w-md p-6 relative">
-        {/* Close */}
-        <button
-          type="button"
-          onClick={onCancel}
-          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-        >
-          <X className="size-4" />
-        </button>
-
-        {/* Icon */}
-        <div className={`size-12 rounded-2xl ${iconCls} flex items-center justify-center mb-4`}>
-          <AlertTriangle className="size-6" />
+      <div className="bg-surface rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+        {/* Header */}
+        <div className="flex items-start justify-between px-5 py-4 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className={`size-8 rounded-xl ${iconCls} flex items-center justify-center shrink-0`}>
+              <AlertTriangle className="size-4" />
+            </div>
+            <h2 className="text-sm font-bold text-foreground">{title}</h2>
+          </div>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="size-7 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+          >
+            <X className="size-3.5" />
+          </button>
         </div>
 
-        {/* Text */}
-        <h2 className="text-base font-bold text-foreground mb-1">{title}</h2>
-        <p className="text-sm text-muted-foreground mb-6">{description}</p>
+        {/* Body */}
+        <div className="px-5 py-4">
+          <p className="text-sm text-muted-foreground">{description}</p>
+        </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-end gap-3">
+        <div className="flex items-center justify-end gap-3 px-5 pb-4">
           <button
             ref={cancelRef}
             type="button"
             onClick={onCancel}
-            className="px-5 py-2.5 bg-surface border border-border text-foreground font-semibold text-sm rounded-full hover:bg-muted transition-colors cursor-pointer"
+            className="px-4 py-2 text-muted-foreground font-semibold text-sm hover:text-foreground transition-colors cursor-pointer"
           >
             {cancelLabel}
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className={`px-5 py-2.5 font-bold text-sm rounded-full transition-opacity cursor-pointer ${confirmCls}`}
+            className={`px-5 py-2 font-bold text-sm rounded-xl transition-opacity cursor-pointer ${confirmCls}`}
           >
             {confirmLabel}
           </button>

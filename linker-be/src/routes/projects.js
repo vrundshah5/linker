@@ -11,6 +11,7 @@ import {
   listProjectResources,
   addProjectResources,
   deleteProjectResource,
+  updateProjectResource,
   listProjectMessages,
   sendProjectMessage,
 } from '../controllers/projectController.js';
@@ -32,6 +33,7 @@ router.delete('/:id/members/:userId', removeProjectMember);
 // Resources
 router.get('/:id/resources', listProjectResources);
 router.post('/:id/resources', addProjectResources);
+router.patch('/:id/resources/:resourceId', updateProjectResource);
 router.delete('/:id/resources/:resourceId', deleteProjectResource);
 
 // Messages
