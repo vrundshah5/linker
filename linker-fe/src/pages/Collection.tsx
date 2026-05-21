@@ -15,8 +15,6 @@ import {
   Calendar,
   Lock,
   Trash2,
-  Wand2,
-  Settings,
   Paintbrush,
   Image,
   Link,
@@ -94,26 +92,24 @@ export default function Collection() {
       setLocalLinks((prev) => prev.map((l) => (l._id === id ? { ...l, isFavorite } : l)))
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.links.favorites() })
-      queryClient.invalidateQueries({ queryKey: queryKeys.links.recent() })
+      // Do NOT invalidate favorites here — that would trigger useEffect to reset
+      // localLinks from server (removing unfavorited links from the list).
       queryClient.invalidateQueries({ queryKey: queryKeys.links.stats(30) })
     },
     onError: () => {
+      // On error revert by refetching
       queryClient.invalidateQueries({ queryKey: queryKeys.links.favorites() })
     },
   })
 
-  // Delete link
+  // Remove from collection (unfavorite) — does NOT delete the link from the category
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => linkService.deleteLink(id),
+    mutationFn: (id: string) => linkService.updateLink(id, { isFavorite: false }),
     onMutate: (id) => {
       setLocalLinks((prev) => prev.filter((l) => l._id !== id))
       setConfirmDelete(null)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.links.favorites() })
-      queryClient.invalidateQueries({ queryKey: queryKeys.categories.mine() })
-      queryClient.invalidateQueries({ queryKey: queryKeys.links.recent() })
       queryClient.invalidateQueries({ queryKey: queryKeys.links.stats(30) })
     },
     onError: () => {
@@ -165,24 +161,8 @@ export default function Collection() {
         {/* ── Left: editor panel ── */}
         <div className="flex-1 bg-surface flex flex-col overflow-hidden border-r border-border">
 
-          {/* Sticky header */}
-          <div className="flex items-center justify-between px-8 py-5 border-b border-border sticky top-0 bg-surface z-10 shrink-0">
-            <h1 className="text-xl font-bold text-foreground" style={{ fontFamily: 'var(--font-headings)' }}>
-              Links
-            </h1>
-            <div className="flex items-center gap-3">
-              <button className="flex items-center gap-2 px-4 py-2 border border-border rounded-full text-sm font-bold text-foreground hover:bg-muted transition-colors cursor-pointer">
-                <Wand2 className="size-4" />
-                Enhance
-              </button>
-              <button className="size-10 flex items-center justify-center border border-border rounded-full text-foreground hover:bg-muted transition-colors cursor-pointer">
-                <Settings className="size-[18px]" />
-              </button>
-            </div>
-          </div>
-
           {/* Scrollable body */}
-          <div className="flex-1 overflow-y-auto px-8 py-10 flex flex-col items-center">
+          <div className="flex-1 overflow-y-auto px-8 py-6 flex flex-col items-center">
             <div className="w-full max-w-2xl flex flex-col items-center">
 
               {/* Profile section */}

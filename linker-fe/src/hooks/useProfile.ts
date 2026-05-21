@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
+import toast from 'react-hot-toast'
 import { profileService, type UpdateProfilePayload } from '../services/profileService'
 import type { ChangePasswordPayload } from '../services/profileService'
 import { queryKeys } from '../constants/queryKeys'

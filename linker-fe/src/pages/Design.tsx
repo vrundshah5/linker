@@ -246,15 +246,15 @@ function HeaderPanel() {
       <p className="text-sm text-muted-foreground mb-8">Choose how your profile header looks.</p>
 
       <h3 className="text-sm font-semibold text-foreground mb-3">Layout</h3>
-      <div className="flex gap-3 mb-8">
+      <div className="grid grid-cols-3 gap-3 mb-8">
         {HEADER_LAYOUTS.map(({ id, label }) => (
           <button
             key={id}
             onClick={() => setHeaderLayout(id)}
-            className={`flex-1 py-4 rounded-2xl border-2 text-sm font-bold transition-all cursor-pointer ${
+            className={`py-4 rounded-2xl border-2 text-sm font-bold transition-all cursor-pointer ${
               headerLayout === id
-                ? 'border-foreground bg-muted'
-                : 'border-border hover:border-foreground/40'
+                ? 'border-foreground bg-muted text-foreground'
+                : 'border-border hover:border-foreground/40 text-foreground'
             }`}
           >
             {label}
@@ -265,7 +265,7 @@ function HeaderPanel() {
           <button
             key={lbl}
             disabled
-            className="flex-1 py-4 rounded-2xl border-2 border-border text-sm font-bold text-muted-foreground/40 relative cursor-not-allowed overflow-hidden"
+            className="py-4 rounded-2xl border-2 border-border text-sm font-bold text-muted-foreground/40 relative cursor-not-allowed overflow-hidden"
           >
             <Zap className="absolute top-1.5 right-1.5 size-3.5 text-amber-400" />
             {lbl}

@@ -41,8 +41,8 @@ body {
   scrollbar-color: var(--color-border) transparent;
 }
 *::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 2px;
+  height: 2px;
 }
 *::-webkit-scrollbar-track {
   background: transparent;
@@ -62,11 +62,6 @@ body {
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
-}
-
-/* Counteract html zoom:0.8 so Sonner toast animations don't flicker */
-[data-sonner-toaster] {
-  zoom: 1.25 !important;
 }
 
 :root {

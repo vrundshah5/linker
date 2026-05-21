@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import toast from 'react-hot-toast'
 import { projectService, type CreateProjectPayload, type UpdateProjectPayload } from '../services/projectService'
 import { queryKeys } from '../constants/queryKeys'
 

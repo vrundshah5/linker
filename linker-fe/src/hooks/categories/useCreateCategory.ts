@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import toast from 'react-hot-toast'
 import { categoryService, type CreateCategoryPayload } from '../../services/categoryService'
 import { queryKeys } from '../../constants/queryKeys'
 

@@ -1,7 +1,7 @@
 import { useGoogleLogin } from '@react-oauth/google'
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
+import toast from 'react-hot-toast'
 import { authService } from '../../services/auth.service'
 
 function useGoogleAuthMutation() {
