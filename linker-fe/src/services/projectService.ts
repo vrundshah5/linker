@@ -16,6 +16,7 @@ export interface Project {
   ownerId: { _id: string; name: string; email: string }
   members: ProjectMember[]
   color: string
+  iconUrl?: string
   resourceCount: number
   createdAt: string
   updatedAt: string
@@ -31,6 +32,7 @@ export interface UpdateProjectPayload {
   name?: string
   description?: string
   color?: string
+  iconUrl?: string
 }
 
 export interface ProjectResourceItem {

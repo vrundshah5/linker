@@ -4,19 +4,13 @@ import { Link, Briefcase, Users, Settings, ChevronDown, BookMarked, MessageSquar
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import GlobalTopNav from '../ui/GlobalTopNav'
 import { useProjects } from '../../hooks/useProjects'
+import ProjectIcon from '../ui/ProjectIcon'
 
 const PROJECT_NAV = [
   { suffix: 'resources', label: 'Resources', icon: BookMarked, end: true },
   { suffix: 'chat', label: 'Project Chat', icon: MessageSquare, end: true },
   { suffix: 'members', label: 'Team Members', icon: Users, end: true },
   { suffix: 'settings', label: 'Project Settings', icon: Settings, end: true },
-]
-
-const PROJECT_COLORS = [
-  { iconBg: 'bg-primary', textColor: 'text-primary' },
-  { iconBg: 'bg-primary', textColor: 'text-primary' },
-  { iconBg: 'bg-success', textColor: 'text-success' },
-  { iconBg: 'bg-danger', textColor: 'text-danger' },
 ]
 
 interface WorkspaceLayoutProps {
@@ -123,8 +117,8 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
               onClick={() => setProjectOpen((v) => !v)}
               className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-muted transition-colors text-left"
             >
-              <div className={`size-6 rounded-lg ${PROJECT_COLORS[(projects?.findIndex((p) => p._id === activeProject._id) ?? 0) % PROJECT_COLORS.length].iconBg} flex items-center justify-center shrink-0`}>
-                <Briefcase className="size-3 text-white" />
+              <div className={`size-6 rounded-lg flex items-center justify-center shrink-0`}>
+                <ProjectIcon project={activeProject} size="xs" />
               </div>
               <span className="flex-1 min-w-0 text-sm font-bold text-foreground truncate">{activeProject.name}</span>
               {(projects?.length ?? 0) > 1 && (
@@ -137,8 +131,7 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
             {/* Dropdown */}
             {projectOpen && (projects?.length ?? 0) > 1 && (
               <div className="absolute bottom-full left-0 w-full mb-1 bg-surface border border-border rounded-xl shadow-lg z-50 overflow-hidden py-1">
-                {projects!.map((p, idx) => {
-                  const colors = PROJECT_COLORS[idx % PROJECT_COLORS.length]
+                {projects!.map((p) => {
                   return (
                     <button
                       key={p._id}
@@ -161,13 +154,11 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
                       }}
                       className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm font-bold transition-colors text-left ${
                         activeProject._id === p._id
-                          ? `${colors.textColor} bg-muted`
+                          ? `text-primary bg-muted`
                           : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                       }`}
                     >
-                      <div className={`size-5 rounded ${colors.iconBg} flex items-center justify-center shrink-0`}>
-                        <Briefcase className="size-2.5 text-white" />
-                      </div>
+                      <ProjectIcon project={p} size="xs" />
                       <span className="truncate">{p.name}</span>
                     </button>
                   )

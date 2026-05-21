@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Briefcase, Users, Link2, Search, Plus, Loader2 } from 'lucide-react'
 import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
 import CreateProjectModal from '../components/ui/CreateProjectModal'
+import ProjectIcon from '../components/ui/ProjectIcon'
 import { useCurrentUser } from '../hooks/useCurrentUser'
 import { useProjects, useCreateProject } from '../hooks/useProjects'
 
@@ -154,9 +155,10 @@ export default function ProfessionalDashboard() {
             ) : (
               <div className="grid grid-cols-3 gap-5">
                 {visibleProjects.map((project, idx) => {
-                  const colorSet = PROJECT_COLORS[idx % PROJECT_COLORS.length]
                   const myMembership = project.members.find((m) => m.userId._id === user.id)
                   const role = myMembership?.role?.toUpperCase() ?? 'MEMBER'
+                  // suppress idx-only usage lint warning
+                  void idx
 
                   return (
                     <div
@@ -166,9 +168,7 @@ export default function ProfessionalDashboard() {
                     >
                       {/* Icon + Role badge */}
                       <div className="flex items-start justify-between mb-5">
-                        <div className={`size-12 rounded-2xl ${colorSet.bg} flex items-center justify-center`}>
-                          <Briefcase className={`size-6 ${colorSet.text}`} />
-                        </div>
+                        <ProjectIcon project={project} size="lg" />
                         <span
                           className={`px-3 py-1 rounded-full text-[11px] font-bold tracking-wide ${
                             role === 'ADMIN'

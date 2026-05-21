@@ -67,7 +67,7 @@ export const createProject = async (req, res) => {
 // PATCH /api/projects/:id
 export const updateProject = async (req, res) => {
   try {
-    const { name, description, color } = req.body;
+    const { name, description, color, iconUrl } = req.body;
 
     const project = await Project.findOne({
       _id: req.params.id,
@@ -81,6 +81,7 @@ export const updateProject = async (req, res) => {
     if (name !== undefined) project.name = name.trim();
     if (description !== undefined) project.description = description.trim();
     if (color !== undefined) project.color = color;
+    if (iconUrl !== undefined) project.iconUrl = iconUrl;
 
     await project.save();
     await project.populate('ownerId', 'name email');

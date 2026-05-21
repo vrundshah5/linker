@@ -12,6 +12,7 @@ const projectSchema = new mongoose.Schema(
       },
     ],
     color: { type: String, default: '#f59e0b' },
+    iconUrl: { type: String, default: '' },
   },
   { timestamps: true }
 );

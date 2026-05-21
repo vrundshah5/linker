@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { Briefcase, ChevronDown, Pencil } from 'lucide-react'
+import { ChevronDown, Pencil, Upload, X } from 'lucide-react'
 import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
 import ConfirmModal from '../components/ui/ConfirmModal'
 import PageHeader from '../components/ui/PageHeader'
+import ProjectIcon from '../components/ui/ProjectIcon'
 import { useProject, useProjects, useUpdateProject, useDeleteProject } from '../hooks/useProjects'
 import { useCurrentUser } from '../hooks/useCurrentUser'
 
@@ -23,6 +24,10 @@ export default function ProjectSettings() {
   const user = useCurrentUser()
   const isOwner = project?.ownerId?._id === user.id
   const [projectName, setProjectName] = useState('')
+  const [selectedColor, setSelectedColor] = useState('#f59e0b')
+  const [iconPreview, setIconPreview] = useState<string | null>(null)  // base64 preview
+  const [iconChanged, setIconChanged] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [canInvite, setCanInvite] = useState(false)
   const [canAddResources, setCanAddResources] = useState(true)
   const [search, setSearch] = useState('')
@@ -30,9 +35,14 @@ export default function ProjectSettings() {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Sync project name when project data loads
+  // Sync project data when it loads
   useEffect(() => {
-    if (project) setProjectName(project.name)
+    if (project) {
+      setProjectName(project.name)
+      setSelectedColor(project.color || '#f59e0b')
+      setIconPreview(project.iconUrl || null)
+      setIconChanged(false)
+    }
   }, [project])
 
   // Close dropdown on outside click
@@ -76,11 +86,11 @@ export default function ProjectSettings() {
               >
                 {(() => {
                   const idx = projects?.findIndex((p) => p._id === projectId) ?? 0
-                  const colors = PROJECT_COLORS[Math.max(0, idx) % PROJECT_COLORS.length]
-                  return (
-                    <div className={`size-8 rounded-lg ${colors.iconBg} flex items-center justify-center shrink-0`}>
-                      <Briefcase className={`size-4 ${colors.iconColor}`} />
-                    </div>
+                  const proj = projects?.find((p) => p._id === projectId)
+                  return proj ? (
+                    <ProjectIcon project={proj} size="sm" />
+                  ) : (
+                    <div className={`size-8 rounded-lg ${PROJECT_COLORS[Math.max(0, idx) % PROJECT_COLORS.length].iconBg} flex items-center justify-center shrink-0`} />
                   )
                 })()}
                 <span className="flex-1 text-sm font-semibold text-foreground">
@@ -94,8 +104,7 @@ export default function ProjectSettings() {
                   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-4 py-2.5 border-b border-border">
                     Switch Project Context
                   </p>
-                  {projects!.map((p, idx) => {
-                    const colors = PROJECT_COLORS[idx % PROJECT_COLORS.length]
+                  {projects!.map((p) => {
                     return (
                       <a
                         key={p._id}
@@ -106,9 +115,7 @@ export default function ProjectSettings() {
                             : 'hover:bg-muted'
                         }`}
                       >
-                        <div className={`size-7 rounded-lg ${colors.iconBg} flex items-center justify-center shrink-0`}>
-                          <Briefcase className={`size-3.5 ${colors.iconColor}`} />
-                        </div>
+                        <ProjectIcon project={p} size="sm" />
                         <span className={`text-sm font-semibold ${p._id === projectId ? 'text-primary' : 'text-foreground'}`}>
                           {p.name}
                         </span>
@@ -135,16 +142,54 @@ export default function ProjectSettings() {
             {/* Project Icon */}
             <div>
               <p className="text-sm font-bold text-foreground mb-3">Project Icon</p>
-              <div className="flex items-center gap-4">
-                <div className="size-16 rounded-2xl bg-primary/15 flex items-center justify-center">
-                  <Briefcase className="size-8 text-primary" />
+              <div className="flex items-center gap-5">
+                {/* Live preview */}
+                <div className="relative shrink-0">
+                  <ProjectIcon
+                    project={{ color: selectedColor, iconUrl: iconPreview ?? undefined, name: project?.name ?? '' }}
+                    size="xl"
+                  />
+                  {iconPreview && (
+                    <button
+                      type="button"
+                      title="Remove icon"
+                      onClick={() => { setIconPreview(null); setIconChanged(true) }}
+                      className="absolute -top-1.5 -right-1.5 size-5 rounded-full bg-danger text-white flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer"
+                    >
+                      <X className="size-3" />
+                    </button>
+                  )}
                 </div>
-                <button
-                  type="button"
-                  className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer text-center leading-tight"
-                >
-                  Change<br />Icon
-                </button>
+
+                {/* Upload area */}
+                <div className="flex flex-col gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      const reader = new FileReader()
+                      reader.onload = () => {
+                        setIconPreview(reader.result as string)
+                        setIconChanged(true)
+                      }
+                      reader.readAsDataURL(file)
+                      e.target.value = ''
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-xl text-sm font-semibold text-foreground hover:border-primary/40 hover:bg-muted transition-colors cursor-pointer"
+                  >
+                    <Upload className="size-4 text-muted-foreground" />
+                    {iconPreview ? 'Replace Image' : 'Upload Image'}
+                  </button>
+                  <p className="text-xs text-muted-foreground">JPG, PNG, WebP or GIF · Max 2 MB</p>
+                </div>
               </div>
             </div>
           </div>
@@ -217,8 +262,13 @@ export default function ProjectSettings() {
         <div className="sticky bottom-0 bg-background border-t border-border px-8 py-4 flex justify-end">
           <button
             type="button"
-            onClick={() => projectId && updateProject({ id: projectId, name: projectName.trim() })}
-            disabled={!projectName.trim() || projectName.trim() === project?.name}
+          onClick={() => {
+            if (!projectId) return
+            const payload: { id: string; name: string; iconUrl?: string } = { id: projectId, name: projectName.trim() }
+            if (iconChanged) payload.iconUrl = iconPreview ?? ''
+            updateProject(payload)
+          }}
+            disabled={!projectName.trim() || (projectName.trim() === project?.name && !iconChanged)}
             className="px-6 py-2.5 bg-primary text-white font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Save Changes
