@@ -100,7 +100,7 @@ export const THEMES: Theme[] = [
 export type ButtonShape = 'rounded' | 'pill' | 'square' | 'sharp'
 export type ButtonFill  = 'solid'   | 'outline' | 'soft' | 'glass'
 export type HeaderLayout = 'classic' | 'hero'
-export type FontId = 'system' | 'serif' | 'mono' | 'display'
+export type FontId = 'lufga' | 'lufga-light' | 'lufga-bold' | 'lufga-black'
 
 // ─── Helper: compute button styles for phone preview ─────────────────────────
 export function getButtonStyles(
@@ -130,10 +130,17 @@ export function getButtonStyles(
 
 // ─── Font map ─────────────────────────────────────────────────────────────────
 export const FONT_MAP: Record<FontId, string> = {
-  system:  'system-ui, sans-serif',
-  serif:   'Georgia, serif',
-  mono:    '"Courier New", monospace',
-  display: 'var(--font-headings, system-ui)',
+  'lufga':       '"Plus Jakarta Sans", sans-serif',
+  'lufga-light': '"Plus Jakarta Sans", sans-serif',
+  'lufga-bold':  '"Plus Jakarta Sans", sans-serif',
+  'lufga-black': '"Plus Jakarta Sans", sans-serif',
+}
+
+export const FONT_WEIGHT_MAP: Record<FontId, number> = {
+  'lufga':       400,
+  'lufga-light': 300,
+  'lufga-bold':  700,
+  'lufga-black': 900,
 }
 
 // ─── Zustand store ────────────────────────────────────────────────────────────
@@ -159,7 +166,7 @@ export const useDesignStore = create<DesignState>()(
       buttonShape: 'rounded',
       buttonFill: 'solid',
       headerLayout: 'classic',
-      fontId: 'system',
+      fontId: 'lufga',
       showFooter: true,
       setThemeId:      (themeId)      => set({ themeId }),
       setButtonShape:  (buttonShape)  => set({ buttonShape }),

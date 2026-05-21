@@ -14,7 +14,8 @@
   --color-success: #3eac68;
   --color-warning: #ff9b26;
   --color-danger: #ff6a55;
-  --font-headings: "Nunito", sans-serif;
+  --font-headings: "Plus Jakarta Sans", sans-serif;
+  --font-sans: "Plus Jakarta Sans", sans-serif;
 }
 
 html {
@@ -77,8 +78,8 @@ body {
   --shadow:
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --sans: 'Plus Jakarta Sans', sans-serif;
+  --heading: 'Plus Jakarta Sans', sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
   font: 18px/145% var(--sans);
@@ -138,7 +139,7 @@ body {
 
   h1 {
     font-size: 56px;
-    letter-spacing: -1.68px;
+    letter-spacing:-0.50px;
     margin: 32px 0;
     @media (max-width: 1024px) {
       font-size: 36px;

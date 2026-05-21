@@ -25,6 +25,7 @@ import {
   THEMES,
   getButtonStyles,
   FONT_MAP,
+  FONT_WEIGHT_MAP,
   type ButtonShape,
   type ButtonFill,
   type FontId,
@@ -59,10 +60,10 @@ const BUTTON_FILLS: { id: ButtonFill; label: string }[] = [
 ]
 
 const FONTS: { id: FontId; label: string; sample: string }[] = [
-  { id: 'system',  label: 'System',  sample: 'Aa' },
-  { id: 'serif',   label: 'Serif',   sample: 'Aa' },
-  { id: 'mono',    label: 'Mono',    sample: 'Aa' },
-  { id: 'display', label: 'Display', sample: 'Aa' },
+  { id: 'lufga',       label: 'Regular', sample: 'Aa' },
+  { id: 'lufga-light', label: 'Light',   sample: 'Aa' },
+  { id: 'lufga-bold',  label: 'Bold',    sample: 'Aa' },
+  { id: 'lufga-black', label: 'Black',   sample: 'Aa' },
 ]
 
 const HEADER_LAYOUTS: { id: HeaderLayout; label: string; premium?: boolean }[] = [
@@ -126,6 +127,7 @@ function PhonePreview() {
   const { themeId, buttonShape, buttonFill, headerLayout, fontId, showFooter } = useDesignStore()
   const theme = THEMES.find((t) => t.id === themeId) ?? THEMES[0]
   const font = FONT_MAP[fontId]
+  const fontWeight = FONT_WEIGHT_MAP[fontId]
   const handle = user.name.toLowerCase().replace(/\s+/g, '')
 
   const { data } = useQuery({
@@ -148,7 +150,7 @@ function PhonePreview() {
       {/* Screen */}
       <div
         className="w-full h-full rounded-[36px] overflow-hidden flex flex-col items-center pb-5 px-3.5 relative transition-all duration-500"
-        style={{ background: theme.screenBg, fontFamily: font }}
+        style={{ background: theme.screenBg, fontFamily: font, fontWeight }}
       >
         {/* More */}
         <div className="absolute top-4 right-4 size-6 rounded-full flex items-center justify-center"
@@ -350,7 +352,7 @@ function TextPanel() {
                 : 'border-border hover:border-foreground/40'
             }`}
           >
-            <span className="text-4xl font-medium text-foreground" style={{ fontFamily: FONT_MAP[f.id] }}>
+            <span className="text-4xl font-medium text-foreground" style={{ fontFamily: FONT_MAP[f.id], fontWeight: FONT_WEIGHT_MAP[f.id] }}>
               {f.sample}
             </span>
             <span className="text-xs font-semibold text-muted-foreground">{f.label}</span>
