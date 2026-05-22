@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import mongoose from 'mongoose';
 import 'dotenv/config';
 import authRoutes from './routes/auth.js';
@@ -30,23 +31,23 @@ const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/linker';
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
-// CORS — allow the Vite frontend and browser extensions
-app.use((_req, res, next) => {
-  const origin = _req.headers.origin;
-  const isExtension =
-    typeof origin === 'string' &&
-    (origin.startsWith('chrome-extension://') || origin.startsWith('moz-extension://'));
-
-  if (isExtension) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  } else {
-    res.setHeader('Access-Control-Allow-Origin', CLIENT_URL);
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
-  if (_req.method === 'OPTIONS') return res.sendStatus(204);
-  next();
-});
+// CORS — allow the Vite frontend (any localhost port) and browser extensions
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. curl, Postman)
+    if (!origin) return callback(null, true);
+    const isExtension =
+      origin.startsWith('chrome-extension://') || origin.startsWith('moz-extension://');
+    const isLocalhost = /^https?:\/\/localhost(:\d+)?$/.test(origin);
+    if (isExtension || isLocalhost || origin === CLIENT_URL) {
+      return callback(null, true);
+    }
+    callback(new Error(`CORS: origin '${origin}' not allowed`));
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}));
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

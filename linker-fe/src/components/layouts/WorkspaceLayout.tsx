@@ -1,5 +1,5 @@
 import { useState, useEffect, type ReactNode } from 'react'
-import { NavLink, useParams, useNavigate } from 'react-router-dom'
+import { NavLink, useParams } from 'react-router-dom'
 import { Link, Briefcase, Users, Settings, ChevronDown, ChevronRight, BookMarked, MessageSquare } from 'lucide-react'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import GlobalTopNav from '../ui/GlobalTopNav'
@@ -21,18 +21,34 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
   const user = useCurrentUser()
   const { data: projects } = useProjects()
   const { projectId: urlProjectId } = useParams<{ projectId: string }>()
-  const navigate = useNavigate()
 
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(() =>
-    urlProjectId ? new Set([urlProjectId]) : new Set()
-  )
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
+    try {
+      const stored = sessionStorage.getItem('sidebar-expanded')
+      const ids = stored ? (JSON.parse(stored) as string[]) : []
+      if (urlProjectId && !ids.includes(urlProjectId)) ids.push(urlProjectId)
+      return new Set(ids)
+    } catch {
+      return urlProjectId ? new Set([urlProjectId]) : new Set()
+    }
+  })
 
-  // Auto-expand when navigating to a project via URL
+  // Auto-expand when navigating to a project via URL, preserve others
   useEffect(() => {
     if (urlProjectId) {
-      setExpandedIds((prev) => (prev.has(urlProjectId) ? prev : new Set([...prev, urlProjectId])))
+      setExpandedIds((prev) => {
+        if (prev.has(urlProjectId)) return prev
+        return new Set([...prev, urlProjectId])
+      })
     }
   }, [urlProjectId])
+
+  // Persist expanded state to sessionStorage whenever it changes
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('sidebar-expanded', JSON.stringify([...expandedIds]))
+    } catch { /* ignore */ }
+  }, [expandedIds])
 
   const toggleExpand = (id: string, isExpanded: boolean) => {
     setExpandedIds((prev) => {
@@ -41,7 +57,6 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
         next.delete(id)
       } else {
         next.add(id)
-        navigate(`/projects/${id}/resources`)
       }
       return next
     })
@@ -104,7 +119,11 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
                   <button
                     type="button"
                     onClick={() => toggleExpand(project._id, isExpanded)}
-                    className="w-full flex items-center gap-2 px-2 py-2 rounded-xl transition-colors text-left hover:bg-muted group"
+                    className={`w-full flex items-center gap-2 px-2 py-2.5 rounded-xl transition-colors text-left group ${
+                      isExpanded
+                        ? 'bg-muted/60 hover:bg-muted'
+                        : 'hover:bg-muted'
+                    }`}
                   >
                     {isExpanded ? (
                       <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
@@ -119,7 +138,7 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
 
                   {/* Sub-nav items */}
                   {isExpanded && (
-                    <div className="ml-5 mb-1 flex flex-col gap-0.5">
+                    <div className="ml-6 mt-1 mb-2 flex flex-col gap-0.5 border-l border-border pl-2">
                       {PROJECT_NAV.filter(
                         ({ suffix }) => suffix !== 'settings' || isOwner
                       ).map(({ suffix, label, icon: Icon }) => (
@@ -127,10 +146,10 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
                           key={suffix}
                           to={`/projects/${project._id}/${suffix}`}
                           className={({ isActive }) =>
-                            `flex items-center gap-2.5 px-3 py-[7px] rounded-lg text-[13px] transition-colors ${
+                            `flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] transition-colors ${
                               isActive
                                 ? 'bg-primary/10 text-primary font-semibold'
-                                : 'text-muted-foreground hover:bg-muted hover:text-foreground font-medium'
+                                : 'text-muted-foreground hover:bg-primary/5 hover:text-primary font-medium'
                             }`
                           }
                         >
