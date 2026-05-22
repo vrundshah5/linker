@@ -40,10 +40,10 @@ export default function GlobalTopNav() {
     : isProfessional
     ? '/professional-profile'
     : '/profile'
-  const notifContext: NotificationContext | undefined = isProfessional
+  const notifContext: NotificationContext = isProfessional
     ? 'professional'
     : isAdmin
-    ? undefined
+    ? 'admin'
     : 'personal'
 
   useEffect(() => {

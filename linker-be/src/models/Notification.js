@@ -5,12 +5,12 @@ const notificationSchema = new mongoose.Schema(
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     type: {
       type: String,
-      enum: ['new_user', 'request_received', 'request_accepted', 'request_rejected', 'project_invite'],
+      enum: ['new_user', 'request_received', 'request_accepted', 'request_rejected', 'project_invite', 'support_ticket'],
       required: true,
     },
     context: {
       type: String,
-      enum: ['personal', 'professional'],
+      enum: ['personal', 'professional', 'admin'],
       default: 'personal',
     },
     title: { type: String, required: true },

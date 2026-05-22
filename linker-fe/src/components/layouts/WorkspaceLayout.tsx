@@ -1,6 +1,6 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import { NavLink, useParams } from 'react-router-dom'
-import { Link, Briefcase, Users, Settings, ChevronDown, ChevronRight, BookMarked, MessageSquare } from 'lucide-react'
+import { Link, Briefcase, Users, Settings, ChevronDown, ChevronRight, BookMarked, MessageSquare, LifeBuoy } from 'lucide-react'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import GlobalTopNav from '../ui/GlobalTopNav'
 import { useProjects } from '../../hooks/useProjects'
@@ -163,6 +163,23 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
               )
             })}
           </div>
+        </div>
+
+        {/* Support link — pinned to bottom */}
+        <div className="px-3 pb-4 shrink-0 mt-auto">
+          <NavLink
+            to="/professional-support"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-colors ${
+                isActive
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              }`
+            }
+          >
+            <LifeBuoy className="size-[18px] shrink-0" />
+            Support
+          </NavLink>
         </div>
       </aside>
 

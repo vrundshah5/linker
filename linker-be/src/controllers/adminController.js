@@ -8,12 +8,19 @@ import Notification from '../models/Notification.js';
 // GET /api/admin/stats
 export const getStats = async (req, res) => {
   try {
-    const [totalUsers, totalCategories, totalLinks, activeGlobalCategories] = await Promise.all([
+    const [totalUsers, totalCategories, totalLinks, activeGlobalCategories, workspacesAgg] = await Promise.all([
       User.countDocuments({ role: { $ne: 'admin' } }),
       UserCategory.countDocuments(),
       Link.countDocuments(),
       GlobalCategory.countDocuments({ isActive: true }),
+      User.aggregate([
+        { $match: { role: { $ne: 'admin' } } },
+        { $project: { workspaceCount: { $size: { $ifNull: ['$workspaces', []] } } } },
+        { $group: { _id: null, total: { $sum: '$workspaceCount' } } },
+      ]),
     ]);
+
+    const totalWorkspaces = workspacesAgg[0]?.total ?? 0;
 
     // User registrations per month for the last 7 months
     const sevenMonthsAgo = new Date();
@@ -70,6 +77,7 @@ export const getStats = async (req, res) => {
       success: true,
       data: {
         totalUsers,
+        totalWorkspaces,
         totalCategories,
         totalLinks,
         activeGlobalCategories,

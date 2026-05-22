@@ -47,4 +47,9 @@ export const queryKeys = {
     resources: (id: string) => ['projects', 'resources', id] as const,
     messages: (id: string) => ['projects', 'messages', id] as const,
   },
+  support: {
+    all: ['support'] as const,
+    mine: ['support', 'mine'] as const,
+    admin: (params?: object) => ['support', 'admin', params] as const,
+  },
 } as const

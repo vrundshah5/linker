@@ -4,7 +4,7 @@ import Notification from '../models/Notification.js';
 export const getNotifications = async (req, res) => {
   try {
     const filter = { userId: req.user.id };
-    if (req.query.context && ['personal', 'professional'].includes(req.query.context)) {
+    if (req.query.context && ['personal', 'professional', 'admin'].includes(req.query.context)) {
       filter.context = req.query.context;
     }
 
@@ -24,7 +24,7 @@ export const getNotifications = async (req, res) => {
 export const markAllRead = async (req, res) => {
   try {
     const filter = { userId: req.user.id, read: false };
-    if (req.query.context && ['personal', 'professional'].includes(req.query.context)) {
+    if (req.query.context && ['personal', 'professional', 'admin'].includes(req.query.context)) {
       filter.context = req.query.context;
     }
     await Notification.updateMany(filter, { read: true });

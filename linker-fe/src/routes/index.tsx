@@ -1,5 +1,5 @@
 import { lazy } from 'react'
-import { type RouteObject } from 'react-router-dom'
+import { type RouteObject, Navigate } from 'react-router-dom'
 import PrivateRoute from '../components/guards/PrivateRoute'
 import PublicRoute from '../components/guards/PublicRoute'
 import PersonalRoute from '../components/guards/PersonalRoute'
@@ -40,6 +40,8 @@ const Design = lazy(() => import('../pages/Design'))
 const PublicCollection = lazy(() => import('../pages/PublicCollection'))
 const NotFound = lazy(() => import('../pages/NotFound'))
 const Unauthorized = lazy(() => import('../pages/Unauthorized'))
+const Support = lazy(() => import('../pages/Support'))
+const AdminSupport = lazy(() => import('../pages/AdminSupport'))
 
 export const routes: RouteObject[] = [
   // Public auth routes — redirect to dashboard if already logged in
@@ -75,6 +77,7 @@ export const routes: RouteObject[] = [
       { path: '/admin/reports', element: <AdminSystemReports /> },
       { path: '/admin/settings', element: <AdminPlatformSettings /> },
       { path: '/admin/profile', element: <AdminProfile /> },
+      { path: '/admin/support', element: <AdminSupport /> },
 
       // Personal workspace routes — blocked for professional users
       {
@@ -89,6 +92,7 @@ export const routes: RouteObject[] = [
           { path: '/collection', element: <Collection /> },
           { path: '/insights', element: <Insights /> },
           { path: '/design', element: <Design /> },
+          { path: '/support', element: <Support /> },
         ],
       },
 
@@ -102,10 +106,14 @@ export const routes: RouteObject[] = [
           { path: '/projects/:projectId/chat', element: <ProjectChat /> },
           { path: '/projects/:projectId/members', element: <ProjectTeamMembers /> },
           { path: '/projects/:projectId/settings', element: <ProjectSettings /> },
+          { path: '/professional-support', element: <Support variant="professional" /> },
         ],
       },
     ],
   },
+
+  // Root redirect
+  { path: '/', element: <Navigate to="/login" replace /> },
 
   // Public (no auth required, no redirect)
   { path: '/c/:userId', element: <PublicCollection /> },

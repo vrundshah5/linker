@@ -7,14 +7,18 @@ import {
   FolderOpen,
   FileBarChart2,
   Settings,
+  LifeBuoy,
+  Briefcase,
 } from 'lucide-react'
 import GlobalTopNav from '../ui/GlobalTopNav'
+import { useAdminStats } from '../../hooks/admin/useAdminStats'
 
 const NAV_ITEMS = [
   { to: '/admin/overview', label: 'Overview', icon: LayoutDashboard, end: true },
   { to: '/admin/users', label: 'Manage Users', icon: Users, end: true },
   { to: '/admin/categories', label: 'Global Categories', icon: FolderOpen, end: true },
   { to: '/admin/reports', label: 'System Reports', icon: FileBarChart2, end: true },
+  { to: '/admin/support', label: 'Support Tickets', icon: LifeBuoy, end: true },
   { to: '/admin/settings', label: 'Platform Settings', icon: Settings, end: true },
 ]
 
@@ -23,6 +27,7 @@ interface AdminLayoutProps {
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
+  const { data: stats } = useAdminStats()
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       {/* Sidebar */}
@@ -70,6 +75,33 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               </NavLink>
             ))}
           </nav>
+        </div>
+
+        {/* Platform stats footer */}
+        <div className="px-4 py-4 border-t border-border shrink-0">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2.5">
+            Platform
+          </p>
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Users className="size-3.5 shrink-0 text-primary" />
+              <span>
+                <span className="font-bold text-foreground">
+                  {stats ? stats.totalUsers : '—'}
+                </span>{' '}
+                {stats?.totalUsers === 1 ? 'User' : 'Users'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Briefcase className="size-3.5 shrink-0 text-primary" />
+              <span>
+                <span className="font-bold text-foreground">
+                  {stats ? stats.totalWorkspaces : '—'}
+                </span>{' '}
+                {stats?.totalWorkspaces === 1 ? 'Workspace' : 'Workspaces'}
+              </span>
+            </div>
+          </div>
         </div>
 
       </aside>

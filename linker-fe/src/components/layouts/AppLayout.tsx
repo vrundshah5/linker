@@ -10,6 +10,7 @@ import {
   LayoutGrid,
   BarChart2,
   Paintbrush,
+  LifeBuoy,
 } from 'lucide-react'
 import GlobalTopNav from '../ui/GlobalTopNav'
 
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
   { to: '/messages', label: 'Messages', icon: MessageSquare, end: true },
   { to: '/requests', label: 'Requests', icon: Users, end: true },
   { to: '/archived', label: 'Archived Links', icon: Archive, end: true },
+  { to: '/support', label: 'Support', icon: LifeBuoy, end: true },
 ]
 
 interface AppLayoutProps {

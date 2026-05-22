@@ -13,6 +13,7 @@ import requestRoutes from './routes/requests.js';
 import profileRoutes from './routes/profile.js';
 import messageRoutes from './routes/messages.js';
 import projectRoutes from './routes/projects.js';
+import supportRoutes from './routes/support.js';
 import GlobalCategory from './models/GlobalCategory.js';
 
 const SEED_CATEGORIES = [
@@ -89,6 +90,9 @@ app.use('/api/messages', messageRoutes);
 
 // Project routes
 app.use('/api/projects', projectRoutes);
+
+// Support routes
+app.use('/api/support', supportRoutes);
 
 mongoose
   .connect(MONGO_URI)

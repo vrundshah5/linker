@@ -52,6 +52,7 @@ export interface AdminGlobalCategory {
 
 export interface AdminStats {
   totalUsers: number
+  totalWorkspaces: number
   totalCategories: number
   totalLinks: number
   activeGlobalCategories: number
