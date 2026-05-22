@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { LifeBuoy, Clock, CheckCircle2, AlertCircle, Loader2, ChevronDown, Search, X } from 'lucide-react'
+import { LifeBuoy, Clock, CheckCircle2, AlertCircle, Loader2, ChevronDown, X } from 'lucide-react'
 import AdminLayout from '../components/layouts/AdminLayout'
 import { useAdminTickets, useAdminUpdateTicket } from '../hooks/useSupport'
 import type { TicketStatus, TicketPriority, AdminSupportTicket } from '../services/supportService'
@@ -37,8 +37,6 @@ function TicketDrawer({
       }
     )
   }
-
-  const StatusIcon = STATUS_CONFIG[status].icon
 
   return (
     <div className="fixed inset-0 z-50 flex">

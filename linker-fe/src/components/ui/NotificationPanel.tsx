@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bell, X, UserPlus, UserCheck, UserX, Users, CheckCheck, FolderPlus } from 'lucide-react'
+import { Bell, X, UserPlus, UserCheck, UserX, Users, CheckCheck, FolderPlus, LifeBuoy } from 'lucide-react'
 import type { AppNotification, NotificationType, NotificationContext } from '../../services/notificationService'
 
 const TYPE_META: Record<NotificationType, { icon: React.ElementType; bg: string; color: string }> = {
@@ -9,6 +9,7 @@ const TYPE_META: Record<NotificationType, { icon: React.ElementType; bg: string;
   request_accepted: { icon: UserCheck,   bg: 'bg-success/15',  color: 'text-success'  },
   request_rejected: { icon: UserX,       bg: 'bg-danger/10',   color: 'text-danger'   },
   project_invite:   { icon: FolderPlus,  bg: 'bg-primary/10',  color: 'text-primary'  },
+  support_ticket:   { icon: LifeBuoy,    bg: 'bg-warning/10',  color: 'text-warning'  },
 }
 
 function timeAgo(iso: string) {

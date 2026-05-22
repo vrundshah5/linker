@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { X, CheckCheck, Bell, UserPlus, UserCheck, UserX, Users, FolderPlus } from 'lucide-react'
+import { X, CheckCheck, Bell, UserPlus, UserCheck, UserX, Users, FolderPlus, LifeBuoy } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
 import PageHeader from '../components/ui/PageHeader'
 import type { NotificationType } from '../services/notificationService'
@@ -17,6 +17,7 @@ const TYPE_META: Record<NotificationType, { icon: React.ElementType; bg: string;
   request_accepted: { icon: UserCheck,   bg: 'bg-success/15',  color: 'text-success',  label: 'Accepted'       },
   request_rejected: { icon: UserX,       bg: 'bg-danger/10',   color: 'text-danger',   label: 'Declined'       },
   project_invite:   { icon: FolderPlus,  bg: 'bg-primary/10',  color: 'text-primary',  label: 'Project Invite' },
+  support_ticket:   { icon: LifeBuoy,    bg: 'bg-warning/10',  color: 'text-warning',  label: 'Support'        },
 }
 
 const FILTER_TABS = ['All', 'Unread', 'Request', 'New User'] as const
