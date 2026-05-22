@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Enable class-based dark mode for Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-background: #f8f9fa;
   --color-foreground: #1e2022;
@@ -16,6 +19,23 @@
   --color-danger: #ff6a55;
   --font-headings: "Plus Jakarta Sans", sans-serif;
   --font-sans: "Plus Jakarta Sans", sans-serif;
+}
+
+/* Dark mode overrides — applied when <html class="dark"> */
+.dark {
+  --color-background: #111318;
+  --color-foreground: #e2e4ed;
+  --color-surface: #1a1c25;
+  --color-border: #272a38;
+  --color-input: #1e2030;
+  --color-primary: #7c6ee0;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #1e1a33;
+  --color-muted: #1e2030;
+  --color-muted-foreground: #7c82a3;
+  --color-success: #3eac68;
+  --color-warning: #ff9b26;
+  --color-danger: #ff6a55;
 }
 
 html {

@@ -7,6 +7,12 @@ import './index.css'
 import App from './App.tsx'
 import queryClient from './lib/queryClient.ts'
 
+// Apply theme before React renders to avoid flash
+const stored = localStorage.getItem('theme')
+if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+  document.documentElement.classList.add('dark')
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>

@@ -61,7 +61,7 @@ export default function ProjectChat() {
 
   return (
     <WorkspaceLayout>
-      <div className="h-full flex flex-col overflow-hidden bg-[#fcfcfc]">
+      <div className="h-full flex flex-col overflow-hidden bg-background">
 
         {/* Chat header */}
         <div className="h-[88px] bg-surface border-b border-border px-8 flex items-center justify-between shrink-0 z-10">

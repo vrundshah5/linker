@@ -566,7 +566,7 @@ export default function Design() {
         </div>
 
         {/* ── Phone preview ── */}
-        <div className="w-[380px] shrink-0 flex flex-col items-center justify-center gap-6 bg-[#f0f3fb] p-8 overflow-y-auto">
+        <div className="w-[380px] shrink-0 flex flex-col items-center justify-center gap-6 bg-muted p-8 overflow-y-auto">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Preview</p>
           <PhonePreview />
           <p className="text-xs text-muted-foreground text-center">

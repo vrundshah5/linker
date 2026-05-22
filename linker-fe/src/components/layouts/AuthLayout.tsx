@@ -1,18 +1,20 @@
 import { type ReactNode } from 'react'
-import { Link, Sparkles } from 'lucide-react'
+import { Link, Sparkles, Sun, Moon } from 'lucide-react'
+import { useTheme } from '../../hooks/useTheme'
 
 interface AuthLayoutProps {
   children: ReactNode
 }
 
 export default function AuthLayout({ children }: AuthLayoutProps) {
+  const { theme, toggle: toggleTheme } = useTheme()
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       {/* Left branding panel */}
       <div className="hidden lg:flex flex-col justify-between w-1/2 bg-primary p-12 text-primary-foreground relative overflow-hidden">
         {/* Logo */}
         <div className="relative z-10 flex items-center gap-3">
-          <div className="size-10 bg-surface text-primary rounded-xl flex items-center justify-center">
+          <div className="size-10 bg-white text-primary rounded-xl flex items-center justify-center">
             <Link className="size-5" />
           </div>
           <span
@@ -53,6 +55,16 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
 
       {/* Right form panel */}
       <div className="flex-1 flex flex-col items-center p-8 lg:p-12 bg-surface overflow-y-auto">
+        <div className="w-full flex justify-end mb-4">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="size-9 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
+          </button>
+        </div>
         <div className="w-full max-w-md my-auto">{children}</div>
       </div>
     </div>

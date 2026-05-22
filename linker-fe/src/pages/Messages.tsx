@@ -274,7 +274,7 @@ export default function Messages() {
 
         {/* ── Right panel: chat ── */}
         {activeConv ? (
-          <div className="flex-1 flex flex-col overflow-hidden bg-[#fcfcfc]">
+          <div className="flex-1 flex flex-col overflow-hidden bg-background">
 
             {/* Chat header */}
             <div className="h-[72px] shrink-0 flex items-center px-8 bg-surface border-b border-border z-10 gap-4">
@@ -378,7 +378,7 @@ export default function Messages() {
           </div>
         ) : (
           /* Empty state when no conversation is selected */
-          <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center bg-[#fcfcfc]">
+          <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center bg-background">
             {!loadingConvs && (
               <>
                 <div className="size-16 rounded-2xl bg-muted flex items-center justify-center">

@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { User, LogOut, Lock, ArrowLeftRight } from 'lucide-react'
+import { User, LogOut, Lock, ArrowLeftRight, Sun, Moon } from 'lucide-react'
 import BellButton from './BellButton'
 import WorkspaceSwitchSplash from './WorkspaceSwitchSplash'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { useSwitchWorkspace, useProfile } from '../../hooks/useProfile'
 import { getAvatarById } from './AvatarPicker'
+import { useTheme } from '../../hooks/useTheme'
 import type { NotificationContext } from '../../services/notificationService'
 
 export default function GlobalTopNav() {
@@ -18,6 +19,7 @@ export default function GlobalTopNav() {
   const ref = useRef<HTMLDivElement>(null)
   const { mutate: switchWorkspace, isPending: isSwitching, switchTarget } = useSwitchWorkspace()
   const hasMultipleWorkspaces = user.workspaces.length > 1
+  const { theme, toggle: toggleTheme } = useTheme()
 
   const isAdmin = location.pathname.startsWith('/admin')
   const isProfessional = !isAdmin && (
@@ -67,6 +69,19 @@ export default function GlobalTopNav() {
         </button>
       )}
       <BellButton context={notifContext} />
+
+      {/* Dark / Light mode toggle */}
+      <button
+        type="button"
+        onClick={toggleTheme}
+        className="size-9 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/80 cursor-pointer transition-colors shrink-0"
+        aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+      >
+        {theme === 'dark'
+          ? <Sun className="size-[18px]" />
+          : <Moon className="size-[18px]" />
+        }
+      </button>
 
       {/* User avatar + dropdown */}
       <div className="relative" ref={ref}>

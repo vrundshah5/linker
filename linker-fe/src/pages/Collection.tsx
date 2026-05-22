@@ -382,7 +382,7 @@ export default function Collection() {
         </div>
 
         {/* ── Right: phone preview panel ── */}
-        <div className="w-[480px] bg-[#f0f3fb] flex-col shrink-0 overflow-y-auto hidden xl:flex">
+        <div className="w-[480px] bg-muted flex-col shrink-0 overflow-y-auto hidden xl:flex">
 
           {/* Top bar */}
           <div className="flex items-center justify-end gap-3 px-8 py-5 shrink-0">
