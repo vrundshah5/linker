@@ -7,13 +7,6 @@ import ProjectIcon from '../components/ui/ProjectIcon'
 import { useCurrentUser } from '../hooks/useCurrentUser'
 import { useProjects, useCreateProject } from '../hooks/useProjects'
 
-const PROJECT_COLORS = [
-  { bg: 'bg-primary/15', text: 'text-primary' },
-  { bg: 'bg-primary/10', text: 'text-primary' },
-  { bg: 'bg-primary/20', text: 'text-primary' },
-  { bg: 'bg-secondary', text: 'text-primary' },
-]
-
 const AVATAR_COLORS = [
   'bg-primary/20 text-primary',
   'bg-primary/15 text-primary',
