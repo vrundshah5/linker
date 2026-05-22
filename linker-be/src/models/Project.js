@@ -11,8 +11,20 @@ const projectSchema = new mongoose.Schema(
         role: { type: String, enum: ['admin', 'member'], default: 'member' },
       },
     ],
+    invites: [
+      {
+        userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        invitedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        status:    { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' },
+        invitedAt: { type: Date, default: Date.now },
+      },
+    ],
     color: { type: String, default: '#f59e0b' },
     iconUrl: { type: String, default: '' },
+    permissions: {
+      anyoneCanInvite:      { type: Boolean, default: false },
+      anyoneCanAddResources:{ type: Boolean, default: true  },
+    },
   },
   { timestamps: true }
 );

@@ -68,7 +68,23 @@ export function useAddProjectMember() {
       projectService.addMember(projectId, email),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.projects.all })
-      toast.success('Member added')
+      toast.success('Invitation sent')
+    },
+  })
+}
+
+export function useRespondToProjectInvite() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ projectId, status }: { projectId: string; status: 'accepted' | 'rejected' }) =>
+      projectService.respondToInvite(projectId, status),
+    onSuccess: (_data, { status }) => {
+      qc.invalidateQueries({ queryKey: queryKeys.projects.all })
+      qc.invalidateQueries({ queryKey: queryKeys.notifications.all })
+      toast.success(status === 'accepted' ? 'You joined the project!' : 'Invitation declined')
+    },
+    onError: (err: { response?: { data?: { message?: string } } }) => {
+      toast.error(err?.response?.data?.message || 'Failed to respond to invitation')
     },
   })
 }

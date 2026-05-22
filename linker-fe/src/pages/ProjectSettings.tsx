@@ -1,39 +1,30 @@
 import { useState, useRef, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
-import { ChevronDown, Pencil, Upload, X } from 'lucide-react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { Pencil, Upload, X } from 'lucide-react'
 import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
 import ConfirmModal from '../components/ui/ConfirmModal'
 import PageHeader from '../components/ui/PageHeader'
 import ProjectIcon from '../components/ui/ProjectIcon'
-import { useProject, useProjects, useUpdateProject, useDeleteProject } from '../hooks/useProjects'
+import { useProject, useUpdateProject, useDeleteProject } from '../hooks/useProjects'
 import { useCurrentUser } from '../hooks/useCurrentUser'
-
-const PROJECT_COLORS = [
-  { iconBg: 'bg-primary/15', iconColor: 'text-primary' },
-  { iconBg: 'bg-primary/10', iconColor: 'text-primary' },
-  { iconBg: 'bg-success/15', iconColor: 'text-success' },
-  { iconBg: 'bg-danger/10', iconColor: 'text-danger' },
-]
 
 export default function ProjectSettings() {
   const { projectId } = useParams<{ projectId: string }>()
+  const navigate = useNavigate()
   const { data: project } = useProject(projectId)
-  const { data: projects } = useProjects()
   const { mutate: updateProject } = useUpdateProject()
   const { mutate: deleteProject } = useDeleteProject()
   const user = useCurrentUser()
   const isOwner = project?.ownerId?._id === user.id
   const [projectName, setProjectName] = useState('')
   const [selectedColor, setSelectedColor] = useState('#f59e0b')
-  const [iconPreview, setIconPreview] = useState<string | null>(null)  // base64 preview
+  const [iconPreview, setIconPreview] = useState<string | null>(null)
   const [iconChanged, setIconChanged] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [canInvite, setCanInvite] = useState(false)
   const [canAddResources, setCanAddResources] = useState(true)
   const [search, setSearch] = useState('')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [dropdownOpen, setDropdownOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Sync project data when it loads
   useEffect(() => {
@@ -42,19 +33,10 @@ export default function ProjectSettings() {
       setSelectedColor(project.color || '#f59e0b')
       setIconPreview(project.iconUrl || null)
       setIconChanged(false)
+      setCanInvite(project.permissions?.anyoneCanInvite ?? false)
+      setCanAddResources(project.permissions?.anyoneCanAddResources ?? true)
     }
   }, [project])
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    function handle(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handle)
-    return () => document.removeEventListener('mousedown', handle)
-  }, [])
 
   return (
     <>
@@ -76,55 +58,6 @@ export default function ProjectSettings() {
             <p className="text-sm text-muted-foreground mb-5">
               You are viewing settings for this specific project.
             </p>
-
-            {/* Project switcher dropdown */}
-            <div className="relative mb-5" ref={dropdownRef}>
-              <button
-                type="button"
-                onClick={() => setDropdownOpen((v) => !v)}
-                className="w-full flex items-center gap-3 px-4 py-3 bg-background border border-border rounded-xl hover:border-primary/40 transition-colors cursor-pointer text-left"
-              >
-                {(() => {
-                  const idx = projects?.findIndex((p) => p._id === projectId) ?? 0
-                  const proj = projects?.find((p) => p._id === projectId)
-                  return proj ? (
-                    <ProjectIcon project={proj} size="sm" />
-                  ) : (
-                    <div className={`size-8 rounded-lg ${PROJECT_COLORS[Math.max(0, idx) % PROJECT_COLORS.length].iconBg} flex items-center justify-center shrink-0`} />
-                  )
-                })()}
-                <span className="flex-1 text-sm font-semibold text-foreground">
-                  {project?.name ?? 'Project'}
-                </span>
-                <ChevronDown className={`size-4 text-muted-foreground transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {dropdownOpen && (projects?.length ?? 0) > 1 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-surface border border-border rounded-xl shadow-lg z-20 overflow-hidden">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-4 py-2.5 border-b border-border">
-                    Switch Project Context
-                  </p>
-                  {projects!.map((p) => {
-                    return (
-                      <a
-                        key={p._id}
-                        href={`/projects/${p._id}/settings`}
-                        className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors cursor-pointer ${
-                          p._id === projectId
-                            ? 'bg-primary/10'
-                            : 'hover:bg-muted'
-                        }`}
-                      >
-                        <ProjectIcon project={p} size="sm" />
-                        <span className={`text-sm font-semibold ${p._id === projectId ? 'text-primary' : 'text-foreground'}`}>
-                          {p.name}
-                        </span>
-                      </a>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
 
             {/* Project name input */}
             <div className="mb-6">
@@ -171,6 +104,11 @@ export default function ProjectSettings() {
                     onChange={(e) => {
                       const file = e.target.files?.[0]
                       if (!file) return
+                      if (file.size > 2 * 1024 * 1024) {
+                        alert('Image must be 2 MB or smaller.')
+                        e.target.value = ''
+                        return
+                      }
                       const reader = new FileReader()
                       reader.onload = () => {
                         setIconPreview(reader.result as string)
@@ -262,13 +200,16 @@ export default function ProjectSettings() {
         <div className="sticky bottom-0 bg-background border-t border-border px-8 py-4 flex justify-end">
           <button
             type="button"
-          onClick={() => {
-            if (!projectId) return
-            const payload: { id: string; name: string; iconUrl?: string } = { id: projectId, name: projectName.trim() }
-            if (iconChanged) payload.iconUrl = iconPreview ?? ''
-            updateProject(payload)
-          }}
-            disabled={!projectName.trim() || (projectName.trim() === project?.name && !iconChanged)}
+            onClick={() => {
+              if (!projectId) return
+              updateProject({
+                id: projectId,
+                name: projectName.trim(),
+                ...(iconChanged ? { iconUrl: iconPreview ?? '' } : {}),
+                permissions: { anyoneCanInvite: canInvite, anyoneCanAddResources: canAddResources },
+              })
+            }}
+            disabled={!projectName.trim()}
             className="px-6 py-2.5 bg-primary text-white font-bold text-sm rounded-full hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Save Changes
@@ -283,7 +224,7 @@ export default function ProjectSettings() {
       description="Are you sure you want to delete this project? All resources, members, and links will be permanently removed. This action cannot be undone."
       confirmLabel="Delete Project"
       onConfirm={() => {
-        if (projectId) deleteProject(projectId)
+        if (projectId) deleteProject(projectId, { onSuccess: () => navigate('/professional-dashboard') })
         setShowDeleteModal(false)
       }}
       onCancel={() => setShowDeleteModal(false)}

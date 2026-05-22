@@ -25,7 +25,7 @@ const PRIORITY_OPTIONS: { value: TicketPriority; label: string; dot: string }[] 
   { value: 'high',   label: 'High — something is broken',  dot: 'bg-danger' },
 ]
 
-function SupportContent() {
+function SupportContent({ workspace }: { workspace: 'personal' | 'professional' }) {
   const { data: tickets, isLoading } = useMyTickets()
   const { mutate: submit, isPending } = useSubmitTicket()
 
@@ -50,7 +50,7 @@ function SupportContent() {
     e.preventDefault()
     if (!title.trim() || !description.trim()) return
     submit(
-      { title, description, priority },
+      { title, description, priority, workspace },
       {
         onSuccess: () => {
           toast.success('Ticket submitted! We\'ll get back to you soon.')
@@ -203,7 +203,7 @@ interface SupportPageProps {
 
 export default function Support({ variant = 'personal' }: SupportPageProps) {
   if (variant === 'professional') {
-    return <WorkspaceLayout><SupportContent /></WorkspaceLayout>
+    return <WorkspaceLayout><SupportContent workspace="professional" /></WorkspaceLayout>
   }
-  return <AppLayout><SupportContent /></AppLayout>
+  return <AppLayout><SupportContent workspace="personal" /></AppLayout>
 }

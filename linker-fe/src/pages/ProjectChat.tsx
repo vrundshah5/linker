@@ -133,7 +133,7 @@ export default function ProjectChat() {
                   {/* Bubble */}
                   <div className="flex flex-col gap-1">
                     {!isMe && (
-                      <span className="text-xs font-semibold text-muted-foreground ml-1">
+                      <span className="text-xs font-semibold text-muted-foreground ml-1 capitalize">
                         {msg.senderId.name}
                       </span>
                     )}

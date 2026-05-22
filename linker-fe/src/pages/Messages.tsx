@@ -284,7 +284,7 @@ export default function Messages() {
                 {initials(activeConv.name)}
               </div>
               <div>
-                <h3 className="text-base font-bold text-foreground">{activeConv.name}</h3>
+                <h3 className="text-base font-bold text-foreground capitalize">{activeConv.name}</h3>
                 <p className="text-xs text-muted-foreground">{activeConv.email}</p>
               </div>
             </div>

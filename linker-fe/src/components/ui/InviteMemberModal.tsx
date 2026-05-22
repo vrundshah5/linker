@@ -125,7 +125,7 @@ export default function InviteMemberModal({ open, projectId, onClose }: Props) {
               className="px-5 py-2 bg-primary text-primary-foreground font-bold text-sm rounded-xl hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {isPending && <Loader2 className="size-4 animate-spin shrink-0" />}
-              {isPending ? 'Inviting...' : 'Invite'}
+              {isPending ? 'Sending...' : 'Send Invite'}
             </button>
           </div>
         </form>

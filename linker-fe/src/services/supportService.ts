@@ -9,6 +9,7 @@ export interface SupportTicket {
   description: string
   status: TicketStatus
   priority: TicketPriority
+  workspace: 'personal' | 'professional'
   adminNote: string
   createdAt: string
   updatedAt: string
@@ -19,7 +20,7 @@ export interface AdminSupportTicket extends SupportTicket {
 }
 
 export const supportService = {
-  submit: async (data: { title: string; description: string; priority: TicketPriority }): Promise<SupportTicket> => {
+  submit: async (data: { title: string; description: string; priority: TicketPriority; workspace: 'personal' | 'professional' }): Promise<SupportTicket> => {
     const res = await api.post<{ success: boolean; data: SupportTicket }>('/support', data)
     return res.data.data
   },

@@ -1,16 +1,8 @@
 import { useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bell, X, UserPlus, UserCheck, UserX, Users, CheckCheck, FolderPlus, LifeBuoy } from 'lucide-react'
-import type { AppNotification, NotificationType, NotificationContext } from '../../services/notificationService'
-
-const TYPE_META: Record<NotificationType, { icon: React.ElementType; bg: string; color: string }> = {
-  new_user:         { icon: Users,       bg: 'bg-primary/10',  color: 'text-primary'  },
-  request_received: { icon: UserPlus,    bg: 'bg-success/15',  color: 'text-success'  },
-  request_accepted: { icon: UserCheck,   bg: 'bg-success/15',  color: 'text-success'  },
-  request_rejected: { icon: UserX,       bg: 'bg-danger/10',   color: 'text-danger'   },
-  project_invite:   { icon: FolderPlus,  bg: 'bg-primary/10',  color: 'text-primary'  },
-  support_ticket:   { icon: LifeBuoy,    bg: 'bg-warning/10',  color: 'text-warning'  },
-}
+import { Bell, X, CheckCheck } from 'lucide-react'
+import type { AppNotification, NotificationContext } from '../../services/notificationService'
+import NotifAvatar from './NotifAvatar'
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime()
@@ -118,7 +110,6 @@ export default function NotificationPanel({
           <p className="text-sm text-muted-foreground text-center py-8">No notifications</p>
         ) : (
           notifications.map((n) => {
-            const { icon: Icon, bg, color } = TYPE_META[n.type]
             const isClickable = n.type === 'request_received' || n.type === 'request_accepted' || n.type === 'request_rejected' || n.type === 'project_invite'
             return (
               <div
@@ -128,9 +119,7 @@ export default function NotificationPanel({
                   n.read ? 'opacity-60' : 'bg-secondary/30'
                 } ${isClickable ? 'cursor-pointer hover:bg-muted/50' : ''}`}
               >
-                <div className={`size-8 rounded-xl ${bg} flex items-center justify-center shrink-0 mt-0.5`}>
-                  <Icon className={`size-4 ${color}`} />
-                </div>
+                <NotifAvatar n={n} size="sm" />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold text-foreground leading-snug">{n.title}</p>
                   <p className="text-xs text-muted-foreground mt-0.5 leading-snug line-clamp-2">
@@ -153,16 +142,23 @@ export default function NotificationPanel({
         )}
       </div>
 
-      {/* Footer */}
+      {/* Footer — only when there are notifications */}
+      {notifications.length > 0 && (
       <div className="border-t border-border px-4 py-2.5 text-center">
         <button
           type="button"
-          onClick={() => { onClose(); navigate(context === 'professional' ? '/professional-dashboard' : '/notifications') }}
+          onClick={() => {
+            onClose()
+            if (context === 'admin') navigate('/admin/notifications')
+            else if (context === 'professional') navigate('/professional-notifications')
+            else navigate('/notifications')
+          }}
           className="text-xs font-semibold text-primary hover:opacity-75 transition-opacity cursor-pointer"
         >
           View all notifications
         </button>
       </div>
+      )}
     </div>
   )
 }

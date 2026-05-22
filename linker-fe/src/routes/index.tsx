@@ -42,6 +42,8 @@ const NotFound = lazy(() => import('../pages/NotFound'))
 const Unauthorized = lazy(() => import('../pages/Unauthorized'))
 const Support = lazy(() => import('../pages/Support'))
 const AdminSupport = lazy(() => import('../pages/AdminSupport'))
+const AdminNotifications = lazy(() => import('../pages/AdminNotifications'))
+const ProfessionalNotifications = lazy(() => import('../pages/ProfessionalNotifications'))
 
 export const routes: RouteObject[] = [
   // Public auth routes — redirect to dashboard if already logged in
@@ -78,6 +80,7 @@ export const routes: RouteObject[] = [
       { path: '/admin/settings', element: <AdminPlatformSettings /> },
       { path: '/admin/profile', element: <AdminProfile /> },
       { path: '/admin/support', element: <AdminSupport /> },
+      { path: '/admin/notifications', element: <AdminNotifications /> },
 
       // Personal workspace routes — blocked for professional users
       {
@@ -107,6 +110,7 @@ export const routes: RouteObject[] = [
           { path: '/projects/:projectId/members', element: <ProjectTeamMembers /> },
           { path: '/projects/:projectId/settings', element: <ProjectSettings /> },
           { path: '/professional-support', element: <Support variant="professional" /> },
+          { path: '/professional-notifications', element: <ProfessionalNotifications /> },
         ],
       },
     ],

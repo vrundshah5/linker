@@ -1,10 +1,21 @@
 import { useState } from 'react'
 import { Lock, Key, CheckCircle, Loader2 } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
+import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
+import AdminLayout from '../components/layouts/AdminLayout'
 import { useChangePassword } from '../hooks/useProfile'
+import { useCurrentUser } from '../hooks/useCurrentUser'
 
 export default function ChangePassword() {
   const { mutate: changePassword, isPending } = useChangePassword()
+  const currentUser = useCurrentUser()
+
+  const Layout =
+    currentUser.role === 'admin'
+      ? AdminLayout
+      : currentUser.workspaceType === 'professional'
+        ? WorkspaceLayout
+        : AppLayout
 
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -25,7 +36,7 @@ export default function ChangePassword() {
   }
 
   return (
-    <AppLayout>
+    <Layout>
       <div className="h-full flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto px-8 py-6">
           {/* ─── Header Card ─── */}
@@ -105,6 +116,6 @@ export default function ChangePassword() {
           </div>
         </div>
       </div>
-    </AppLayout>
+    </Layout>
   )
 }

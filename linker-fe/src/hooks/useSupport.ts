@@ -12,7 +12,7 @@ export function useMyTickets() {
 export function useSubmitTicket() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (data: { title: string; description: string; priority: TicketPriority }) =>
+    mutationFn: (data: { title: string; description: string; priority: TicketPriority; workspace: 'personal' | 'professional' }) =>
       supportService.submit(data),
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.support.mine }),
   })

@@ -13,7 +13,7 @@ export interface AppNotification {
   read: boolean
   meta: {
     requestId?: string
-    fromUserId?: { _id: string; name: string; email: string } | null
+    fromUserId?: { _id: string; name: string; email: string; avatar?: string } | null
     projectId?: string | null
     actorName?: string | null
     projectName?: string | null

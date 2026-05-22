@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Ban, Loader2, Eye, Trash2 } from 'lucide-react'
+import { Ban, Loader2, Eye, Trash2, ChevronsUpDown, ChevronUp, ChevronDown } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import AdminLayout from '../components/layouts/AdminLayout'
 import ConfirmModal from '../components/ui/ConfirmModal'
@@ -38,6 +38,8 @@ export default function AdminManageUsers() {
   const [page, setPage] = useState(1)
   const [banTarget, setBanTarget] = useState<AdminUser | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null)
+  const [sortKey, setSortKey] = useState<'name' | 'status' | 'createdAt'>('createdAt')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const navigate = useNavigate()
 
   const { data, isLoading } = useAdminUsers({ search: debouncedSearch, page, limit: 10 })
@@ -47,12 +49,31 @@ export default function AdminManageUsers() {
   function handleSearch(value: string) {
     setSearch(value)
     setPage(1)
-    // simple debounce via setTimeout
     clearTimeout((window as unknown as { _st?: number })._st)
     ;(window as unknown as { _st?: number })._st = window.setTimeout(() => setDebouncedSearch(value), 400)
   }
 
-  const users = data?.data.users ?? []
+  function handleSort(key: 'name' | 'status' | 'createdAt') {
+    if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    else { setSortKey(key); setSortDir('asc') }
+  }
+
+  function SortIcon({ col }: { col: 'name' | 'status' | 'createdAt' }) {
+    if (sortKey !== col) return <ChevronsUpDown className="size-3 ml-1 opacity-40" />
+    return sortDir === 'asc'
+      ? <ChevronUp className="size-3 ml-1 text-primary" />
+      : <ChevronDown className="size-3 ml-1 text-primary" />
+  }
+
+  const rawUsers = data?.data.users ?? []
+  const users = [...rawUsers].sort((a, b) => {
+    let cmp = 0
+    if (sortKey === 'name')      cmp = a.name.localeCompare(b.name)
+    if (sortKey === 'status')    cmp = (a.isBanned ? 1 : 0) - (b.isBanned ? 1 : 0)
+    if (sortKey === 'createdAt') cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    return sortDir === 'asc' ? cmp : -cmp
+  })
+
   const pagination = data?.data.pagination
   const totalPages = pagination?.totalPages ?? 1
   const startIndex = pagination ? (pagination.page - 1) * pagination.limit + 1 : 0
@@ -76,9 +97,22 @@ export default function AdminManageUsers() {
 
             {/* Table header */}
             <div className="grid grid-cols-[2fr_2fr_110px_1fr_110px_140px_130px] px-6 py-3 border-b border-border">
-              {['User', 'Email', 'Status', 'Workspace', 'Onboarding', 'Joined', 'Actions'].map((col) => (
-                <span key={col} className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                  {col}
+              {([
+                { key: 'name',      label: 'User'       },
+                { key: null,        label: 'Email'      },
+                { key: 'status',    label: 'Status'     },
+                { key: null,        label: 'Workspace'  },
+                { key: null,        label: 'Onboarding' },
+                { key: 'createdAt', label: 'Joined'     },
+                { key: null,        label: 'Actions'    },
+              ] as { key: 'name' | 'status' | 'createdAt' | null; label: string }[]).map(({ key, label }) => (
+                <span
+                  key={label}
+                  onClick={() => key && handleSort(key)}
+                  className={`text-[11px] font-bold text-muted-foreground uppercase tracking-wider inline-flex items-center ${key ? 'cursor-pointer select-none hover:text-foreground transition-colors' : ''}`}
+                >
+                  {label}
+                  {key && <SortIcon col={key} />}
                 </span>
               ))}
             </div>
@@ -108,7 +142,7 @@ export default function AdminManageUsers() {
                           {getInitials(user.name)}
                         </div>
                       )}
-                      <span className="text-sm font-bold text-foreground truncate">{user.name}</span>
+                      <span className="text-sm font-bold text-foreground truncate capitalize">{user.name}</span>
                     </div>
 
                     {/* Email */}

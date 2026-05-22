@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { LifeBuoy, Clock, CheckCircle2, AlertCircle, Loader2, ChevronDown, X } from 'lucide-react'
+import { LifeBuoy, Clock, CheckCircle2, AlertCircle, Loader2, ChevronDown, X, ChevronsUpDown, ChevronUp } from 'lucide-react'
 import AdminLayout from '../components/layouts/AdminLayout'
+import PageHeader from '../components/ui/PageHeader'
 import { useAdminTickets, useAdminUpdateTicket } from '../hooks/useSupport'
 import type { TicketStatus, TicketPriority, AdminSupportTicket } from '../services/supportService'
 import toast from 'react-hot-toast'
@@ -15,6 +16,28 @@ const PRIORITY_CONFIG: Record<TicketPriority, { label: string; color: string }> 
   low:    { label: 'Low',    color: 'bg-muted text-muted-foreground' },
   medium: { label: 'Medium', color: 'bg-warning/10 text-warning' },
   high:   { label: 'High',   color: 'bg-danger/10 text-danger' },
+}
+
+const WORKSPACE_CONFIG = {
+  personal:     { label: 'Personal',     color: 'bg-muted text-muted-foreground' },
+  professional: { label: 'Professional', color: 'bg-primary/10 text-primary' },
+}
+
+type SortKey = 'title' | 'priority' | 'status' | 'workspace' | 'createdAt'
+
+const PRIORITY_ORDER: Record<TicketPriority, number> = { high: 0, medium: 1, low: 2 }
+const STATUS_ORDER: Record<TicketStatus, number>     = { open: 0, 'in-progress': 1, resolved: 2 }
+
+function sortTickets(tickets: AdminSupportTicket[], key: SortKey, dir: 'asc' | 'desc') {
+  return [...tickets].sort((a, b) => {
+    let cmp = 0
+    if (key === 'title')     cmp = a.title.localeCompare(b.title)
+    if (key === 'priority')  cmp = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]
+    if (key === 'status')    cmp = STATUS_ORDER[a.status] - STATUS_ORDER[b.status]
+    if (key === 'workspace') cmp = a.workspace.localeCompare(b.workspace)
+    if (key === 'createdAt') cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    return dir === 'asc' ? cmp : -cmp
+  })
 }
 
 function TicketDrawer({
@@ -59,7 +82,7 @@ function TicketDrawer({
                 {ticket.userId.name.slice(0, 2).toUpperCase()}
               </div>
               <div>
-                <p className="text-sm font-bold text-foreground">{ticket.userId.name}</p>
+                <p className="text-sm font-bold text-foreground capitalize">{ticket.userId.name}</p>
                 <p className="text-xs text-muted-foreground">{ticket.userId.email}</p>
               </div>
             </div>
@@ -76,9 +99,12 @@ function TicketDrawer({
           </div>
 
           {/* Meta */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full ${PRIORITY_CONFIG[ticket.priority].color}`}>
               {PRIORITY_CONFIG[ticket.priority].label} priority
+            </span>
+            <span className={`inline-flex items-center text-[11px] font-bold px-2.5 py-1 rounded-full ${WORKSPACE_CONFIG[ticket.workspace].color}`}>
+              {WORKSPACE_CONFIG[ticket.workspace].label}
             </span>
             <span className="text-xs text-muted-foreground">
               {new Date(ticket.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -151,30 +177,39 @@ export default function AdminSupport() {
   const [statusFilter, setStatusFilter] = useState('')
   const [priorityFilter, setPriorityFilter] = useState('')
   const [selected, setSelected] = useState<AdminSupportTicket | null>(null)
+  const [sortKey, setSortKey] = useState<SortKey>('createdAt')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
 
   const { data, isLoading } = useAdminTickets({
     status: statusFilter || undefined,
     priority: priorityFilter || undefined,
   })
 
-  const tickets = data?.tickets ?? []
+  const rawTickets = data?.tickets ?? []
+  const tickets = sortTickets(rawTickets, sortKey, sortDir)
   const total = data?.total ?? 0
+
+  function handleSort(key: SortKey) {
+    if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    else { setSortKey(key); setSortDir('asc') }
+  }
+
+  function SortIcon({ col }: { col: SortKey }) {
+    if (sortKey !== col) return <ChevronsUpDown className="size-3 ml-1 opacity-40" />
+    return sortDir === 'asc'
+      ? <ChevronUp className="size-3 ml-1 text-primary" />
+      : <ChevronDown className="size-3 ml-1 text-primary" />
+  }
 
   return (
     <AdminLayout>
       <div className="h-full overflow-y-auto">
         <div className="px-8 py-8">
 
-          {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            <div className="size-12 rounded-2xl bg-danger/10 flex items-center justify-center shrink-0">
-              <LifeBuoy className="size-6 text-danger" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Support Tickets</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">{total} ticket{total !== 1 ? 's' : ''} total</p>
-            </div>
-          </div>
+          <PageHeader
+            title="Support Tickets"
+            subtitle={`${total} ticket${total !== 1 ? 's' : ''} total`}
+          />
 
           {/* Filters */}
           <div className="flex items-center gap-3 mb-6">
@@ -224,17 +259,32 @@ export default function AdminSupport() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-5 py-3.5">Title</th>
-                    <th className="text-left text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-5 py-3.5">Submitted By</th>
-                    <th className="text-left text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-5 py-3.5">Priority</th>
-                    <th className="text-left text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-5 py-3.5">Status</th>
-                    <th className="text-left text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-5 py-3.5">Date</th>
+                    {([
+                      { key: 'title',     label: 'Title' },
+                      { key: null,        label: 'Submitted By' },
+                      { key: 'workspace', label: 'Workspace' },
+                      { key: 'priority',  label: 'Priority' },
+                      { key: 'status',    label: 'Status' },
+                      { key: 'createdAt', label: 'Date' },
+                    ] as { key: SortKey | null; label: string }[]).map(({ key, label }) => (
+                      <th
+                        key={label}
+                        className={`text-left text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-5 py-3.5 ${key ? 'cursor-pointer select-none hover:text-foreground transition-colors' : ''}`}
+                        onClick={() => key && handleSort(key)}
+                      >
+                        <span className="inline-flex items-center">
+                          {label}
+                          {key && <SortIcon col={key} />}
+                        </span>
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
                   {tickets.map((ticket, i) => {
                     const status = STATUS_CONFIG[ticket.status]
                     const prio = PRIORITY_CONFIG[ticket.priority]
+                    const ws = WORKSPACE_CONFIG[ticket.workspace]
                     const StatusIcon = status.icon
                     return (
                       <tr
@@ -247,8 +297,13 @@ export default function AdminSupport() {
                           <p className="text-xs text-muted-foreground truncate mt-0.5">{ticket.description}</p>
                         </td>
                         <td className="px-5 py-4">
-                          <p className="text-sm font-semibold text-foreground">{ticket.userId.name}</p>
+                          <p className="text-sm font-semibold text-foreground capitalize">{ticket.userId.name}</p>
                           <p className="text-xs text-muted-foreground">{ticket.userId.email}</p>
+                        </td>
+                        <td className="px-5 py-4">
+                          <span className={`inline-flex text-[11px] font-bold px-2.5 py-1 rounded-full ${ws.color}`}>
+                            {ws.label}
+                          </span>
                         </td>
                         <td className="px-5 py-4">
                           <span className={`inline-flex text-[11px] font-bold px-2.5 py-1 rounded-full ${prio.color}`}>

@@ -1,5 +1,4 @@
 import { useMutation } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
 import { onboardService } from '../../services/onboard.service'
 
 interface ProfessionalPayload {
@@ -23,10 +22,10 @@ export function useCompleteProfessionalOnboard() {
           workspaces: data.user.workspaces ?? [...(user.workspaces ?? []), 'professional'],
         }))
       }
-      toast.success(data.user.name ? `Welcome, ${data.user.name.split(' ')[0]}!` : 'Onboarding complete!')
+      // Toast suppressed — the onboard splash handles the success feedback
     },
     onError: () => {
-      toast.error('Failed to complete onboarding. Please try again.')
+      // toast suppressed here too; parent can show inline error if needed
     },
   })
 }

@@ -34,9 +34,17 @@ export default function CreateCategory() {
     formState: { errors, isSubmitting },
   } = useForm<CategoryFormData>({ resolver: yupResolver(schema) })
 
+  const [iconSizeError, setIconSizeError] = useState<string | null>(null)
+
   function handleIconChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    if (file.size > 2 * 1024 * 1024) {
+      setIconSizeError('Image must be 2 MB or smaller.')
+      e.target.value = ''
+      return
+    }
+    setIconSizeError(null)
     const reader = new FileReader()
     reader.onload = () => setIconPreview(reader.result as string)
     reader.readAsDataURL(file)
@@ -131,6 +139,9 @@ export default function CreateCategory() {
                 >
                   Choose Icon
                 </button>
+                {iconSizeError && (
+                  <p className="text-xs text-danger mt-2">{iconSizeError}</p>
+                )}
               </div>
             </div>
 

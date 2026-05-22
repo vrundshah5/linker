@@ -11,7 +11,7 @@ export const getNotifications = async (req, res) => {
     const notifications = await Notification.find(filter)
       .sort({ createdAt: -1 })
       .limit(50)
-      .populate('meta.fromUserId', 'name email');
+      .populate('meta.fromUserId', 'name email avatar');
 
     return res.json({ success: true, data: notifications, message: 'Notifications fetched' });
   } catch (err) {

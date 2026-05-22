@@ -16,6 +16,11 @@ const supportTicketSchema = new mongoose.Schema(
       default: 'medium',
     },
     adminNote: { type: String, default: '', maxlength: 1000 },
+    workspace: {
+      type: String,
+      enum: ['personal', 'professional'],
+      default: 'personal',
+    },
   },
   { timestamps: true }
 );

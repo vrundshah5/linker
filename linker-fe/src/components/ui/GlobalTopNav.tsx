@@ -108,7 +108,7 @@ export default function GlobalTopNav() {
                 }
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-foreground truncate">{user.name}</p>
+                <p className="text-sm font-bold text-foreground truncate capitalize">{user.name}</p>
                 <span className={`inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeBg} uppercase tracking-wider mt-1`}>
                   {badge}
                 </span>

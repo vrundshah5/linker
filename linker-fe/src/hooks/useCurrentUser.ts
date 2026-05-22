@@ -7,6 +7,7 @@ export interface CurrentUser {
   name: string
   email: string
   initials: string
+  role: 'user' | 'admin'
   onboardingComplete: boolean
   workspaceType: 'personal' | 'professional' | null
   workspaces: string[]
@@ -20,6 +21,7 @@ export function useCurrentUser(): CurrentUser {
         id: string
         name: string
         email: string
+        role?: 'user' | 'admin'
         onboardingComplete?: boolean
         workspaceType?: 'personal' | 'professional' | null
         workspaces?: string[]
@@ -31,6 +33,7 @@ export function useCurrentUser(): CurrentUser {
       return {
         ...user,
         initials,
+        role: user.role ?? 'user',
         onboardingComplete: user.onboardingComplete ?? false,
         workspaceType: user.workspaceType ?? null,
         workspaces: user.workspaces ?? [],
@@ -39,5 +42,5 @@ export function useCurrentUser(): CurrentUser {
   } catch {
     // ignore malformed data
   }
-  return { id: '', name: '', email: '', initials: '', onboardingComplete: false, workspaceType: null, workspaces: [] }
+  return { id: '', name: '', email: '', initials: '', role: 'user', onboardingComplete: false, workspaceType: null, workspaces: [] }
 }

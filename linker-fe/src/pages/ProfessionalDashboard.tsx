@@ -187,15 +187,24 @@ export default function ProfessionalDashboard() {
                         return (
                           <div className="flex items-center justify-between">
                             <div className="flex items-center">
-                              {otherMembers.slice(0, 3).map((m, i) => (
-                                <div
-                                  key={m.userId._id}
-                                  className={`size-7 rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-surface ${
-                                    AVATAR_COLORS[i % AVATAR_COLORS.length]
-                                  } ${i > 0 ? '-ml-2' : ''}`}
-                                >
-                                  {getInitials(m.userId.name)}
-                                </div>
+                          {otherMembers.slice(0, 3).map((m, i) => (
+                                m.userId.avatar ? (
+                                  <img
+                                    key={m.userId._id}
+                                    src={`/avatars/${m.userId.avatar}.png`}
+                                    alt={m.userId.name}
+                                    className={`size-7 rounded-full object-cover ring-2 ring-surface ${i > 0 ? '-ml-2' : ''}`}
+                                  />
+                                ) : (
+                                  <div
+                                    key={m.userId._id}
+                                    className={`size-7 rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-surface ${
+                                      AVATAR_COLORS[i % AVATAR_COLORS.length]
+                                    } ${i > 0 ? '-ml-2' : ''}`}
+                                  >
+                                    {getInitials(m.userId.name)}
+                                  </div>
+                                )
                               ))}
                               {otherMembers.length > 3 && (
                                 <div className="size-7 rounded-full bg-muted text-muted-foreground text-[10px] font-bold flex items-center justify-center ring-2 ring-surface -ml-2">

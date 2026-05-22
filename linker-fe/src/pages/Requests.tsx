@@ -250,7 +250,7 @@ export default function Requests() {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-1.5">
-                      <span className="text-base font-bold text-foreground">{otherUser.name}</span>
+                      <span className="text-base font-bold text-foreground capitalize">{otherUser.name}</span>
                       <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide ${STATUS_STYLES[displayStatus].className}`}>
                         {STATUS_STYLES[displayStatus].label}
                       </span>

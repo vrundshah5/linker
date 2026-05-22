@@ -18,7 +18,18 @@ createRoot(document.getElementById('root')!).render(
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
       <QueryClientProvider client={queryClient}>
         <App />
-        <Toaster position="top-right" toastOptions={{ className: 'text-sm' }} />
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            className: 'text-sm',
+            success: {
+              iconTheme: { primary: '#22c55e', secondary: '#fff' },
+            },
+            error: {
+              iconTheme: { primary: '#ef4444', secondary: '#fff' },
+            },
+          }}
+        />
       </QueryClientProvider>
     </GoogleOAuthProvider>
   </StrictMode>,

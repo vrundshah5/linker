@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { X, CheckCheck, Bell, UserPlus, UserCheck, UserX, Users, FolderPlus, LifeBuoy } from 'lucide-react'
+import { X, CheckCheck, Bell } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
 import PageHeader from '../components/ui/PageHeader'
+import NotifAvatar from '../components/ui/NotifAvatar'
 import type { NotificationType } from '../services/notificationService'
 import {
   useNotifications,
@@ -11,13 +12,13 @@ import {
   useDeleteNotification,
 } from '../hooks/useNotifications'
 
-const TYPE_META: Record<NotificationType, { icon: React.ElementType; bg: string; color: string; label: string }> = {
-  new_user:         { icon: Users,       bg: 'bg-primary/10',  color: 'text-primary',  label: 'New User'       },
-  request_received: { icon: UserPlus,    bg: 'bg-success/15',  color: 'text-success',  label: 'Request'        },
-  request_accepted: { icon: UserCheck,   bg: 'bg-success/15',  color: 'text-success',  label: 'Accepted'       },
-  request_rejected: { icon: UserX,       bg: 'bg-danger/10',   color: 'text-danger',   label: 'Declined'       },
-  project_invite:   { icon: FolderPlus,  bg: 'bg-primary/10',  color: 'text-primary',  label: 'Project Invite' },
-  support_ticket:   { icon: LifeBuoy,    bg: 'bg-warning/10',  color: 'text-warning',  label: 'Support'        },
+const TYPE_META: Record<NotificationType, { bg: string; color: string; label: string }> = {
+  new_user:         { bg: 'bg-primary/10',  color: 'text-primary',  label: 'New User'       },
+  request_received: { bg: 'bg-success/15',  color: 'text-success',  label: 'Request'        },
+  request_accepted: { bg: 'bg-success/15',  color: 'text-success',  label: 'Accepted'       },
+  request_rejected: { bg: 'bg-danger/10',   color: 'text-danger',   label: 'Declined'       },
+  project_invite:   { bg: 'bg-primary/10',  color: 'text-primary',  label: 'Project Invite' },
+  support_ticket:   { bg: 'bg-warning/10',  color: 'text-warning',  label: 'Support'        },
 }
 
 const FILTER_TABS = ['All', 'Unread', 'Request', 'New User'] as const
@@ -131,7 +132,7 @@ export default function Notifications() {
           ) : (
             <div className="bg-surface border border-border rounded-2xl overflow-hidden">
               {filtered.map((n, idx) => {
-                const { icon: Icon, bg, color, label } = TYPE_META[n.type]
+                const { bg, color, label } = TYPE_META[n.type]
                 const isRequest = n.type === 'request_received' || n.type === 'request_accepted' || n.type === 'request_rejected'
                 return (
                   <div
@@ -141,10 +142,7 @@ export default function Notifications() {
                       !n.read ? 'bg-secondary/20' : 'hover:bg-muted/40'
                     } ${idx !== 0 ? 'border-t border-border' : ''} ${isRequest ? 'cursor-pointer' : ''}`}
                   >
-                    {/* Icon */}
-                    <div className={`size-10 rounded-xl ${bg} flex items-center justify-center shrink-0 mt-0.5`}>
-                      <Icon className={`size-5 ${color}`} />
-                    </div>
+                    <NotifAvatar n={n} />
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">

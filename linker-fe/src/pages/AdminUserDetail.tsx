@@ -114,7 +114,7 @@ export default function AdminUserDetail() {
                       </div>
                     )}
                     <div>
-                      <h2 className="text-xl font-bold text-foreground">{user.name}</h2>
+                      <h2 className="text-xl font-bold text-foreground capitalize">{user.name}</h2>
                       <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-0.5">
                         <Mail className="size-3.5" />
                         {user.email}

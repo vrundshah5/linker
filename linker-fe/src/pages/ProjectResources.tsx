@@ -16,6 +16,7 @@ import {
   useDeleteProjectResource,
   useUpdateProjectResource,
 } from '../hooks/useProjects'
+import { useCurrentUser } from '../hooks/useCurrentUser'
 import type { ProjectResourceItem } from '../services/projectService'
 
 type ViewMode = 'list' | 'grid' | 'card' | 'table'
@@ -115,6 +116,10 @@ export default function ProjectResources() {
   const { data: resources, isLoading } = useProjectResources(projectId)
   const { mutate: addResources, isPending: adding } = useAddProjectResources()
   const { mutate: deleteResource } = useDeleteProjectResource()
+  const currentUser = useCurrentUser()
+
+  const isOwner = project?.ownerId?._id === currentUser.id
+  const canAddResources = isOwner || (project?.permissions?.anyoneCanAddResources ?? true)
 
   const [topSearch, setTopSearch] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
@@ -173,6 +178,7 @@ export default function ProjectResources() {
                     </button>
                   ))}
                 </div>
+                {canAddResources && (
                 <button
                   type="button"
                   onClick={() => setShowAddModal(true)}
@@ -180,6 +186,7 @@ export default function ProjectResources() {
                 >
                   + Add Resource
                 </button>
+                )}
               </div>
             }
           />
@@ -193,7 +200,11 @@ export default function ProjectResources() {
               <BookMarked className="size-10 text-muted-foreground mx-auto mb-3" />
               <p className="text-base font-bold text-foreground mb-1">No resources yet</p>
               <p className="text-sm text-muted-foreground">
-                Click "+ Add Resource" to save links and documents to this project.
+                {topSearch.trim()
+                  ? `No resources match "${topSearch}".`
+                  : canAddResources
+                    ? 'Click "+ Add Resource" to save links and documents to this project.'
+                    : 'No resources have been added to this project yet.'}
               </p>
             </div>
           ) : viewMode === 'list' ? (

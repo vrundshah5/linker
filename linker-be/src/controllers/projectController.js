@@ -14,7 +14,9 @@ export const listProjects = async (req, res) => {
       $or: [{ ownerId: myId }, { 'members.userId': myId }],
     })
       .populate('ownerId', 'name email')
-      .populate('members.userId', 'name email')
+      .populate('members.userId', 'name email avatar')
+      .populate('invites.userId', 'name email')
+      .populate('invites.invitedBy', 'name email')
       .sort({ updatedAt: -1 });
 
     // Attach resource count to each project
@@ -55,7 +57,9 @@ export const createProject = async (req, res) => {
     });
 
     await project.populate('ownerId', 'name email');
-    await project.populate('members.userId', 'name email');
+    await project.populate('members.userId', 'name email avatar');
+    await project.populate('invites.userId', 'name email');
+    await project.populate('invites.invitedBy', 'name email');
 
     return res.status(201).json({ success: true, data: project, message: 'Project created' });
   } catch (err) {
@@ -67,7 +71,7 @@ export const createProject = async (req, res) => {
 // PATCH /api/projects/:id
 export const updateProject = async (req, res) => {
   try {
-    const { name, description, color, iconUrl } = req.body;
+    const { name, description, color, iconUrl, permissions } = req.body;
 
     const project = await Project.findOne({
       _id: req.params.id,
@@ -82,10 +86,14 @@ export const updateProject = async (req, res) => {
     if (description !== undefined) project.description = description.trim();
     if (color !== undefined) project.color = color;
     if (iconUrl !== undefined) project.iconUrl = iconUrl;
+    if (permissions !== undefined) {
+      if (typeof permissions.anyoneCanInvite === 'boolean') project.permissions.anyoneCanInvite = permissions.anyoneCanInvite;
+      if (typeof permissions.anyoneCanAddResources === 'boolean') project.permissions.anyoneCanAddResources = permissions.anyoneCanAddResources;
+    }
 
     await project.save();
     await project.populate('ownerId', 'name email');
-    await project.populate('members.userId', 'name email');
+    await project.populate('members.userId', 'name email avatar');
 
     return res.json({ success: true, data: project, message: 'Project updated' });
   } catch (err) {
@@ -136,7 +144,7 @@ export const getProjectStats = async (req, res) => {
   }
 };
 
-// POST /api/projects/:id/members — invite a professional user by email
+// POST /api/projects/:id/members — send an invite (does NOT add directly)
 export const addProjectMember = async (req, res) => {
   try {
     const { email } = req.body;
@@ -169,24 +177,86 @@ export const addProjectMember = async (req, res) => {
       return res.status(400).json({ success: false, data: null, message: 'This user is already a member of the project' });
     }
 
-    project.members.push({ userId: user._id, role: 'member' });
+    const alreadyInvited = project.invites.some(
+      (inv) => inv.userId.toString() === user._id.toString() && inv.status === 'pending',
+    );
+    if (alreadyInvited) {
+      return res.status(400).json({ success: false, data: null, message: 'This user already has a pending invitation' });
+    }
+
+    // Remove any previous rejected invite so they can be re-invited
+    project.invites = project.invites.filter(
+      (inv) => !(inv.userId.toString() === user._id.toString() && inv.status === 'rejected'),
+    );
+
+    project.invites.push({ userId: user._id, invitedBy: req.user.id, status: 'pending' });
     await project.save();
     await project.populate('ownerId', 'name email');
-    await project.populate('members.userId', 'name email');
+    await project.populate('members.userId', 'name email avatar');
+    await project.populate('invites.userId', 'name email');
+    await project.populate('invites.invitedBy', 'name email');
 
-    // Notify the added user
+    // Fetch inviter name since JWT only carries id
+    const inviter = await User.findById(req.user.id).select('name').lean();
+    const inviterName = inviter?.name ?? 'Someone';
+
+    // Notify the invited user
     await createNotification({
       userId: user._id,
       type: 'project_invite',
-      title: 'Added to a project',
-      body: `${req.user.name ?? 'Someone'} added you to the project "${project.name}".`,
-      meta: { projectId: project._id, fromUserId: req.user.id, actorName: req.user.name ?? null, projectName: project.name },
+      title: 'Project invitation',
+      body: `${inviterName} invited you to join "${project.name}".`,
+      meta: { projectId: project._id, fromUserId: req.user.id, actorName: inviterName, projectName: project.name },
       context: 'professional',
     });
 
-    return res.json({ success: true, data: project, message: 'Member added' });
+    return res.json({ success: true, data: project, message: 'Invitation sent' });
   } catch (err) {
     console.error('addProjectMember error:', err);
+    return res.status(500).json({ success: false, data: null, message: 'Server error' });
+  }
+};
+
+// PATCH /api/projects/:id/invites/respond — accept or reject a pending invite (called by the invited user)
+export const respondToProjectInvite = async (req, res) => {
+  try {
+    const { status } = req.body; // 'accepted' | 'rejected'
+
+    if (!['accepted', 'rejected'].includes(status)) {
+      return res.status(400).json({ success: false, data: null, message: 'Status must be accepted or rejected' });
+    }
+
+    const project = await Project.findById(req.params.id);
+    if (!project) {
+      return res.status(404).json({ success: false, data: null, message: 'Project not found' });
+    }
+
+    const invite = project.invites.find(
+      (inv) => inv.userId.toString() === req.user.id && inv.status === 'pending',
+    );
+    if (!invite) {
+      return res.status(404).json({ success: false, data: null, message: 'No pending invitation found' });
+    }
+
+    invite.status = status;
+
+    if (status === 'accepted') {
+      project.members.push({ userId: req.user.id, role: 'member' });
+      // Notify the project owner
+      await createNotification({
+        userId: project.ownerId,
+        type: 'project_invite',
+        title: 'Invitation accepted',
+        body: `${req.user.name ?? 'Someone'} accepted your invitation to join "${project.name}".`,
+        meta: { projectId: project._id, fromUserId: req.user.id, actorName: req.user.name ?? null, projectName: project.name },
+        context: 'professional',
+      });
+    }
+
+    await project.save();
+    return res.json({ success: true, data: null, message: `Invitation ${status}` });
+  } catch (err) {
+    console.error('respondToProjectInvite error:', err);
     return res.status(500).json({ success: false, data: null, message: 'Server error' });
   }
 };
@@ -216,7 +286,7 @@ export const removeProjectMember = async (req, res) => {
     project.members.splice(memberIndex, 1);
     await project.save();
     await project.populate('ownerId', 'name email');
-    await project.populate('members.userId', 'name email');
+    await project.populate('members.userId', 'name email avatar');
 
     return res.json({ success: true, data: project, message: 'Member removed' });
   } catch (err) {

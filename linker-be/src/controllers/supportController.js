@@ -5,7 +5,7 @@ import Notification from '../models/Notification.js';
 // POST /api/support  — submit a ticket (any authenticated user)
 export const createTicket = async (req, res) => {
   try {
-    const { title, description, priority } = req.body;
+    const { title, description, priority, workspace } = req.body;
 
     if (!title?.trim()) {
       return res.status(400).json({ success: false, data: null, message: 'Title is required' });
@@ -18,6 +18,7 @@ export const createTicket = async (req, res) => {
       title: title.trim(),
       description: description.trim(),
       priority: priority || 'medium',
+      workspace: ['personal', 'professional'].includes(workspace) ? workspace : 'personal',
       userId: req.user.id,
     });
     // Notify all admin users about the new ticket

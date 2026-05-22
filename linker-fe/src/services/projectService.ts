@@ -5,8 +5,17 @@ export interface ProjectMember {
     _id: string
     name: string
     email: string
+    avatar?: string
   }
   role: 'admin' | 'member'
+}
+
+export interface ProjectInvite {
+  _id: string
+  userId: { _id: string; name: string; email: string }
+  invitedBy: { _id: string; name: string; email: string }
+  status: 'pending' | 'accepted' | 'rejected'
+  invitedAt: string
 }
 
 export interface Project {
@@ -15,11 +24,16 @@ export interface Project {
   description: string
   ownerId: { _id: string; name: string; email: string }
   members: ProjectMember[]
+  invites: ProjectInvite[]
   color: string
   iconUrl?: string
   resourceCount: number
   createdAt: string
   updatedAt: string
+  permissions: {
+    anyoneCanInvite: boolean
+    anyoneCanAddResources: boolean
+  }
 }
 
 export interface CreateProjectPayload {
@@ -33,6 +47,10 @@ export interface UpdateProjectPayload {
   description?: string
   color?: string
   iconUrl?: string
+  permissions?: {
+    anyoneCanInvite?: boolean
+    anyoneCanAddResources?: boolean
+  }
 }
 
 export interface ProjectResourceItem {
@@ -95,6 +113,10 @@ export const projectService = {
       `/projects/${projectId}/members/${userId}`,
     )
     return data.data
+  },
+
+  respondToInvite: async (projectId: string, status: 'accepted' | 'rejected'): Promise<void> => {
+    await api.patch(`/projects/${projectId}/invites/respond`, { status })
   },
 
   // Resources

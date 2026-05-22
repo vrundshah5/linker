@@ -8,6 +8,7 @@ import {
   getProjectStats,
   addProjectMember,
   removeProjectMember,
+  respondToProjectInvite,
   listProjectResources,
   addProjectResources,
   deleteProjectResource,
@@ -29,6 +30,7 @@ router.get('/:id/stats', getProjectStats);
 // Members
 router.post('/:id/members', addProjectMember);
 router.delete('/:id/members/:userId', removeProjectMember);
+router.patch('/:id/invites/respond', respondToProjectInvite);
 
 // Resources
 router.get('/:id/resources', listProjectResources);

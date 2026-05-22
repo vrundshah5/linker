@@ -99,7 +99,7 @@ export default function ProjectLayout({ children }: ProjectLayoutProps) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-foreground truncate leading-tight">Acme Corp</p>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide">{user.name}</p>
+                  <p className="text-xs text-muted-foreground capitalize tracking-wide">{user.name}</p>
                 </div>
                 {open
                   ? <ChevronDown className="size-4 text-muted-foreground shrink-0 rotate-180 transition-transform" />
