@@ -8,4 +8,7 @@ export default defineConfig({
   resolve: {
     dedupe: ['react', 'react-dom', 'react-router-dom'],
   },
+  optimizeDeps: {
+    include: ['emoji-picker-react'],
+  },
 })

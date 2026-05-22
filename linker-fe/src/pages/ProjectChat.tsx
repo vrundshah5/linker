@@ -6,11 +6,12 @@ import {
   Search,
   MoreVertical,
   MessageSquare,
-  Paperclip,
   Smile,
   Send,
   Loader2,
+  X,
 } from 'lucide-react'
+import EmojiPicker, { type EmojiClickData, Theme } from 'emoji-picker-react'
 import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
 import { useProject, useProjectMessages, useSendProjectMessage } from '../hooks/useProjects'
 import { useProfile } from '../hooks/useProfile'
@@ -22,12 +23,31 @@ export default function ProjectChat() {
   const { data: messages, isLoading } = useProjectMessages(projectId)
   const { mutate: sendMessage, isPending: sending } = useSendProjectMessage()
   const [input, setInput] = useState('')
+  const [showEmoji, setShowEmoji] = useState(false)
+  const [showMembers, setShowMembers] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const emojiRef = useRef<HTMLDivElement>(null)
 
   const projectName = project?.name ?? 'Project'
   const memberCount = project?.members.length ?? 0
   const currentUserId = me?._id
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    function onPointerDown(e: PointerEvent) {
+      if (emojiRef.current && !emojiRef.current.contains(e.target as Node)) {
+        setShowEmoji(false)
+      }
+    }
+    if (showEmoji) document.addEventListener('pointerdown', onPointerDown)
+    return () => document.removeEventListener('pointerdown', onPointerDown)
+  }, [showEmoji])
+
+  function handleEmojiClick(data: EmojiClickData) {
+    setInput((prev) => prev + data.emoji)
+    inputRef.current?.focus()
+  }
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -59,6 +79,8 @@ export default function ProjectChat() {
       .slice(0, 2)
   }
 
+  const isDark = document.documentElement.classList.contains('dark')
+
   return (
     <WorkspaceLayout>
       <div className="h-full flex flex-col overflow-hidden bg-background">
@@ -71,27 +93,78 @@ export default function ProjectChat() {
             </div>
             <div>
               <h3 className="text-lg font-bold text-foreground leading-tight">{projectName}</h3>
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-0.5">
+              {/* Clickable member count */}
+              <button
+                type="button"
+                onClick={() => setShowMembers((p) => !p)}
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors mt-0.5 cursor-pointer"
+              >
                 <Users className="size-3.5 shrink-0" />
                 <span>{memberCount} Member{memberCount !== 1 ? 's' : ''} in this group</span>
-              </div>
+              </button>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button
               type="button"
-              className="size-10 rounded-xl border border-border text-muted-foreground hover:text-foreground hover:bg-muted flex items-center justify-center transition-colors"
+              className="size-10 rounded-xl border border-border text-muted-foreground hover:text-foreground hover:bg-muted flex items-center justify-center transition-colors cursor-pointer"
             >
               <Search className="size-4" />
             </button>
             <button
               type="button"
-              className="size-10 rounded-xl border border-border text-muted-foreground hover:text-foreground hover:bg-muted flex items-center justify-center transition-colors"
+              className="size-10 rounded-xl border border-border text-muted-foreground hover:text-foreground hover:bg-muted flex items-center justify-center transition-colors cursor-pointer"
             >
               <MoreVertical className="size-4" />
             </button>
           </div>
         </div>
+
+        {/* Members panel (slide-in) */}
+        {showMembers && project && (
+          <div className="bg-surface border-b border-border px-8 py-4 flex flex-col gap-3 shrink-0 animate-in slide-in-from-top-2 duration-200">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-bold text-foreground">Group Members</h4>
+              <button
+                type="button"
+                onClick={() => setShowMembers(false)}
+                className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {project.members.map((m, idx) => {
+                const name = m.userId.name ?? 'Member'
+                const avatar = m.userId.avatar
+                const uid = m.userId._id
+                const isOwner = uid === project.ownerId?._id
+                return (
+                  <div key={uid ?? idx} className="flex items-center gap-2 bg-muted/50 rounded-xl px-3 py-2">
+                    {avatar ? (
+                      <img
+                        src={`/avatars/${avatar}.png`}
+                        alt={name}
+                        className="size-7 rounded-full object-cover shrink-0"
+                      />
+                    ) : (
+                      <div className="size-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold shrink-0">
+                        {getInitials(name)}
+                      </div>
+                    )}
+                    <span className="text-sm font-semibold text-foreground capitalize">{name}</span>
+                    {isOwner && (
+                      <span className="text-[10px] uppercase font-bold text-primary/70 bg-primary/10 px-1.5 py-0.5 rounded">Owner</span>
+                    )}
+                    {m.role === 'admin' && !isOwner && (
+                      <span className="text-[10px] uppercase font-bold text-warning/70 bg-warning/10 px-1.5 py-0.5 rounded">Admin</span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Message list */}
         <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-4">
@@ -159,16 +232,31 @@ export default function ProjectChat() {
 
         {/* Input bar */}
         <div className="p-6 bg-surface border-t border-border shrink-0 z-10">
-          <div className="flex items-center gap-3 bg-input border border-border rounded-2xl p-2 shadow-sm">
+          {/* Emoji picker (floats above input) */}
+          {showEmoji && (
+            <div ref={emojiRef} className="mb-3">
+              <EmojiPicker
+                onEmojiClick={handleEmojiClick}
+                theme={isDark ? Theme.DARK : Theme.LIGHT}
+                width="100%"
+                height={340}
+                lazyLoadEmojis
+                searchPlaceholder="Search emoji…"
+              />
+            </div>
+          )}
+
+          <div className="flex items-center gap-3 bg-input border border-border rounded-2xl p-2 shadow-sm focus-within:border-primary transition-colors">
+            {/* Emoji toggle */}
             <button
               type="button"
-              className="size-10 flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-secondary rounded-xl shrink-0 transition-colors"
-            >
-              <Paperclip className="size-5" />
-            </button>
-            <button
-              type="button"
-              className="size-10 flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-secondary rounded-xl shrink-0 transition-colors"
+              onClick={() => setShowEmoji((p) => !p)}
+              className={`size-10 flex items-center justify-center rounded-xl shrink-0 transition-colors cursor-pointer ${
+                showEmoji
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-muted-foreground hover:text-primary hover:bg-secondary'
+              }`}
+              aria-label="Toggle emoji picker"
             >
               <Smile className="size-5" />
             </button>
@@ -190,10 +278,10 @@ export default function ProjectChat() {
               type="button"
               onClick={handleSend}
               disabled={!input.trim() || sending}
-              className="px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-xl shadow-sm hover:opacity-90 flex items-center gap-2 transition-opacity shrink-0 disabled:opacity-50"
+              className="px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-xl shadow-sm hover:opacity-90 flex items-center gap-2 transition-opacity shrink-0 disabled:opacity-50 cursor-pointer"
             >
+              {sending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
               Send
-              <Send className="size-4" />
             </button>
           </div>
         </div>

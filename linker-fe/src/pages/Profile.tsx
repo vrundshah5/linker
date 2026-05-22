@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Save, User, Mail, Phone, MapPin, Briefcase, Globe, Camera,
-  Building2, Loader2,
+  Building2, Loader2, ArrowRightLeft, PlusCircle,
 } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
 import PageHeader from '../components/ui/PageHeader'
 import ConfirmModal from '../components/ui/ConfirmModal'
 import { AvatarPickerGrid, getAvatarById } from '../components/ui/AvatarPicker'
-import { useProfile, useUpdateProfile } from '../hooks/useProfile'
+import { useProfile, useUpdateProfile, useSwitchWorkspace } from '../hooks/useProfile'
 
 function getInitials(name: string) {
   const parts = name.trim().split(' ')
@@ -35,8 +36,10 @@ function Toggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void 
 }
 
 export default function Profile() {
+  const navigate = useNavigate()
   const { data: profile, isLoading } = useProfile()
   const { mutate: saveProfile, isPending: saving } = useUpdateProfile()
+  const { mutate: switchWorkspace, isPending: isSwitching } = useSwitchWorkspace()
 
   const [name, setName]         = useState('')
   const [avatar, setAvatar]     = useState('')
@@ -303,6 +306,70 @@ export default function Profile() {
                       className="w-full bg-input border border-border rounded-xl text-sm text-foreground px-4 py-3 focus:outline-none focus:border-primary transition-colors resize-none placeholder:text-muted-foreground"
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* ─── Workspace Management ─── */}
+              <div className="bg-surface p-8 rounded-2xl shadow-sm flex flex-col">
+                <h2 className="text-xl font-bold text-foreground mb-2">Workspace</h2>
+                <p className="text-sm text-muted-foreground mb-6">
+                  You are currently on your <span className="font-bold text-foreground">Personal</span> workspace.
+                  {profile && !profile.workspaces.includes('professional')
+                    ? ' Set up a Professional workspace to manage projects and collaborate with a team.'
+                    : ' Switch to your Professional workspace or stay here.'}
+                </p>
+                <div className="flex flex-col gap-3">
+                  {/* Active workspace badge */}
+                  <div className="flex items-center gap-3 p-4 border-2 border-primary/30 bg-primary/5 rounded-2xl">
+                    <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <User className="size-5" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-foreground">Personal Workspace</p>
+                      <p className="text-xs text-muted-foreground">Organise links, categories & connections</p>
+                    </div>
+                    <span className="text-[11px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-lg bg-primary text-primary-foreground">Active</span>
+                  </div>
+
+                  {/* Professional workspace card */}
+                  {profile && profile.workspaces.includes('professional') ? (
+                    <div className="flex items-center gap-3 p-4 border border-border bg-background rounded-2xl">
+                      <div className="size-10 rounded-xl bg-muted text-muted-foreground flex items-center justify-center shrink-0">
+                        <Briefcase className="size-5" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-foreground">Professional Workspace</p>
+                        <p className="text-xs text-muted-foreground">Projects, team chat & resources</p>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={isSwitching}
+                        onClick={() => switchWorkspace('professional')}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-secondary text-primary text-sm font-bold rounded-xl hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shrink-0"
+                      >
+                        {isSwitching ? <Loader2 className="size-4 animate-spin" /> : <ArrowRightLeft className="size-4" />}
+                        Switch
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3 p-4 border border-dashed border-border bg-background rounded-2xl">
+                      <div className="size-10 rounded-xl bg-muted text-muted-foreground flex items-center justify-center shrink-0">
+                        <Briefcase className="size-5" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-foreground">Professional Workspace</p>
+                        <p className="text-xs text-muted-foreground">Not set up yet — manage projects & teams</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => navigate('/onboard/professional')}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-secondary text-primary text-sm font-bold rounded-xl hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer shrink-0"
+                      >
+                        <PlusCircle className="size-4" />
+                        Set up
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
