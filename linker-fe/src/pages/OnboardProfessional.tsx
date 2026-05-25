@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Link, Mail, Link2, Plus, Trash2, X, User, Pencil, Check } from 'lucide-react'
+import { Link, Mail, Link2, Plus, Trash2, X, User, Pencil, Check, AlertCircle } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { useCompleteProfessionalOnboard } from '../hooks/onboard/useCompleteProfessionalOnboard'
 import OnboardSplash from '../components/ui/OnboardSplash'
 import { useCurrentUser } from '../hooks/useCurrentUser'
+import api from '../lib/axios'
 
 const schema = yup.object({
   projectName: yup
@@ -34,6 +35,17 @@ interface Resource {
   editing?: boolean
   editTitle?: string
   editUrl?: string
+  editError?: string
+}
+
+function isValidUrl(value: string): boolean {
+  try {
+    const url = new URL(value.startsWith('http') ? value : `https://${value}`)
+    // hostname must contain a dot (e.g. example.com) — rejects bare words like "abc"
+    return url.hostname.includes('.')
+  } catch {
+    return false
+  }
 }
 
 export default function OnboardProfessional() {
@@ -41,11 +53,13 @@ export default function OnboardProfessional() {
   const user = useCurrentUser()
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteEmailError, setInviteEmailError] = useState('')
+  const [isCheckingInvite, setIsCheckingInvite] = useState(false)
   const [members, setMembers] = useState<InvitedMember[]>([])
   const [resources, setResources] = useState<Resource[]>([])
   const [newTitle, setNewTitle] = useState('')
   const [newUrl, setNewUrl] = useState('')
   const [resourceError, setResourceError] = useState('')
+  const urlInputRef = useRef<HTMLInputElement>(null)
   const [showSplash, setShowSplash] = useState(false)
   const { mutateAsync: completeOnboard, isPending } = useCompleteProfessionalOnboard()
 
@@ -58,9 +72,12 @@ export default function OnboardProfessional() {
     defaultValues: { projectName: '' },
   })
 
-  function handleInvite() {
+  async function handleInvite() {
     const email = inviteEmail.trim()
-    if (!email) return
+    if (!email) {
+      setInviteEmailError('Please enter an email address')
+      return
+    }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       setInviteEmailError('Enter a valid email address')
@@ -70,7 +87,19 @@ export default function OnboardProfessional() {
       setInviteEmailError('This email has already been invited')
       return
     }
+    setIsCheckingInvite(true)
     setInviteEmailError('')
+    try {
+      await api.get(`/public/check-professional?email=${encodeURIComponent(email)}`)
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        'Could not verify this email'
+      setInviteEmailError(msg)
+      setIsCheckingInvite(false)
+      return
+    }
+    setIsCheckingInvite(false)
     const initials = email
       .split('@')[0]
       .split(/[._-]/)
@@ -86,9 +115,17 @@ export default function OnboardProfessional() {
 
   function handleAddResource() {
     const title = newTitle.trim()
+    if (!title) {
+      setResourceError('Title is required')
+      return
+    }
     const url = newUrl.trim()
-    if (!title || !url) {
-      setResourceError('Both title and URL are required')
+    if (!url) {
+      setResourceError('URL is required')
+      return
+    }
+    if (!isValidUrl(url)) {
+      setResourceError('Enter a valid URL (e.g. https://example.com)')
       return
     }
     setResourceError('')
@@ -109,8 +146,9 @@ export default function OnboardProfessional() {
         if (r.id !== id || !r.editing) return r
         const title = (r.editTitle ?? '').trim()
         const url = (r.editUrl ?? '').trim()
-        if (!title || !url) return r
-        return { ...r, title, url, editing: false }
+        if (!title || !url) return { ...r, editError: 'Both title and URL are required' }
+        if (!isValidUrl(url)) return { ...r, editError: 'Enter a valid URL (e.g. https://example.com)' }
+        return { ...r, title, url, editing: false, editError: undefined }
       })
     )
   }
@@ -143,64 +181,19 @@ export default function OnboardProfessional() {
         />
       )}
 
-      {/* Two-column layout: form + character */}
-      <div className="w-full max-w-5xl flex items-start gap-10">
-
-        {/* ── Character illustration (desktop only) ── */}
-        <div className="hidden lg:flex flex-col items-center justify-start pt-16 shrink-0">
-          <svg width="180" height="280" viewBox="0 0 180 280" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            {/* Body */}
-            <ellipse cx="90" cy="200" rx="48" ry="60" fill="#6366f1" />
-            {/* Head */}
-            <circle cx="90" cy="100" r="44" fill="#fbbf24" />
-            {/* Hair */}
-            <ellipse cx="90" cy="62" rx="36" ry="18" fill="#1e1b4b" />
-            <ellipse cx="62" cy="75" rx="14" ry="22" fill="#1e1b4b" />
-            <ellipse cx="118" cy="75" rx="14" ry="22" fill="#1e1b4b" />
-            {/* Eyes */}
-            <circle cx="76" cy="98" r="7" fill="white" />
-            <circle cx="104" cy="98" r="7" fill="white" />
-            <circle cx="78" cy="100" r="4" fill="#1e1b4b" />
-            <circle cx="106" cy="100" r="4" fill="#1e1b4b" />
-            <circle cx="79" cy="98" r="1.5" fill="white" />
-            <circle cx="107" cy="98" r="1.5" fill="white" />
-            {/* Smile */}
-            <path d="M78 116 Q90 128 102 116" stroke="#1e1b4b" strokeWidth="3" strokeLinecap="round" fill="none" />
-            {/* Left arm (raised thumbs up) */}
-            <path d="M42 175 Q20 155 22 130" stroke="#6366f1" strokeWidth="20" strokeLinecap="round" fill="none" />
-            {/* Hand */}
-            <circle cx="22" cy="126" r="14" fill="#fbbf24" />
-            {/* Thumb up */}
-            <path d="M22 118 Q26 108 30 112 Q34 116 28 122" stroke="#1e1b4b" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-            {/* Right arm */}
-            <path d="M138 175 Q158 160 155 140" stroke="#6366f1" strokeWidth="20" strokeLinecap="round" fill="none" />
-            <circle cx="156" cy="136" r="14" fill="#fbbf24" />
-            {/* Watch */}
-            <rect x="148" y="132" width="16" height="8" rx="3" fill="#1e1b4b" />
-            <rect x="152" y="133" width="8" height="6" rx="1.5" fill="#6366f1" />
-            {/* Legs */}
-            <path d="M68 255 Q65 270 60 278" stroke="#1e1b4b" strokeWidth="18" strokeLinecap="round" fill="none" />
-            <path d="M112 255 Q115 270 120 278" stroke="#1e1b4b" strokeWidth="18" strokeLinecap="round" fill="none" />
-            {/* Shoes */}
-            <ellipse cx="58" cy="278" rx="16" ry="6" fill="#1e1b4b" />
-            <ellipse cx="122" cy="278" rx="16" ry="6" fill="#1e1b4b" />
-          </svg>
-          <p className="text-sm font-bold text-muted-foreground text-center mt-2">Let's get you set up!</p>
+      {/* Centered form */}
+      <div className="w-full max-w-2xl">
+        {/* Logo */}
+        <div className="flex items-center justify-center gap-3 mb-8">
+          <div className="size-10 bg-primary text-primary-foreground rounded-xl flex items-center justify-center shadow-sm">
+            <Link className="size-5" />
+          </div>
+          <span className="font-bold text-2xl text-foreground" style={{ fontFamily: 'var(--font-headings)' }}>
+            Linker
+          </span>
         </div>
 
-        {/* ── Form card ── */}
-        <div className="flex-1">
-          {/* Logo */}
-          <div className="flex items-center gap-3 mb-8">
-            <div className="size-10 bg-primary text-primary-foreground rounded-xl flex items-center justify-center shadow-sm">
-              <Link className="size-5" />
-            </div>
-            <span className="font-bold text-2xl text-foreground" style={{ fontFamily: 'var(--font-headings)' }}>
-              Linker
-            </span>
-          </div>
-
-          <div className="bg-surface border border-border rounded-3xl p-10 shadow-sm">
+        <div className="bg-surface border border-border rounded-3xl p-10 shadow-sm">
             <h1 className="text-3xl font-bold text-foreground mb-2">
               Set up your Professional Workspace
             </h1>
@@ -254,11 +247,17 @@ export default function OnboardProfessional() {
                         onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleInvite() } }}
                       />
                     </div>
-                    <button type="button" onClick={handleInvite} className="px-5 py-3 bg-secondary text-primary font-bold rounded-xl hover:bg-primary hover:text-primary-foreground transition-colors shrink-0 cursor-pointer">
-                      Invite
+                    <button type="button" onClick={handleInvite} disabled={isCheckingInvite} className="px-5 py-3 bg-secondary text-primary font-bold rounded-xl hover:bg-primary hover:text-primary-foreground transition-colors shrink-0 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2">
+                      {isCheckingInvite && <svg className="animate-spin size-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" /></svg>}
+                      {isCheckingInvite ? 'Checking...' : 'Invite'}
                     </button>
                   </div>
-                  {inviteEmailError && <p className="text-xs text-danger mt-1">{inviteEmailError}</p>}
+                  {inviteEmailError && (
+                    <div className="flex items-center gap-2 mt-2 text-danger">
+                      <AlertCircle className="size-3.5 shrink-0" />
+                      <p className="text-xs font-medium">{inviteEmailError}</p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-2">
@@ -306,15 +305,22 @@ export default function OnboardProfessional() {
                             className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-sm text-foreground outline-none focus:border-primary transition-colors"
                           />
                           <input
+                            type="url"
                             value={resource.editUrl ?? ''}
-                            onChange={(e) => setResources((p) => p.map((r) => r.id === resource.id ? { ...r, editUrl: e.target.value } : r))}
-                            placeholder="URL"
+                            onChange={(e) => setResources((p) => p.map((r) => r.id === resource.id ? { ...r, editUrl: e.target.value, editError: undefined } : r))}
+                            placeholder="https://..."
                             className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-sm text-foreground outline-none focus:border-primary transition-colors"
                           />
                           <div className="flex gap-2">
                             <button type="button" onClick={() => saveEditResource(resource.id)} className="flex items-center gap-1 px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:opacity-90 cursor-pointer"><Check className="size-3" />Save</button>
-                            <button type="button" onClick={() => setResources((p) => p.map((r) => r.id === resource.id ? { ...r, editing: false } : r))} className="px-3 py-1.5 text-xs font-bold text-muted-foreground rounded-lg hover:bg-muted cursor-pointer"><X className="size-3 inline mr-1" />Cancel</button>
+                            <button type="button" onClick={() => setResources((p) => p.map((r) => r.id === resource.id ? { ...r, editing: false, editError: undefined } : r))} className="px-3 py-1.5 text-xs font-bold text-muted-foreground rounded-lg hover:bg-muted cursor-pointer"><X className="size-3 inline mr-1" />Cancel</button>
                           </div>
+                          {resource.editError && (
+                            <div className="flex items-center gap-2 text-danger">
+                              <AlertCircle className="size-3.5 shrink-0" />
+                              <p className="text-xs font-medium">{resource.editError}</p>
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <>
@@ -350,6 +356,7 @@ export default function OnboardProfessional() {
                       <div className="flex-1 bg-input border border-border rounded-xl px-4 py-2.5 text-sm flex items-center gap-2 focus-within:border-primary transition-colors">
                         <Link2 className="text-muted-foreground shrink-0 size-[16px]" />
                         <input
+                          ref={urlInputRef}
                           type="url"
                           value={newUrl}
                           onChange={(e) => { setNewUrl(e.target.value); setResourceError('') }}
@@ -362,7 +369,12 @@ export default function OnboardProfessional() {
                         <Plus className="size-[18px]" />
                       </button>
                     </div>
-                    {resourceError && <p className="text-xs text-danger">{resourceError}</p>}
+                    {resourceError && (
+                      <div className="flex items-center gap-2 text-danger">
+                        <AlertCircle className="size-3.5 shrink-0" />
+                        <p className="text-xs font-medium">{resourceError}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -379,7 +391,6 @@ export default function OnboardProfessional() {
                 </div>
               </div>
             </form>
-          </div>
         </div>
       </div>
     </div>

@@ -94,6 +94,16 @@ app.use('/api/projects', projectRoutes);
 // Support routes
 app.use('/api/support', supportRoutes);
 
+// Global JSON error handler — must be defined after all routes
+app.use((err, _req, res, _next) => {
+  console.error('Unhandled error:', err.message);
+  res.status(err.status || 500).json({
+    success: false,
+    data: null,
+    message: err.message || 'Internal server error',
+  });
+});
+
 mongoose
   .connect(MONGO_URI)
   .then(async () => {

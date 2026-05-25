@@ -157,7 +157,7 @@ export default function ProfessionalDashboard() {
                     <div
                       key={project._id}
                       onClick={() => navigate(`/projects/${project._id}/resources`)}
-                      className="bg-surface border border-border rounded-2xl p-6 hover:border-warning/40 hover:shadow-sm transition-all cursor-pointer"
+                      className="bg-surface border border-border rounded-2xl p-6 hover:border-primary/50 hover:shadow-sm transition-all cursor-pointer"
                     >
                       {/* Icon + Role badge */}
                       <div className="flex items-start justify-between mb-5">

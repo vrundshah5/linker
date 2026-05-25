@@ -20,6 +20,7 @@ export interface SignupPayload {
   fullName: string
   email: string
   password: string
+  otp: string
 }
 
 export interface LoginPayload {
@@ -28,6 +29,11 @@ export interface LoginPayload {
 }
 
 export const authService = {
+  sendOtp: async (email: string): Promise<{ success: boolean; data: null; message: string }> => {
+    const { data } = await api.post('/auth/send-otp', { email })
+    return data
+  },
+
   signup: async (payload: SignupPayload): Promise<AuthResponse> => {
     const { data } = await api.post<AuthResponse>('/auth/signup', payload)
     return data

@@ -28,10 +28,9 @@ export default function ProjectIcon({ project, size = 'md', className = '' }: Pr
 
   return (
     <div
-      className={`${container} ${rounded} flex items-center justify-center shrink-0 ${className}`}
-      style={{ backgroundColor: `${project.color}25` }}
+      className={`${container} ${rounded} flex items-center justify-center shrink-0 bg-primary/10 ${className}`}
     >
-      <Briefcase className={icon} style={{ color: project.color }} />
+      <Briefcase className={`${icon} text-primary`} />
     </div>
   )
 }

@@ -172,6 +172,25 @@ export const completeProfessionalOnboard = async (req, res) => {
         }));
         await ProjectResource.insertMany(resourceDocs);
       }
+
+      // Save invited emails as pending invites on the project
+      const emailsToInvite = Array.isArray(invitedEmails) ? invitedEmails.filter(Boolean) : [];
+      if (emailsToInvite.length > 0) {
+        const invitedUsers = await User.find({
+          email: { $in: emailsToInvite.map((e) => e.toLowerCase()) },
+          workspaceType: 'professional',
+        }).select('_id');
+
+        for (const invitedUser of invitedUsers) {
+          const alreadyInvited = project.invites.some(
+            (inv) => inv.userId.toString() === invitedUser._id.toString()
+          );
+          if (!alreadyInvited) {
+            project.invites.push({ userId: invitedUser._id, invitedBy: user._id, status: 'pending' });
+          }
+        }
+        if (invitedUsers.length > 0) await project.save();
+      }
     }
 
     return res.status(200).json({

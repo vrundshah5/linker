@@ -32,7 +32,7 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(function 
           className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer shrink-0"
           aria-label={show ? 'Hide password' : 'Show password'}
         >
-          {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+          {show ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
         </button>
       </div>
       {error && <p className="text-xs text-danger font-medium">{error}</p>}
