@@ -20,7 +20,6 @@ export default function OnboardSplash({ userName, workspaceType, onDone }: Onboa
   const isPersonal = workspaceType === 'personal'
   const accentColor = 'bg-primary'
   const accentText = 'text-primary'
-  const accentBg = 'bg-primary/10'
   const accentRing = 'ring-primary/30'
   const firstName = userName.split(' ')[0]
   const dashboardLabel = isPersonal ? 'Personal Dashboard' : 'Professional Workspace'
