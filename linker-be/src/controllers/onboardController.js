@@ -3,6 +3,7 @@ import GlobalCategory from '../models/GlobalCategory.js';
 import UserCategory from '../models/UserCategory.js';
 import Project from '../models/Project.js';
 import ProjectResource from '../models/ProjectResource.js';
+import { createNotification } from './notificationController.js';
 
 // PATCH /api/onboard/workspace-type
 // Called when user selects Personal or Professional on the /onboard screen
@@ -189,7 +190,27 @@ export const completeProfessionalOnboard = async (req, res) => {
             project.invites.push({ userId: invitedUser._id, invitedBy: user._id, status: 'pending' });
           }
         }
-        if (invitedUsers.length > 0) await project.save();
+        if (invitedUsers.length > 0) {
+          await project.save();
+          // Notify each invited user so they can accept or reject
+          await Promise.all(
+            invitedUsers.map((invitedUser) =>
+              createNotification({
+                userId: invitedUser._id,
+                type: 'project_invite',
+                title: 'Project invitation',
+                body: `${user.name} invited you to join "${project.name}".`,
+                meta: {
+                  projectId: project._id,
+                  fromUserId: user._id,
+                  actorName: user.name,
+                  projectName: project.name,
+                },
+                context: 'professional',
+              })
+            )
+          );
+        }
       }
     }
 

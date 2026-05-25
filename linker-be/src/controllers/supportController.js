@@ -91,9 +91,35 @@ export const adminUpdateTicket = async (req, res) => {
     if (status) update.status = status;
     if (adminNote !== undefined) update.adminNote = adminNote.trim();
 
+    // Fetch old status before update so we can detect a change
+    const oldTicket = await SupportTicket.findById(req.params.id).select('status').lean();
+    if (!oldTicket) {
+      return res.status(404).json({ success: false, data: null, message: 'Ticket not found' });
+    }
+
     const ticket = await SupportTicket.findByIdAndUpdate(req.params.id, update, { new: true }).populate('userId', 'name email');
     if (!ticket) {
       return res.status(404).json({ success: false, data: null, message: 'Ticket not found' });
+    }
+
+    // Notify the ticket submitter if status actually changed
+    if (status && status !== oldTicket.status && ticket.userId?._id) {
+      const statusMessages = {
+        'in-progress': 'Your support ticket is currently being reviewed by our team.',
+        'resolved':    'Your support ticket has been resolved.',
+        'open':        'Your support ticket has been re-opened.',
+      };
+      const body = statusMessages[status];
+      if (body) {
+        await Notification.create({
+          userId:  ticket.userId._id,
+          type:    'support_ticket',
+          context: ticket.workspace || 'personal',
+          title:   'Support ticket update',
+          body,
+          meta:    {},
+        });
+      }
     }
 
     return res.json({ success: true, data: ticket, message: 'Ticket updated' });
