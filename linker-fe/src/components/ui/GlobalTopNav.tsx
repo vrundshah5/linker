@@ -23,6 +23,37 @@ export default function GlobalTopNav() {
   const hasMultipleWorkspaces = user.workspaces.length > 1
   const { theme, toggle: toggleTheme } = useTheme()
   const { data: unreadCounts } = useMentionBuzzUnread()
+  const prevBuzzCount = useRef<number | null>(null)
+
+  // Play a buzz sound whenever the unread buzz count increases
+  useEffect(() => {
+    const count = unreadCounts?.buzzes ?? 0
+    if (prevBuzzCount.current === null) {
+      // First load — just record baseline, don't play
+      prevBuzzCount.current = count
+      return
+    }
+    if (count > prevBuzzCount.current) {
+      try {
+        const ctx = new AudioContext()
+        const oscillator = ctx.createOscillator()
+        const gainNode = ctx.createGain()
+        oscillator.connect(gainNode)
+        gainNode.connect(ctx.destination)
+        oscillator.type = 'sine'
+        oscillator.frequency.setValueAtTime(520, ctx.currentTime)
+        oscillator.frequency.exponentialRampToValueAtTime(280, ctx.currentTime + 0.15)
+        gainNode.gain.setValueAtTime(0.55, ctx.currentTime)
+        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35)
+        oscillator.start(ctx.currentTime)
+        oscillator.stop(ctx.currentTime + 0.35)
+        oscillator.onended = () => ctx.close()
+      } catch {
+        // AudioContext not available (e.g. SSR or restricted environment)
+      }
+    }
+    prevBuzzCount.current = count
+  }, [unreadCounts?.buzzes])
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [drawerDefaultTab, setDrawerDefaultTab] = useState<'mentioned' | 'buzz'>('mentioned')
 

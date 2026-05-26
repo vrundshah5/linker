@@ -48,7 +48,7 @@ export default function ProfessionalDashboard() {
   return (
     <WorkspaceLayout>
       <div className="h-full overflow-y-auto">
-        <div className="p-8">
+        <div className="px-8 pt-4 pb-8">
           {/* Page header */}
           <div className="flex items-center justify-between mb-8">
             <div>
