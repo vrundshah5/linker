@@ -4,6 +4,7 @@ import { Search } from 'lucide-react'
 interface PageHeaderProps {
   title: string
   subtitle?: string
+  icon?: ReactNode
   /** Extra controls rendered on the right (e.g. action buttons) */
   actions?: ReactNode
   searchValue?: string
@@ -14,6 +15,7 @@ interface PageHeaderProps {
 export default function PageHeader({
   title,
   subtitle,
+  icon,
   actions,
   searchValue,
   onSearch,
@@ -21,8 +23,12 @@ export default function PageHeader({
 }: PageHeaderProps) {
   return (
     <div className="bg-surface rounded-2xl px-6 py-4 mb-6 shadow-sm flex items-center justify-between gap-4 shrink-0">
-      {/* Left: title + subtitle */}
-      <div className="min-w-0">
+      {/* Left: icon + title + subtitle */}
+      <div className="flex items-center gap-3 min-w-0">
+        {icon && (
+          <div className="shrink-0 text-muted-foreground">{icon}</div>
+        )}
+        <div className="min-w-0">
         <h1
           className="text-2xl font-bold text-foreground leading-tight truncate"
           style={{ fontFamily: 'var(--font-headings)' }}
@@ -32,6 +38,7 @@ export default function PageHeader({
         {subtitle && (
           <p className="text-muted-foreground mt-1">{subtitle}</p>
         )}
+        </div>
       </div>
 
       {/* Right: search + actions */}

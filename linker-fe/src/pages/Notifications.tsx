@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { X, CheckCheck, Bell } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
 import PageHeader from '../components/ui/PageHeader'
@@ -37,7 +37,6 @@ function timeAgo(iso: string) {
 }
 
 export default function Notifications() {
-  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const highlightId = searchParams.get('id')
   const [activeTab, setActiveTab] = useState<FilterTab>('All')

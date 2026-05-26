@@ -38,7 +38,6 @@ function formatDate(dateStr: string) {
 function ProjectSection({
   projectId,
   projectName,
-  projectColor,
   project,
   resources,
   isLoading,
