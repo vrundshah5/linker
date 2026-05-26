@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useRef, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { X, CheckCheck, Bell } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
 import PageHeader from '../components/ui/PageHeader'
@@ -11,6 +11,8 @@ import {
   useMarkOneRead,
   useDeleteNotification,
 } from '../hooks/useNotifications'
+import { useRespondToProjectInvite } from '../hooks/useProjects'
+import { useRespondRequest } from '../hooks/useRequests'
 
 const TYPE_META: Record<NotificationType, { bg: string; color: string; label: string }> = {
   new_user:         { bg: 'bg-primary/10',  color: 'text-primary',  label: 'New User'       },
@@ -36,11 +38,23 @@ function timeAgo(iso: string) {
 
 export default function Notifications() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const highlightId = searchParams.get('id')
   const [activeTab, setActiveTab] = useState<FilterTab>('All')
+  const [responded, setResponded] = useState<Record<string, 'accepted' | 'rejected'>>({})
   const { data: notifications = [] } = useNotifications('personal')
   const { mutate: markAllRead } = useMarkAllRead()
   const { mutate: markOneRead } = useMarkOneRead()
   const { mutate: deleteOne } = useDeleteNotification()
+  const { mutate: respondInvite } = useRespondToProjectInvite()
+  const { mutate: respondRequest } = useRespondRequest()
+  const highlightRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (highlightId && highlightRef.current) {
+      highlightRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [highlightId, notifications])
 
   const unread = notifications.filter((n) => !n.read).length
 
@@ -54,9 +68,20 @@ export default function Notifications() {
 
   function handleClick(n: (typeof notifications)[number]) {
     if (!n.read) markOneRead(n._id)
-    if (n.type === 'request_received' || n.type === 'request_accepted' || n.type === 'request_rejected') {
-      navigate('/requests')
-    }
+  }
+
+  function handleRespondInvite(n: (typeof notifications)[number], status: 'accepted' | 'rejected') {
+    if (!n.meta.projectId) return
+    respondInvite({ projectId: n.meta.projectId, status }, {
+      onSuccess: () => setResponded((prev) => ({ ...prev, [n._id]: status })),
+    })
+  }
+
+  function handleRespondRequest(n: (typeof notifications)[number], action: 'accepted' | 'rejected') {
+    if (!n.meta.requestId) return
+    respondRequest({ id: n.meta.requestId, action }, {
+      onSuccess: () => setResponded((prev) => ({ ...prev, [n._id]: action })),
+    })
   }
 
   return (
@@ -133,14 +158,18 @@ export default function Notifications() {
             <div className="bg-surface border border-border rounded-2xl overflow-hidden">
               {filtered.map((n, idx) => {
                 const { bg, color, label } = TYPE_META[n.type]
-                const isRequest = n.type === 'request_received' || n.type === 'request_accepted' || n.type === 'request_rejected'
+                const isHighlighted = n._id === highlightId
+                const respondedStatus = responded[n._id]
+                const canRespondInvite = n.type === 'project_invite' && !respondedStatus
+                const canRespondRequest = n.type === 'request_received' && !respondedStatus
                 return (
                   <div
                     key={n._id}
+                    ref={isHighlighted ? highlightRef : undefined}
                     onClick={() => handleClick(n)}
                     className={`flex items-start gap-4 px-6 py-4 transition-colors ${
-                      !n.read ? 'bg-secondary/20' : 'hover:bg-muted/40'
-                    } ${idx !== 0 ? 'border-t border-border' : ''} ${isRequest ? 'cursor-pointer' : ''}`}
+                      isHighlighted ? 'ring-2 ring-primary ring-inset bg-primary/5' : !n.read ? 'bg-secondary/20' : 'hover:bg-muted/40'
+                    } ${idx !== 0 ? 'border-t border-border' : ''}`}
                   >
                     <NotifAvatar n={n} />
 
@@ -152,7 +181,9 @@ export default function Notifications() {
                           <span className="size-2 rounded-full bg-primary shrink-0" />
                         )}
                         <span className={`ml-auto px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide ${bg} ${color}`}>
-                          {label}
+                          {respondedStatus === 'accepted' ? 'Accepted'
+                            : respondedStatus === 'rejected' ? 'Declined'
+                            : label}
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground leading-snug">
@@ -161,6 +192,46 @@ export default function Notifications() {
                         ) : n.body}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1.5">{timeAgo(n.createdAt)}</p>
+
+                      {/* Accept / Decline for project invites */}
+                      {canRespondInvite && (
+                        <div className="flex items-center gap-2 mt-2.5">
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); handleRespondInvite(n, 'accepted') }}
+                            className="px-3.5 py-1 text-xs font-bold rounded-full bg-success/15 text-success hover:bg-success/25 transition-colors cursor-pointer"
+                          >
+                            Accept
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); handleRespondInvite(n, 'rejected') }}
+                            className="px-3.5 py-1 text-xs font-bold rounded-full bg-muted text-muted-foreground hover:bg-danger/10 hover:text-danger transition-colors cursor-pointer"
+                          >
+                            Decline
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Accept / Decline for connection requests */}
+                      {canRespondRequest && n.meta.requestId && (
+                        <div className="flex items-center gap-2 mt-2.5">
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); handleRespondRequest(n, 'accepted') }}
+                            className="px-3.5 py-1 text-xs font-bold rounded-full bg-success/15 text-success hover:bg-success/25 transition-colors cursor-pointer"
+                          >
+                            Accept
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); handleRespondRequest(n, 'rejected') }}
+                            className="px-3.5 py-1 text-xs font-bold rounded-full bg-muted text-muted-foreground hover:bg-danger/10 hover:text-danger transition-colors cursor-pointer"
+                          >
+                            Decline
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     {/* Dismiss */}

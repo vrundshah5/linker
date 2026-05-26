@@ -117,7 +117,7 @@ export function MaskedAvatars({
                       transition: `transform ${transition}s ease-out`,
                     }}
                   >
-                    {person.name.split("").map((char, i) => (
+                    {person.name.split(" ")[0].split("").map((char, i) => (
                       <span
                         key={i}
                         className="absolute"

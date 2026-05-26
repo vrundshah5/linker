@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { X, CheckCheck, Bell, Check, XCircle } from 'lucide-react'
 import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
 import PageHeader from '../components/ui/PageHeader'
@@ -35,12 +36,22 @@ function timeAgo(iso: string) {
 }
 
 export default function ProfessionalNotifications() {
+  const [searchParams] = useSearchParams()
+  const highlightId = searchParams.get('id')
   const [activeTab, setActiveTab] = useState<FilterTab>('All')
+  const [responded, setResponded] = useState<Record<string, 'accepted' | 'rejected'>>({})
   const { data: notifications = [] } = useNotifications('professional')
   const { mutate: markAllRead } = useMarkAllRead()
   const { mutate: markOneRead } = useMarkOneRead()
   const { mutate: deleteOne } = useDeleteNotification()
   const { mutate: respondToInvite, isPending: isResponding } = useRespondToProjectInvite()
+  const highlightRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (highlightId && highlightRef.current) {
+      highlightRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [highlightId, notifications])
 
   const unread = notifications.filter((n) => !n.read).length
 
@@ -117,18 +128,28 @@ export default function ProfessionalNotifications() {
               <div className="bg-surface border border-border rounded-2xl overflow-hidden">
                 {filtered.map((n, idx) => {
                   const { bg, color, label } = TYPE_META[n.type]
-                  const isInvite = n.type === 'project_invite' && !!n.meta.projectId
+                  const isHighlighted = n._id === highlightId
+                  const respondedStatus = responded[n._id]
+                  const isInvite = n.type === 'project_invite' && !!n.meta.projectId && !respondedStatus
                   return (
                     <div
                       key={n._id}
-                      className={`flex items-start gap-4 px-6 py-4 transition-colors ${!n.read ? 'bg-secondary/20' : 'hover:bg-muted/40'} ${idx !== 0 ? 'border-t border-border' : ''}`}
+                      ref={isHighlighted ? highlightRef : undefined}
+                      className={`flex items-start gap-4 px-6 py-4 transition-colors ${
+                        isHighlighted ? 'ring-2 ring-primary ring-inset bg-primary/5'
+                        : !n.read ? 'bg-secondary/20' : 'hover:bg-muted/40'
+                      } ${idx !== 0 ? 'border-t border-border' : ''}`}
                     >
                       <NotifAvatar n={n} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5">
                           <p className="text-sm font-bold text-foreground leading-snug">{n.title}</p>
                           {!n.read && <span className="size-2 rounded-full bg-primary shrink-0" />}
-                          <span className={`ml-auto px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide ${bg} ${color}`}>{label}</span>
+                          <span className={`ml-auto px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide ${bg} ${color}`}>
+                            {respondedStatus === 'accepted' ? 'Accepted'
+                              : respondedStatus === 'rejected' ? 'Declined'
+                              : label}
+                          </span>
                         </div>
                         <p className="text-sm text-muted-foreground leading-snug">{n.body}</p>
 
@@ -140,7 +161,9 @@ export default function ProfessionalNotifications() {
                               disabled={isResponding}
                               onClick={() => {
                                 markOneRead(n._id)
-                                respondToInvite({ projectId: n.meta.projectId!, status: 'accepted' })
+                                respondToInvite({ projectId: n.meta.projectId!, status: 'accepted' }, {
+                                  onSuccess: () => setResponded((prev) => ({ ...prev, [n._id]: 'accepted' })),
+                                })
                               }}
                               className="flex items-center gap-1.5 px-3 py-1.5 bg-success/10 text-success text-xs font-bold rounded-lg hover:bg-success/20 transition-colors cursor-pointer disabled:opacity-50"
                             >
@@ -152,7 +175,9 @@ export default function ProfessionalNotifications() {
                               disabled={isResponding}
                               onClick={() => {
                                 markOneRead(n._id)
-                                respondToInvite({ projectId: n.meta.projectId!, status: 'rejected' })
+                                respondToInvite({ projectId: n.meta.projectId!, status: 'rejected' }, {
+                                  onSuccess: () => setResponded((prev) => ({ ...prev, [n._id]: 'rejected' })),
+                                })
                               }}
                               className="flex items-center gap-1.5 px-3 py-1.5 bg-danger/10 text-danger text-xs font-bold rounded-lg hover:bg-danger/20 transition-colors cursor-pointer disabled:opacity-50"
                             >

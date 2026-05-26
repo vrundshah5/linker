@@ -58,13 +58,12 @@ export default function NotificationPanel({
 
   function handleClick(n: AppNotification) {
     if (!n.read) onMarkRead(n._id)
-    if (n.type === 'request_received' || n.type === 'request_accepted' || n.type === 'request_rejected') {
-      onClose()
-      navigate('/requests')
-    } else if (n.type === 'project_invite') {
-      onClose()
-      navigate('/professional-dashboard')
-    }
+    onClose()
+    const basePath =
+      context === 'admin' ? '/admin/notifications'
+      : context === 'professional' ? '/professional-notifications'
+      : '/notifications'
+    navigate(`${basePath}?id=${n._id}`)
   }
 
   return (
@@ -110,14 +109,13 @@ export default function NotificationPanel({
           <p className="text-sm text-muted-foreground text-center py-8">No notifications</p>
         ) : (
           notifications.map((n) => {
-            const isClickable = n.type === 'request_received' || n.type === 'request_accepted' || n.type === 'request_rejected' || n.type === 'project_invite'
             return (
               <div
                 key={n._id}
                 onClick={() => handleClick(n)}
-                className={`flex items-start gap-3 px-4 py-3.5 transition-colors ${
-                  n.read ? 'opacity-60' : 'bg-secondary/30'
-                } ${isClickable ? 'cursor-pointer hover:bg-muted/50' : ''}`}
+                className={`flex items-start gap-3 px-4 py-3.5 transition-colors cursor-pointer ${
+                  n.read ? 'opacity-60 hover:bg-muted/50' : 'bg-secondary/30 hover:bg-secondary/50'
+                }`}
               >
                 <NotifAvatar n={n} size="sm" />
                 <div className="flex-1 min-w-0">

@@ -23,8 +23,21 @@ export default function ProjectSettings() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [canInvite, setCanInvite] = useState(false)
   const [canAddResources, setCanAddResources] = useState(true)
-  const [search, setSearch] = useState('')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+
+  function updatePermission(key: 'anyoneCanInvite' | 'anyoneCanAddResources', value: boolean) {
+    if (!projectId) return
+    if (key === 'anyoneCanInvite') setCanInvite(value)
+    else setCanAddResources(value)
+    updateProject({
+      id: projectId,
+      name: projectName.trim() || project?.name || '',
+      permissions: {
+        anyoneCanInvite: key === 'anyoneCanInvite' ? value : canInvite,
+        anyoneCanAddResources: key === 'anyoneCanAddResources' ? value : canAddResources,
+      },
+    })
+  }
 
   // Sync project data when it loads
   useEffect(() => {
@@ -48,8 +61,6 @@ export default function ProjectSettings() {
           <PageHeader
             title="Project Settings"
             subtitle="Configure project details, permissions, and workspace preferences."
-            searchValue={search}
-            onSearch={setSearch}
           />
 
           {/* ── Active Project ── */}
@@ -206,7 +217,6 @@ export default function ProjectSettings() {
                 id: projectId,
                 name: projectName.trim(),
                 ...(iconChanged ? { iconUrl: iconPreview ?? '' } : {}),
-                permissions: { anyoneCanInvite: canInvite, anyoneCanAddResources: canAddResources },
               })
             }}
             disabled={!projectName.trim()}
