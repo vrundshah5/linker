@@ -10,11 +10,13 @@ import {
   Send,
   Loader2,
   X,
+  Zap,
 } from 'lucide-react'
 import EmojiPicker, { type EmojiClickData, Theme } from 'emoji-picker-react'
 import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
 import { useProject, useProjectMessages, useSendProjectMessage } from '../hooks/useProjects'
 import { useProfile } from '../hooks/useProfile'
+import { useSendBuzz } from '../hooks/useMentionBuzz'
 
 export default function ProjectChat() {
   const { projectId } = useParams<{ projectId: string }>()
@@ -22,9 +24,14 @@ export default function ProjectChat() {
   const { data: me } = useProfile()
   const { data: messages, isLoading } = useProjectMessages(projectId)
   const { mutate: sendMessage, isPending: sending } = useSendProjectMessage()
+  const sendBuzz = useSendBuzz()
   const [input, setInput] = useState('')
   const [showEmoji, setShowEmoji] = useState(false)
   const [showMembers, setShowMembers] = useState(false)
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null)
+  const [mentionStart, setMentionStart] = useState(0)
+  const [mentionIdx, setMentionIdx] = useState(0)
+  const [showBuzzPicker, setShowBuzzPicker] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const emojiRef = useRef<HTMLDivElement>(null)
@@ -32,6 +39,27 @@ export default function ProjectChat() {
   const projectName = project?.name ?? 'Project'
   const memberCount = project?.members.length ?? 0
   const currentUserId = me?._id
+
+  // Flat list of all project members (owner + members), excluding current user
+  const mentionableUsers = (() => {
+    if (!project) return []
+    const seen = new Set<string>()
+    const list: { _id: string; name: string }[] = []
+    const addUser = (u: { _id: string; name: string } | null | undefined) => {
+      if (!u || seen.has(u._id) || u._id === currentUserId) return
+      seen.add(u._id)
+      list.push(u)
+    }
+    if (project.ownerId) addUser(project.ownerId as { _id: string; name: string })
+    project.members.forEach((m) => addUser(m.userId as { _id: string; name: string }))
+    return list
+  })()
+
+  const mentionSuggestions = mentionQuery !== null
+    ? mentionableUsers.filter((u) =>
+        u.name.toLowerCase().startsWith(mentionQuery.toLowerCase())
+      )
+    : []
 
   // Close emoji picker when clicking outside
   useEffect(() => {
@@ -47,6 +75,39 @@ export default function ProjectChat() {
   function handleEmojiClick(data: EmojiClickData) {
     setInput((prev) => prev + data.emoji)
     inputRef.current?.focus()
+  }
+
+  function handleInputChange(value: string) {
+    setInput(value)
+    const cursor = inputRef.current?.selectionStart ?? value.length
+    // Find last @ before cursor that hasn't been closed by a space
+    const textToCursor = value.slice(0, cursor)
+    const atIdx = textToCursor.lastIndexOf('@')
+    if (atIdx !== -1) {
+      const after = textToCursor.slice(atIdx + 1)
+      if (!after.includes(' ')) {
+        setMentionQuery(after)
+        setMentionStart(atIdx)
+        setMentionIdx(0)
+        return
+      }
+    }
+    setMentionQuery(null)
+  }
+
+  function insertMention(user: { _id: string; name: string }) {
+    const firstName = user.name.split(' ')[0]
+    const before = input.slice(0, mentionStart)
+    const after = input.slice(mentionStart + 1 + (mentionQuery?.length ?? 0))
+    const newText = `${before}@${firstName} ${after}`
+    setInput(newText)
+    setMentionQuery(null)
+    // Restore focus + move cursor after inserted mention
+    setTimeout(() => {
+      const pos = before.length + firstName.length + 2
+      inputRef.current?.focus()
+      inputRef.current?.setSelectionRange(pos, pos)
+    }, 0)
   }
 
   // Auto-scroll to bottom when messages change
@@ -246,6 +307,58 @@ export default function ProjectChat() {
             </div>
           )}
 
+          {/* @mention autocomplete */}
+          {mentionQuery !== null && mentionSuggestions.length > 0 && (
+            <div className="mb-2 bg-surface border border-border rounded-xl shadow-lg overflow-hidden">
+              {mentionSuggestions.map((user, idx) => (
+                <button
+                  key={user._id}
+                  type="button"
+                  onMouseDown={(e) => { e.preventDefault(); insertMention(user) }}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors cursor-pointer ${
+                    idx === mentionIdx
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-foreground hover:bg-muted'
+                  }`}
+                >
+                  <div className="size-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[11px] font-bold shrink-0">
+                    {user.name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)}
+                  </div>
+                  <span className="font-semibold capitalize">{user.name}</span>
+                  <span className="text-muted-foreground text-xs ml-auto">@{user.name.split(' ')[0].toLowerCase()}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Buzz member picker */}
+          {showBuzzPicker && mentionableUsers.length > 0 && (
+            <div className="mb-2 bg-surface border border-border rounded-xl shadow-lg overflow-hidden">
+              <p className="px-4 py-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wide border-b border-border">
+                Buzz a team member
+              </p>
+              {mentionableUsers.map((user) => (
+                <button
+                  key={user._id}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault()
+                    sendBuzz.mutate(user._id)
+                    setShowBuzzPicker(false)
+                    inputRef.current?.focus()
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-yellow-400/10 hover:text-yellow-500 transition-colors cursor-pointer"
+                >
+                  <div className="size-7 rounded-full bg-yellow-400/20 text-yellow-500 flex items-center justify-center text-[11px] font-bold shrink-0">
+                    {user.name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)}
+                  </div>
+                  <span className="font-semibold capitalize">{user.name}</span>
+                  <Zap className="size-3.5 ml-auto text-yellow-400" />
+                </button>
+              ))}
+            </div>
+          )}
+
           <div className="flex items-center gap-3 bg-input border border-border rounded-2xl p-2 shadow-sm focus-within:border-primary transition-colors">
             {/* Emoji toggle */}
             <button
@@ -264,16 +377,36 @@ export default function ProjectChat() {
               ref={inputRef}
               type="text"
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => handleInputChange(e.target.value)}
               placeholder="Message the team..."
               className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none px-2"
               onKeyDown={(e) => {
+                if (mentionQuery !== null && mentionSuggestions.length > 0) {
+                  if (e.key === 'ArrowDown') { e.preventDefault(); setMentionIdx((i) => (i + 1) % mentionSuggestions.length); return }
+                  if (e.key === 'ArrowUp')   { e.preventDefault(); setMentionIdx((i) => (i - 1 + mentionSuggestions.length) % mentionSuggestions.length); return }
+                  if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); insertMention(mentionSuggestions[mentionIdx]); return }
+                  if (e.key === 'Escape') { setMentionQuery(null); return }
+                }
                 if (e.key === 'Enter' && !e.shiftKey && input.trim()) {
                   e.preventDefault()
                   handleSend()
                 }
               }}
             />
+            <button
+              type="button"
+              onClick={() => { setShowBuzzPicker((p) => !p); setMentionQuery(null) }}
+              disabled={mentionableUsers.length === 0}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold shrink-0 transition-colors cursor-pointer disabled:opacity-40 ${
+                showBuzzPicker
+                  ? 'bg-yellow-400/20 text-yellow-500'
+                  : 'text-muted-foreground hover:bg-yellow-400/10 hover:text-yellow-500'
+              }`}
+              aria-label="Send buzz"
+            >
+              <Zap className="size-4" />
+              Buzz
+            </button>
             <button
               type="button"
               onClick={handleSend}

@@ -42,6 +42,11 @@ const userCategorySchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    context: {
+      type: String,
+      enum: ['personal', 'professional'],
+      default: 'personal',
+    },
   },
   { timestamps: true }
 );

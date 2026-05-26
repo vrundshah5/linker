@@ -261,6 +261,111 @@ export const bulkDeleteLinks = async (req, res) => {
   }
 };
 
+// POST /api/links/import — bulk import bookmarks from a parsed bookmarks.html file
+// Body: { items: Array<{ folder: string, title: string, url: string }> }
+export const importBookmarks = async (req, res) => {
+  try {
+    const { items, context } = req.body;
+    const importContext = ['personal', 'professional'].includes(context) ? context : 'personal';
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ success: false, data: null, message: 'No bookmarks provided' });
+    }
+
+    const MAX_ITEMS = 1000;
+    if (items.length > MAX_ITEMS) {
+      return res.status(400).json({ success: false, data: null, message: `Too many bookmarks (max ${MAX_ITEMS})` });
+    }
+
+    // Validate and sanitise each item
+    const validItems = items.filter((item) => {
+      if (!item || typeof item !== 'object') return false;
+      if (typeof item.title !== 'string' || !item.title.trim()) return false;
+      if (typeof item.url !== 'string') return false;
+      try {
+        const parsed = new URL(item.url.trim());
+        return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+      } catch {
+        return false;
+      }
+    });
+
+    if (validItems.length === 0) {
+      return res.status(400).json({ success: false, data: null, message: 'No valid bookmarks found' });
+    }
+
+    // Group by folder name (default to "Imported Bookmarks" when folder is blank)
+    const folderMap = new Map(); // folderName -> items[]
+    for (const item of validItems) {
+      const folder = (typeof item.folder === 'string' && item.folder.trim()) ? item.folder.trim() : 'Imported Bookmarks';
+      if (!folderMap.has(folder)) folderMap.set(folder, []);
+      folderMap.get(folder).push(item);
+    }
+
+    // Find or create a UserCategory for every unique folder
+    const categoryIdMap = new Map(); // folderName -> categoryId
+    let categoriesCreated = 0;
+
+    for (const folderName of folderMap.keys()) {
+      const escapedName = folderName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      let category = await UserCategory.findOne({
+        userId: req.user.id,
+        name: { $regex: new RegExp(`^${escapedName}$`, 'i') },
+        context: importContext,
+      }).lean();
+      if (!category) {
+        category = await UserCategory.create({
+          userId: req.user.id,
+          name: folderName,
+          description: 'Imported from bookmarks',
+          themeColor: '#6c5dd3',
+          icon: 'Bookmark',
+          isGlobal: false,
+          globalCategoryId: null,
+          context: importContext,
+        });
+        categoriesCreated++;
+      }
+      categoryIdMap.set(folderName, category._id);
+    }
+
+    // Bulk-insert all links
+    const linkDocs = [];
+    for (const [folderName, folderItems] of folderMap) {
+      const categoryId = categoryIdMap.get(folderName);
+      for (const item of folderItems) {
+        linkDocs.push({
+          userId: req.user.id,
+          categoryId,
+          title: item.title.trim().slice(0, 300),
+          url: item.url.trim(),
+          description: '',
+        });
+      }
+    }
+
+    await Link.insertMany(linkDocs, { ordered: false });
+
+    // Increment linkCount on every affected category
+    await Promise.all(
+      Array.from(folderMap.entries()).map(([folderName, folderItems]) =>
+        UserCategory.findByIdAndUpdate(categoryIdMap.get(folderName), {
+          $inc: { linkCount: folderItems.length },
+        })
+      )
+    );
+
+    return res.status(201).json({
+      success: true,
+      data: { categoriesCreated, linksImported: linkDocs.length },
+      message: `Imported ${linkDocs.length} bookmark(s) into ${folderMap.size} folder(s)`,
+    });
+  } catch (err) {
+    console.error('importBookmarks error:', err);
+    return res.status(500).json({ success: false, data: null, message: 'Server error' });
+  }
+};
+
 // DELETE /api/links/:id
 export const deleteLink = async (req, res) => {
   try {

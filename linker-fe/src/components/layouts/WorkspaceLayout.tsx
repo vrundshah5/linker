@@ -1,6 +1,6 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import { NavLink, useParams } from 'react-router-dom'
-import { Link, Briefcase, Users, Settings, ChevronDown, ChevronRight, BookMarked, MessageSquare, LifeBuoy } from 'lucide-react'
+import { Link, LayoutDashboard, Users, Settings, ChevronDown, ChevronRight, BookMarked, MessageSquare, LifeBuoy, Download, ChevronsUpDown, Folder } from 'lucide-react'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import GlobalTopNav from '../ui/GlobalTopNav'
 import { useProjects } from '../../hooks/useProjects'
@@ -97,16 +97,34 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
               }`
             }
           >
-            <Briefcase className="size-[18px] shrink-0" />
-            Projects
+            <LayoutDashboard className="size-[18px] shrink-0" />
+            Dashboard
           </NavLink>
         </div>
 
         {/* Projects list */}
         <div className="px-3 pb-6 flex-1">
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-3 mb-2 mt-2">
-            My Projects
-          </p>
+          <div className="flex items-center justify-between px-3 mb-2 mt-2">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+              My Projects
+            </p>
+            {(projects?.length ?? 0) > 0 && (
+              <button
+                type="button"
+                title={projects?.every((p) => expandedIds.has(p._id)) ? 'Collapse all' : 'Expand all'}
+                onClick={() => {
+                  if (projects?.every((p) => expandedIds.has(p._id))) {
+                    setExpandedIds(new Set())
+                  } else {
+                    setExpandedIds(new Set(projects!.map((p) => p._id)))
+                  }
+                }}
+                className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                <ChevronsUpDown className="size-3.5" />
+              </button>
+            )}
+          </div>
 
           <div className="flex flex-col">
             {projects?.map((project) => {
@@ -165,8 +183,49 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
           </div>
         </div>
 
-        {/* Support link — pinned to bottom */}
-        <div className="px-3 pb-4 shrink-0 mt-auto">
+        {/* Library — Categories */}
+        <div className="px-3 pb-3 shrink-0">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-3 mb-2">
+            Library
+          </p>
+          <div className="flex flex-col gap-1">
+            {[
+              { to: '/professional-bookmarks', label: 'Bookmarks', icon: BookMarked },
+              { to: '/professional-common-links', label: 'Categories', icon: Folder },
+            ].map(({ to, label, icon: Icon }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-colors ${
+                    isActive
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  }`
+                }
+              >
+                <Icon className="size-[18px] shrink-0" />
+                {label}
+              </NavLink>
+            ))}
+          </div>
+        </div>
+
+        {/* Import + Support — pinned to bottom */}
+        <div className="px-3 pb-4 shrink-0 mt-auto flex flex-col gap-1">
+          <NavLink
+            to="/professional-import"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-colors ${
+                isActive
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              }`
+            }
+          >
+            <Download className="size-[18px] shrink-0" />
+            Import
+          </NavLink>
           <NavLink
             to="/professional-support"
             className={({ isActive }) =>

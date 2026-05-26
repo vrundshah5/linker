@@ -21,7 +21,9 @@ export const listGlobalCategories = async (_req, res) => {
 // Returns the authenticated user's categories (global-selected + custom)
 export const getMyCategories = async (req, res) => {
   try {
-    const categories = await UserCategory.find({ userId: req.user.id }).sort({ createdAt: 1 });
+    const query = { userId: req.user.id }
+    if (req.query.context) query.context = req.query.context
+    const categories = await UserCategory.find(query).sort({ createdAt: 1 });
     return res.status(200).json({
       success: true,
       data: { categories },
@@ -37,7 +39,7 @@ export const getMyCategories = async (req, res) => {
 // Creates a custom user category
 export const createUserCategory = async (req, res) => {
   try {
-    const { name, description, themeColor, icon } = req.body;
+    const { name, description, themeColor, icon, context } = req.body;
 
     if (!name || name.trim().length < 2) {
       return res.status(400).json({
@@ -55,6 +57,7 @@ export const createUserCategory = async (req, res) => {
       icon: icon || 'Folder',
       isGlobal: false,
       globalCategoryId: null,
+      context: ['personal', 'professional'].includes(context) ? context : 'personal',
     });
 
     return res.status(201).json({

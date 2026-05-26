@@ -44,6 +44,9 @@ const Support = lazy(() => import('../pages/Support'))
 const AdminSupport = lazy(() => import('../pages/AdminSupport'))
 const AdminNotifications = lazy(() => import('../pages/AdminNotifications'))
 const ProfessionalNotifications = lazy(() => import('../pages/ProfessionalNotifications'))
+const ImportPage = lazy(() => import('../pages/ImportPage'))
+const Bookmarks = lazy(() => import('../pages/Bookmarks'))
+const CommonLinks = lazy(() => import('../pages/CommonLinks'))
 
 export const routes: RouteObject[] = [
   // Public auth routes — redirect to dashboard if already logged in
@@ -96,6 +99,9 @@ export const routes: RouteObject[] = [
           { path: '/insights', element: <Insights /> },
           { path: '/design', element: <Design /> },
           { path: '/support', element: <Support /> },
+          { path: '/import', element: <ImportPage /> },
+          { path: '/bookmarks', element: <Bookmarks /> },
+          { path: '/common-links', element: <CommonLinks /> },
         ],
       },
 
@@ -111,6 +117,10 @@ export const routes: RouteObject[] = [
           { path: '/projects/:projectId/settings', element: <ProjectSettings /> },
           { path: '/professional-support', element: <Support variant="professional" /> },
           { path: '/professional-notifications', element: <ProfessionalNotifications /> },
+          { path: '/professional-import', element: <ImportPage variant="professional" /> },
+          { path: '/professional-bookmarks', element: <Bookmarks variant="professional" /> },
+          { path: '/professional-common-links', element: <CommonLinks variant="professional" /> },
+          { path: '/professional-categories/:id', element: <CategoryDetail variant="professional" /> },
         ],
       },
     ],

@@ -21,7 +21,11 @@ export default function Categories() {
   const [modalOpen, setModalOpen] = useState(false)
   const [addLinkOpen, setAddLinkOpen] = useState(false)
   const navigate = useNavigate()
-  const { data: categories, isLoading } = useMyCategories()
+  const { data: rawCategories, isLoading } = useMyCategories('personal')
+  // Exclude browser-imported bookmark folders — those live on the Bookmarks page
+  const categories = (rawCategories ?? []).filter(
+    (c) => c.description !== 'Imported from bookmarks'
+  )
 
   return (
     <AppLayout>
@@ -54,7 +58,7 @@ export default function Categories() {
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-bold text-foreground">
                 All Categories
-                {categories && (
+                {categories.length > 0 && (
                   <span className="ml-2 text-sm font-normal text-muted-foreground">
                     ({categories.length})
                   </span>
@@ -96,7 +100,7 @@ export default function Categories() {
             )}
 
             {/* Empty state */}
-            {!isLoading && (!categories || categories.length === 0) && (
+            {!isLoading && categories.length === 0 && (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <div className="size-16 rounded-2xl bg-secondary flex items-center justify-center mb-4">
                   <FolderOpen className="size-8 text-primary" />
@@ -117,7 +121,7 @@ export default function Categories() {
             )}
 
             {/* Category cards */}
-            {!isLoading && categories && categories.length > 0 && (
+            {!isLoading && categories.length > 0 && (
               <div
                 className={
                   viewMode === 'grid'
@@ -198,8 +202,8 @@ export default function Categories() {
         </div>
       </div>
 
-      <CreateCategoryModal open={modalOpen} onClose={() => setModalOpen(false)} />
-      <AddLinkModal open={addLinkOpen} onClose={() => setAddLinkOpen(false)} />
+      <CreateCategoryModal open={modalOpen} onClose={() => setModalOpen(false)} context="personal" />
+      <AddLinkModal open={addLinkOpen} onClose={() => setAddLinkOpen(false)} context="personal" />
     </AppLayout>
   )
 }

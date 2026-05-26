@@ -25,9 +25,10 @@ const PRESET_COLORS = [
 interface Props {
   open: boolean
   onClose: () => void
+  context?: 'personal' | 'professional'
 }
 
-export default function CreateCategoryModal({ open, onClose }: Props) {
+export default function CreateCategoryModal({ open, onClose, context = 'personal' }: Props) {
   const overlayRef = useRef<HTMLDivElement>(null)
   const [themeColor, setThemeColor] = useState(PRESET_COLORS[0].value)
 
@@ -64,6 +65,7 @@ export default function CreateCategoryModal({ open, onClose }: Props) {
       description: data.description?.trim() || undefined,
       themeColor,
       icon: 'Folder',
+      context,
     })
     onClose()
   }

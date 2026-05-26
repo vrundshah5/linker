@@ -22,6 +22,7 @@ export interface UserCategory {
   isGlobal: boolean
   globalCategoryId: string | null
   linkCount: number
+  context: 'personal' | 'professional'
   createdAt: string
   updatedAt: string
 }
@@ -31,6 +32,7 @@ export interface CreateCategoryPayload {
   description?: string
   themeColor?: string
   icon?: string
+  context?: 'personal' | 'professional'
 }
 
 export interface UpdateCategoryPayload {
@@ -45,8 +47,9 @@ export const categoryService = {
     return data
   },
 
-  getMyCategories: async (): Promise<{ data: { categories: UserCategory[] } }> => {
-    const { data } = await api.get('/categories')
+  getMyCategories: async (context?: 'personal' | 'professional'): Promise<{ data: { categories: UserCategory[] } }> => {
+    const params = context ? { context } : {}
+    const { data } = await api.get('/categories', { params })
     return data
   },
 

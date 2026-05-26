@@ -2,12 +2,17 @@ import { useState } from 'react'
 import { useParams, Link as RouterLink } from 'react-router-dom'
 import { Globe, Plus, Copy, Trash2, Loader2, Link2, Star, ChevronRight, MoreVertical } from 'lucide-react'
 import AppLayout from '../components/layouts/AppLayout'
+import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
 import PageHeader from '../components/ui/PageHeader'
 import AddLinkModal from '../components/ui/AddLinkModal'
 import { useLinks } from '../hooks/links/useLinks'
 import { useDeleteLink } from '../hooks/links/useDeleteLink'
 import { useUpdateLink } from '../hooks/links/useUpdateLink'
 import { useMyCategories } from '../hooks/categories/useMyCategories'
+
+interface Props {
+  variant?: 'personal' | 'professional'
+}
 
 type Tab = 'all' | 'archived'
 
@@ -24,12 +29,15 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: '2-digit' })
 }
 
-export default function CategoryDetail() {
+export default function CategoryDetail({ variant = 'personal' }: Props) {
   const { id } = useParams<{ id: string }>()
   const [activeTab, setActiveTab] = useState<Tab>('all')
   const [modalOpen, setModalOpen] = useState(false)
 
-  const { data: categories } = useMyCategories()
+  const context = variant === 'professional' ? 'professional' : 'personal'
+  const Layout = variant === 'professional' ? WorkspaceLayout : AppLayout
+
+  const { data: categories } = useMyCategories(context)
   const category = categories?.find((c) => c._id === id)
 
   const { data: links = [], isLoading } = useLinks(id ?? '')
@@ -47,19 +55,30 @@ export default function CategoryDetail() {
   ]
 
   return (
-    <AppLayout>
+    <Layout>
       <div className="h-full flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto px-8 py-6">
 
           {/* Breadcrumb */}
           <nav className="mb-6 flex items-center gap-2 text-sm text-muted-foreground font-bold">
             <RouterLink
-              to="/dashboard"
+              to={variant === 'professional' ? '/professional-dashboard' : '/dashboard'}
               className="hover:text-primary cursor-pointer transition-colors"
             >
               Dashboard
             </RouterLink>
             <ChevronRight className="size-4" />
+            {variant === 'professional' && (
+              <>
+                <RouterLink
+                  to="/professional-common-links"
+                  className="hover:text-primary cursor-pointer transition-colors"
+                >
+                  Categories
+                </RouterLink>
+                <ChevronRight className="size-4" />
+              </>
+            )}
             <span className="text-foreground">
               {category?.name ?? 'Category'}
             </span>
@@ -230,8 +249,9 @@ export default function CategoryDetail() {
           open={modalOpen}
           onClose={() => setModalOpen(false)}
           categoryId={id}
+          context={context}
         />
       )}
-    </AppLayout>
+    </Layout>
   )
 }

@@ -11,6 +11,8 @@ import {
   BarChart2,
   Paintbrush,
   LifeBuoy,
+  Download,
+  BookMarked,
 } from 'lucide-react'
 import GlobalTopNav from '../ui/GlobalTopNav'
 
@@ -18,12 +20,14 @@ const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/categories', label: 'Categories', icon: Folder, end: false },
   { to: '/collection', label: 'Collection', icon: LayoutGrid, end: true },
+  { to: '/bookmarks', label: 'Bookmarks', icon: BookMarked, end: true },
   { to: '/design', label: 'Design', icon: Paintbrush, end: true },
   { to: '/insights', label: 'Insights', icon: BarChart2, end: true },
   { to: '/messages', label: 'Messages', icon: MessageSquare, end: true },
   { to: '/requests', label: 'Requests', icon: Users, end: true },
   { to: '/archived', label: 'Archived Links', icon: Archive, end: true },
   { to: '/support', label: 'Support', icon: LifeBuoy, end: true },
+  { to: '/import', label: 'Import', icon: Download, end: true },
 ]
 
 interface AppLayoutProps {

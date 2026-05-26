@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { X, Link2, Loader2 } from 'lucide-react'
+import { X, Link2, Loader2, ChevronDown, Check } from 'lucide-react'
 import { useCreateLink } from '../../hooks/links/useCreateLink'
 import { useMyCategories } from '../../hooks/categories/useMyCategories'
 import { getCategoryIcon } from '../../lib/categoryIcons'
@@ -8,18 +8,32 @@ interface Props {
   open: boolean
   onClose: () => void
   categoryId?: string
+  context?: 'personal' | 'professional'
 }
 
-export default function AddLinkModal({ open, onClose, categoryId }: Props) {
+export default function AddLinkModal({ open, onClose, categoryId, context }: Props) {
   const [url, setUrl] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [selectedCategoryId, setSelectedCategoryId] = useState(categoryId ?? '')
   const [error, setError] = useState('')
+  const [catDropdownOpen, setCatDropdownOpen] = useState(false)
+  const catDropdownRef = useRef<HTMLDivElement>(null)
 
   const urlRef = useRef<HTMLInputElement>(null)
   const { mutate: createLink, isPending } = useCreateLink(categoryId)
-  const { data: categories } = useMyCategories()
+  const { data: categories } = useMyCategories(context)
+
+  // Close category dropdown on outside click
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (catDropdownRef.current && !catDropdownRef.current.contains(e.target as Node)) {
+        setCatDropdownOpen(false)
+      }
+    }
+    if (catDropdownOpen) document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [catDropdownOpen])
 
   // Reset form when modal opens
   useEffect(() => {
@@ -100,33 +114,67 @@ export default function AddLinkModal({ open, onClose, categoryId }: Props) {
               <label className="text-xs font-bold text-foreground uppercase tracking-wide">
                 Category <span className="text-danger">*</span>
               </label>
-              <div className="relative">
-                <select
-                  value={selectedCategoryId}
-                  onChange={(e) => setSelectedCategoryId(e.target.value)}
-                  required
-                  className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:border-primary transition-colors appearance-none cursor-pointer"
+              <div className="relative" ref={catDropdownRef}>
+                {/* Trigger */}
+                <button
+                  type="button"
+                  onClick={() => setCatDropdownOpen((p) => !p)}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 bg-background border rounded-xl text-sm transition-colors cursor-pointer ${
+                    catDropdownOpen ? 'border-primary' : 'border-border hover:border-primary/50'
+                  }`}
                 >
-                  <option value="" disabled>Select a category…</option>
-                  {categories?.map((cat) => (
-                    <option key={cat._id} value={cat._id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-                {selectedCategoryId && categories && (() => {
-                  const cat = categories.find((c) => c._id === selectedCategoryId)
-                  if (!cat) return null
-                  const Icon = getCategoryIcon(cat.icon)
-                  return (
-                    <div
-                      className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-5 rounded-md flex items-center justify-center"
-                      style={{ backgroundColor: `${cat.themeColor}20`, color: cat.themeColor }}
-                    >
-                      <Icon className="size-3" />
-                    </div>
-                  )
-                })()}
+                  {selectedCategoryId && categories ? (() => {
+                    const cat = categories.find((c) => c._id === selectedCategoryId)
+                    if (!cat) return null
+                    const Icon = getCategoryIcon(cat.icon)
+                    return (
+                      <>
+                        <div
+                          className="size-6 rounded-md flex items-center justify-center shrink-0"
+                          style={{ backgroundColor: `${cat.themeColor}20`, color: cat.themeColor }}
+                        >
+                          <Icon className="size-3.5" />
+                        </div>
+                        <span className="flex-1 text-left text-foreground font-medium truncate">{cat.name}</span>
+                      </>
+                    )
+                  })() : (
+                    <span className="flex-1 text-left text-muted-foreground">Select a category…</span>
+                  )}
+                  <ChevronDown className={`size-4 text-muted-foreground shrink-0 transition-transform ${catDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* Dropdown list */}
+                {catDropdownOpen && categories && categories.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1.5 bg-surface border border-border rounded-xl shadow-xl z-50 overflow-hidden max-h-52 overflow-y-auto">
+                    {categories.map((cat) => {
+                      const Icon = getCategoryIcon(cat.icon)
+                      const isSelected = cat._id === selectedCategoryId
+                      return (
+                        <button
+                          key={cat._id}
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => { setSelectedCategoryId(cat._id); setCatDropdownOpen(false) }}
+                          className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors cursor-pointer ${
+                            isSelected
+                              ? 'bg-primary/8 text-foreground'
+                              : 'text-foreground hover:bg-muted'
+                          }`}
+                        >
+                          <div
+                            className="size-7 rounded-lg flex items-center justify-center shrink-0"
+                            style={{ backgroundColor: `${cat.themeColor}20`, color: cat.themeColor }}
+                          >
+                            <Icon className="size-4" />
+                          </div>
+                          <span className="flex-1 text-left font-medium truncate">{cat.name}</span>
+                          {isSelected && <Check className="size-4 text-primary shrink-0" />}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           )}

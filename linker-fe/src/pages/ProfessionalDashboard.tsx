@@ -4,22 +4,9 @@ import { Briefcase, Users, Link2, Search, Plus, Loader2 } from 'lucide-react'
 import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
 import CreateProjectModal from '../components/ui/CreateProjectModal'
 import ProjectIcon from '../components/ui/ProjectIcon'
+import { MaskedAvatars } from '../components/ui/MaskedAvatars'
 import { useCurrentUser } from '../hooks/useCurrentUser'
 import { useProjects, useCreateProject } from '../hooks/useProjects'
-
-const AVATAR_COLORS = [
-  'bg-primary/20 text-primary',
-  'bg-primary/15 text-primary',
-  'bg-primary/10 text-primary',
-  'bg-secondary text-primary',
-]
-
-function getInitials(name: string) {
-  const parts = name.trim().split(' ')
-  return parts.length >= 2
-    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-    : name.slice(0, 2).toUpperCase()
-}
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -63,7 +50,7 @@ export default function ProfessionalDashboard() {
       <div className="h-full overflow-y-auto">
         <div className="p-8">
           {/* Page header */}
-          <div className="flex items-start justify-between mb-8">
+          <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-3xl font-bold text-foreground leading-tight">
                 Welcome to your Workspace,{' '}
@@ -179,43 +166,33 @@ export default function ProfessionalDashboard() {
                         Last active {timeAgo(project.updatedAt)}
                       </p>
 
-                      {/* Members — exclude self */}
+                      {/* Members — masked avatars on hover */}
                       {(() => {
                         const otherMembers = project.members.filter(
                           (m) => m.userId._id !== user.id,
                         )
+                        const avatarData = otherMembers.map((m) => ({
+                          name: m.userId.name,
+                          avatar: m.userId.avatar
+                            ? `/avatars/${m.userId.avatar}.png`
+                            : `https://ui-avatars.com/api/?name=${encodeURIComponent(m.userId.name)}&background=random&color=fff&size=64`,
+                        }))
                         return (
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                          {otherMembers.slice(0, 3).map((m, i) => (
-                                m.userId.avatar ? (
-                                  <img
-                                    key={m.userId._id}
-                                    src={`/avatars/${m.userId.avatar}.png`}
-                                    alt={m.userId.name}
-                                    className={`size-7 rounded-full object-cover ring-2 ring-surface ${i > 0 ? '-ml-2' : ''}`}
-                                  />
-                                ) : (
-                                  <div
-                                    key={m.userId._id}
-                                    className={`size-7 rounded-full text-[10px] font-bold flex items-center justify-center ring-2 ring-surface ${
-                                      AVATAR_COLORS[i % AVATAR_COLORS.length]
-                                    } ${i > 0 ? '-ml-2' : ''}`}
-                                  >
-                                    {getInitials(m.userId.name)}
-                                  </div>
-                                )
-                              ))}
-                              {otherMembers.length > 3 && (
-                                <div className="size-7 rounded-full bg-muted text-muted-foreground text-[10px] font-bold flex items-center justify-center ring-2 ring-surface -ml-2">
-                                  +{otherMembers.length - 3}
-                                </div>
-                              )}
-                            </div>
+                          <div className="flex items-center justify-between pr-2">
                             <div className="flex items-center gap-1.5 text-muted-foreground">
                               <Users className="size-4" />
                               <span className="text-sm font-semibold">{otherMembers.length}</span>
                             </div>
+                            <MaskedAvatars
+                              avatars={avatarData}
+                              size={45}
+                              column={26}
+                              border={4}
+                              movement={0.65}
+                              ringed={true}
+                              offset={-3}
+                              blurOnRest={true}
+                            />
                           </div>
                         )
                       })()}

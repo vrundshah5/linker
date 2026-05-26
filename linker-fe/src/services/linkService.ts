@@ -114,4 +114,9 @@ export const linkService = {
   bulkDeleteLinks: async (ids: string[]): Promise<void> => {
     await api.delete('/links/bulk', { data: { ids } })
   },
+
+  importBookmarks: async (items: { folder: string; title: string; url: string }[], context?: 'personal' | 'professional'): Promise<{ categoriesCreated: number; linksImported: number }> => {
+    const { data } = await api.post('/links/import', { items, context: context ?? 'personal' })
+    return data.data
+  },
 }

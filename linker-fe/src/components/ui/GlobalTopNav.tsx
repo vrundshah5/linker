@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { User, LogOut, Lock, ArrowLeftRight, Sun, Moon } from 'lucide-react'
+import { User, LogOut, Lock, ArrowLeftRight, Sun, Moon, AtSign, Zap } from 'lucide-react'
 import BellButton from './BellButton'
 import WorkspaceSwitchSplash from './WorkspaceSwitchSplash'
+import { MentionBuzzDrawer } from './MentionBuzzDrawer'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { useSwitchWorkspace, useProfile } from '../../hooks/useProfile'
+import { useMentionBuzzUnread } from '../../hooks/useMentionBuzz'
 import { getAvatarById } from './AvatarPicker'
 import { useTheme } from '../../hooks/useTheme'
 import type { NotificationContext } from '../../services/notificationService'
@@ -20,6 +22,14 @@ export default function GlobalTopNav() {
   const { mutate: switchWorkspace, isPending: isSwitching, switchTarget } = useSwitchWorkspace()
   const hasMultipleWorkspaces = user.workspaces.length > 1
   const { theme, toggle: toggleTheme } = useTheme()
+  const { data: unreadCounts } = useMentionBuzzUnread()
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [drawerDefaultTab, setDrawerDefaultTab] = useState<'mentioned' | 'buzz'>('mentioned')
+
+  function openDrawer(tab: 'mentioned' | 'buzz') {
+    setDrawerDefaultTab(tab)
+    setDrawerOpen(true)
+  }
 
   const isAdmin = location.pathname.startsWith('/admin')
   const isProfessional = !isAdmin && (
@@ -68,6 +78,35 @@ export default function GlobalTopNav() {
           <ArrowLeftRight className="size-[18px]" />
         </button>
       )}
+
+      {/* Mention & Buzz buttons — professional only */}
+      {isProfessional && (
+        <>
+          <button
+            type="button"
+            onClick={() => openDrawer('mentioned')}
+            className="relative size-9 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground cursor-pointer transition-colors shrink-0"
+            aria-label="Mentions"
+          >
+            <AtSign className="size-[18px]" />
+            {(unreadCounts?.mentions ?? 0) > 0 && (
+              <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-red-500" />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => openDrawer('buzz')}
+            className="relative size-9 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground cursor-pointer transition-colors shrink-0"
+            aria-label="Buzz"
+          >
+            <Zap className="size-[18px]" />
+            {(unreadCounts?.buzzes ?? 0) > 0 && (
+              <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-yellow-400" />
+            )}
+          </button>
+        </>
+      )}
+
       <BellButton context={notifContext} />
 
       {/* Dark / Light mode toggle */}
@@ -93,7 +132,7 @@ export default function GlobalTopNav() {
         >
           {avatarNode
             ? <div className="w-full h-full">{avatarNode}</div>
-            : <span className={`text-xs font-bold ${accentClass}`}>{user.initials}</span>
+            : <span className={`text-[11px] font-bold ${accentClass}`}>{user.initials}</span>
           }
         </button>
 
@@ -164,6 +203,11 @@ export default function GlobalTopNav() {
       </div>
     </div>
     {isSwitching && switchTarget && <WorkspaceSwitchSplash targetWorkspace={switchTarget} />}
+    <MentionBuzzDrawer
+      open={drawerOpen}
+      onClose={() => setDrawerOpen(false)}
+      defaultTab={drawerDefaultTab}
+    />
     </>
   )
 }

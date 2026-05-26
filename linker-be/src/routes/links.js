@@ -11,6 +11,7 @@ import {
   bulkDeleteLinks,
   getArchivedLinks,
   createExtensionLink,
+  importBookmarks,
 } from '../controllers/linkController.js';
 
 const router = Router();
@@ -22,6 +23,7 @@ router.get('/favorites', getLinkFavorites);
 router.get('/recent', getRecentLinks);
 router.get('/stats', getLinkStats);
 router.post('/extension', createExtensionLink);
+router.post('/import', importBookmarks);
 router.get('/', getLinks);
 router.post('/', createLink);
 router.patch('/:id', updateLink);

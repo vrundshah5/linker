@@ -7,6 +7,7 @@ export const queryKeys = {
     all: ['categories'] as const,
     global: () => [...queryKeys.categories.all, 'global'] as const,
     mine: () => [...queryKeys.categories.all, 'mine'] as const,
+    mineByContext: (context: string) => [...queryKeys.categories.all, 'mine', context] as const,
   },
   admin: {
     all: ['admin'] as const,
@@ -51,5 +52,12 @@ export const queryKeys = {
     all: ['support'] as const,
     mine: ['support', 'mine'] as const,
     admin: (params?: object) => ['support', 'admin', params] as const,
+  },
+  mentionBuzz: {
+    all: ['mentionBuzz'] as const,
+    unread: () => [...(['mentionBuzz'] as const), 'unread'] as const,
+    mentions: () => [...(['mentionBuzz'] as const), 'mentions'] as const,
+    buzzes: () => [...(['mentionBuzz'] as const), 'buzzes'] as const,
+    contacts: () => [...(['mentionBuzz'] as const), 'contacts'] as const,
   },
 } as const

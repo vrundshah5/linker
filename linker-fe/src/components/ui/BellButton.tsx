@@ -27,9 +27,9 @@ export default function BellButton({ context }: BellButtonProps) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="relative size-10 flex items-center justify-center text-muted-foreground hover:text-foreground rounded-xl hover:bg-muted transition-colors cursor-pointer"
+        className="relative size-9 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors cursor-pointer shrink-0"
       >
-        <Bell className="size-5" />
+        <Bell className="size-[18px]" />
         {unread > 0 && (
           <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-danger" />
         )}

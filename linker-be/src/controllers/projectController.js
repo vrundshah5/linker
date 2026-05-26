@@ -4,6 +4,7 @@ import ProjectResource from '../models/ProjectResource.js';
 import { createNotification } from './notificationController.js';
 import ProjectMessage from '../models/ProjectMessage.js';
 import User from '../models/User.js';
+import Mention from '../models/Mention.js';
 
 // GET /api/projects — all projects the user owns or is a member of
 export const listProjects = async (req, res) => {
@@ -446,6 +447,35 @@ export const sendProjectMessage = async (req, res) => {
     });
 
     await message.populate('senderId', 'name email');
+
+    // Detect @mentions and create Mention records
+    const mentionMatches = [...text.matchAll(/@(\w+)/g)].map((m) => m[1].toLowerCase());
+    if (mentionMatches.length > 0) {
+      const memberIds = [
+        project.ownerId,
+        ...project.members.map((m) => m.userId),
+      ].filter((id) => id.toString() !== req.user.id.toString());
+
+      if (memberIds.length > 0) {
+        const memberUsers = await User.find({ _id: { $in: memberIds } }).select('name');
+        const toCreate = [];
+        for (const user of memberUsers) {
+          const firstName = user.name.split(' ')[0].toLowerCase();
+          if (mentionMatches.includes(firstName)) {
+            toCreate.push({
+              toUserId:    user._id,
+              fromUserId:  req.user.id,
+              projectId:   project._id,
+              messageId:   message._id,
+              messageText: text.trim().slice(0, 500),
+            });
+          }
+        }
+        if (toCreate.length > 0) {
+          await Mention.insertMany(toCreate);
+        }
+      }
+    }
 
     return res.status(201).json({ success: true, data: message, message: 'Message sent' });
   } catch (err) {

@@ -14,6 +14,7 @@ import profileRoutes from './routes/profile.js';
 import messageRoutes from './routes/messages.js';
 import projectRoutes from './routes/projects.js';
 import supportRoutes from './routes/support.js';
+import mentionBuzzRoutes from './routes/mentionBuzz.js';
 import GlobalCategory from './models/GlobalCategory.js';
 
 const SEED_CATEGORIES = [
@@ -93,6 +94,9 @@ app.use('/api/projects', projectRoutes);
 
 // Support routes
 app.use('/api/support', supportRoutes);
+
+// Mention / Buzz routes
+app.use('/api/mention-buzz', mentionBuzzRoutes);
 
 // Global JSON error handler — must be defined after all routes
 app.use((err, _req, res, _next) => {
