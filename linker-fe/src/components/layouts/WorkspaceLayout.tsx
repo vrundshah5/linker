@@ -66,7 +66,7 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-56 shrink-0 bg-surface border-r border-border flex flex-col overflow-y-auto">
+      <aside className="w-56 shrink-0 bg-surface border-r border-border flex flex-col overflow-hidden">
         {/* Logo */}
         <div className="flex items-start gap-2.5 px-5 pt-7 pb-5 shrink-0">
           <div className="size-9 bg-primary text-white rounded-xl flex items-center justify-center shrink-0">
@@ -103,8 +103,8 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
           </NavLink>
         </div>
 
-        {/* Projects list */}
-        <div className="px-3 pb-6 flex-1">
+        {/* Projects list — scrollable middle section */}
+        <div className="px-3 pb-3 flex-1 overflow-y-auto">
           <div className="flex items-center justify-between px-3 mb-2 mt-2">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
               My Projects
@@ -190,12 +190,12 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
           </div>
         </div>
 
-        {/* Library — Categories */}
-        <div className="px-3 pb-3 shrink-0">
+        {/* Library + bottom links — always visible */}
+        <div className="px-3 pb-4 shrink-0 border-t border-border pt-3">
           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-3 mb-2">
             Library
           </p>
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 mb-2">
             {[
               { to: '/professional-bookmarks', label: 'Bookmarks', icon: BookMarked },
               { to: '/professional-common-links', label: 'Categories', icon: Folder },
@@ -216,36 +216,34 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
               </NavLink>
             ))}
           </div>
-        </div>
-
-        {/* Import + Support — pinned to bottom */}
-        <div className="px-3 pb-4 shrink-0 mt-auto flex flex-col gap-1">
-          <NavLink
-            to="/professional-import"
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-colors ${
-                isActive
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-              }`
-            }
-          >
-            <Download className="size-[18px] shrink-0" />
-            Import
-          </NavLink>
-          <NavLink
-            to="/professional-support"
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-colors ${
-                isActive
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-              }`
-            }
-          >
-            <LifeBuoy className="size-[18px] shrink-0" />
-            Support
-          </NavLink>
+          <div className="border-t border-border pt-2 flex flex-col gap-1">
+            <NavLink
+              to="/professional-import"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-colors ${
+                  isActive
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                }`
+              }
+            >
+              <Download className="size-[18px] shrink-0" />
+              Import
+            </NavLink>
+            <NavLink
+              to="/professional-support"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-colors ${
+                  isActive
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                }`
+              }
+            >
+              <LifeBuoy className="size-[18px] shrink-0" />
+              Support
+            </NavLink>
+          </div>
         </div>
       </aside>
 

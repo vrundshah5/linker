@@ -6,7 +6,6 @@ export function useNotifications(context?: NotificationContext) {
   return useQuery({
     queryKey: [...queryKeys.notifications.all, context ?? 'all'],
     queryFn: () => notificationService.getAll(context),
-    refetchInterval: 30_000, // poll every 30s
   })
 }
 

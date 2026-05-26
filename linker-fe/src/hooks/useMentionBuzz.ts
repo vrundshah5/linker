@@ -7,7 +7,6 @@ export function useMentionBuzzUnread() {
     queryKey: queryKeys.mentionBuzz.unread(),
     queryFn: mentionBuzzService.getUnreadCounts,
     select: (res) => res.data,
-    refetchInterval: 30_000,
   })
 }
 

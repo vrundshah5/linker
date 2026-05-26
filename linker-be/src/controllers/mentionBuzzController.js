@@ -2,6 +2,7 @@ import Mention from '../models/Mention.js';
 import Buzz from '../models/Buzz.js';
 import User from '../models/User.js';
 import Project from '../models/Project.js';
+import { broadcastNotification } from '../lib/supabase.js';
 
 // GET /api/mention-buzz/unread
 export const getUnreadCounts = async (req, res) => {
@@ -88,6 +89,13 @@ export const sendBuzz = async (req, res) => {
 
     const buzz = await Buzz.create({ fromUserId: req.user.id, toUserId });
     await buzz.populate('fromUserId', 'name email');
+
+    // Broadcast live buzz alert to recipient
+    await broadcastNotification(toUserId, {
+      event: 'new_buzz',
+      fromUserId: req.user.id.toString(),
+    });
+
     return res.status(201).json({ success: true, data: buzz, message: `Buzzed ${target.name}!` });
   } catch (err) {
     console.error('sendBuzz error:', err);

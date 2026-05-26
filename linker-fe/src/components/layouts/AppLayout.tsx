@@ -53,7 +53,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         </div>
 
         {/* Nav */}
-        <div className="px-3 flex-1">
+        <div className="px-3 flex-1 overflow-y-auto pb-4">
           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-3 mb-3">
             Menu
           </p>

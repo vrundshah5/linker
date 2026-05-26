@@ -89,7 +89,7 @@ export default function ProfessionalDashboard() {
               { icon: Briefcase, label: 'Active Projects', value: projects?.length ?? 0, to: '/professional-projects' },
               { icon: Users, label: 'Collaborators', value: totalCollaborators, to: '/professional-collaborators' },
               { icon: Link2, label: 'Total Links', value: totalLinks, to: '/professional-all-links' },
-              { icon: BookMarked, label: 'Bookmarks', value: bookmarkFolders, to: '/professional-bookmarks' },
+              { icon: BookMarked, label: 'Bookmarks', value: bookmarkFolders, to: '/professional-bookmarks-list' },
             ].map(({ icon: Icon, label, value, to }) => (
               <div
                 key={label}

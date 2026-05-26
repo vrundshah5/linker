@@ -1,6 +1,7 @@
 import Message from '../models/Message.js';
 import Request from '../models/Request.js';
 import User from '../models/User.js';
+import { broadcastNotification } from '../lib/supabase.js';
 
 /** Return the list of user IDs that the current user has an accepted connection with */
 async function getConnectionIds(userId) {
@@ -173,6 +174,12 @@ export const sendMessage = async (req, res) => {
     });
 
     await message.populate('fromUserId', 'name email');
+
+    // Broadcast live update to recipient
+    await broadcastNotification(userId, {
+      event: 'new_personal_message',
+      fromUserId: myId.toString(),
+    });
 
     return res.status(201).json({ success: true, data: message, message: 'Message sent' });
   } catch (err) {

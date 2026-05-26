@@ -50,6 +50,7 @@ const CommonLinks = lazy(() => import('../pages/CommonLinks'))
 const ProfessionalProjects = lazy(() => import('../pages/ProfessionalProjects'))
 const ProfessionalCollaborators = lazy(() => import('../pages/ProfessionalCollaborators'))
 const ProfessionalAllLinks = lazy(() => import('../pages/ProfessionalAllLinks'))
+const ProfessionalBookmarksList = lazy(() => import('../pages/ProfessionalBookmarksList'))
 
 export const routes: RouteObject[] = [
   // Public auth routes — redirect to dashboard if already logged in
@@ -127,6 +128,7 @@ export const routes: RouteObject[] = [
           { path: '/professional-projects', element: <ProfessionalProjects /> },
           { path: '/professional-collaborators', element: <ProfessionalCollaborators /> },
           { path: '/professional-all-links', element: <ProfessionalAllLinks /> },
+          { path: '/professional-bookmarks-list', element: <ProfessionalBookmarksList /> },
         ],
       },
     ],

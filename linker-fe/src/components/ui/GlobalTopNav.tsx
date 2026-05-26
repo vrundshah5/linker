@@ -9,11 +9,17 @@ import { useSwitchWorkspace, useProfile } from '../../hooks/useProfile'
 import { useMentionBuzzUnread } from '../../hooks/useMentionBuzz'
 import { getAvatarById } from './AvatarPicker'
 import { useTheme } from '../../hooks/useTheme'
+import { useRealtimeNotifications } from '../../hooks/useRealtimeNotifications'
+import { useRealtimePersonalChat } from '../../hooks/useRealtimePersonalChat'
+import { useRealtimeMentionBuzz } from '../../hooks/useRealtimeMentionBuzz'
 import type { NotificationContext } from '../../services/notificationService'
 
 export default function GlobalTopNav() {
   const user = useCurrentUser()
   const { data: profile } = useProfile()
+  useRealtimeNotifications(user.id)
+  useRealtimePersonalChat(user.id)
+  useRealtimeMentionBuzz(user.id)
   const avatarNode = profile?.avatar ? getAvatarById(profile.avatar)?.node : null
   const navigate = useNavigate()
   const location = useLocation()

@@ -25,7 +25,7 @@ function CategorySection({ categoryId, name, themeColor }: { categoryId: string;
   const [isOpen, setIsOpen] = useState(false)
   const { data: links = [], isLoading } = useLinks(categoryId)
   const deleteLink = useDeleteLink(categoryId)
-  const deleteCategory = useDeleteCategory()
+  const deleteCategory = useDeleteCategory('Bookmark folder deleted')
   const [confirmFolderDelete, setConfirmFolderDelete] = useState(false)
   const [confirmLinkId, setConfirmLinkId] = useState<string | null>(null)
 

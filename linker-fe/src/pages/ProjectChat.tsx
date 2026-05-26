@@ -19,6 +19,7 @@ import { useProfile } from '../hooks/useProfile'
 import { useSendBuzz } from '../hooks/useMentionBuzz'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '../constants/queryKeys'
+import { useRealtimeProjectChat } from '../hooks/useRealtimeProjectChat'
 
 export default function ProjectChat() {
   const { projectId } = useParams<{ projectId: string }>()
@@ -29,6 +30,7 @@ export default function ProjectChat() {
   const sendBuzz = useSendBuzz()
   const qc = useQueryClient()
   const [input, setInput] = useState('')
+  useRealtimeProjectChat(projectId)
   const [showEmoji, setShowEmoji] = useState(false)
   const [showMembers, setShowMembers] = useState(false)
   const [mentionQuery, setMentionQuery] = useState<string | null>(null)

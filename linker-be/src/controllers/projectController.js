@@ -5,6 +5,7 @@ import { createNotification } from './notificationController.js';
 import ProjectMessage from '../models/ProjectMessage.js';
 import User from '../models/User.js';
 import Mention from '../models/Mention.js';
+import { broadcastNotification } from '../lib/supabase.js';
 
 // GET /api/projects — all projects the user owns or is a member of
 export const listProjects = async (req, res) => {
@@ -448,6 +449,21 @@ export const sendProjectMessage = async (req, res) => {
 
     await message.populate('senderId', 'name email');
 
+    // Broadcast live update to all project members
+    const allMemberIds = [
+      project.ownerId.toString(),
+      ...project.members.map((m) => m.userId.toString()),
+    ];
+    await Promise.all(
+      allMemberIds.map((uid) =>
+        broadcastNotification(uid, {
+          event: 'new_project_message',
+          projectId: req.params.id,
+          messageId: message._id.toString(),
+        }),
+      ),
+    );
+
     // Detect @mentions and create Mention records
     const mentionMatches = [...text.matchAll(/@(\w+)/g)].map((m) => m[1].toLowerCase());
     if (mentionMatches.length > 0) {
@@ -473,6 +489,15 @@ export const sendProjectMessage = async (req, res) => {
         }
         if (toCreate.length > 0) {
           await Mention.insertMany(toCreate);
+          // Broadcast mention alerts
+          await Promise.all(
+            toCreate.map((m) =>
+              broadcastNotification(m.toUserId.toString(), {
+                event: 'new_mention',
+                projectId: project._id.toString(),
+              }),
+            ),
+          );
         }
       }
     }

@@ -1,4 +1,5 @@
 import Notification from '../models/Notification.js';
+import { broadcastNotification } from '../lib/supabase.js';
 
 // GET /api/notifications?context=personal|professional
 export const getNotifications = async (req, res) => {
@@ -62,5 +63,14 @@ export const deleteNotification = async (req, res) => {
 
 // Helper — create a notification (called internally from other controllers)
 export const createNotification = async ({ userId, type, title, body, meta = {}, context = 'personal' }) => {
-  return Notification.create({ userId, type, title, body, meta, context });
+  const notification = await Notification.create({ userId, type, title, body, meta, context });
+  // Push live update to the user's Realtime channel
+  await broadcastNotification(userId, {
+    id: notification._id.toString(),
+    type,
+    context,
+    title,
+    body,
+  });
+  return notification;
 };
