@@ -26,7 +26,7 @@ export function useRealtimePersonalChat(userId: string | undefined) {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      supabase?.removeChannel(channel)
     }
   }, [userId, qc])
 }

@@ -21,7 +21,7 @@ export function useRealtimeProjectChat(projectId: string | undefined) {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      supabase?.removeChannel(channel)
     }
   }, [projectId, qc])
 }
