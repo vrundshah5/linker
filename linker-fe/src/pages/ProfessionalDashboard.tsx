@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Briefcase, Users, Link2, Search, Plus, Loader2 } from 'lucide-react'
+import { Briefcase, Users, Link2, BookMarked, Search, Plus, Loader2 } from 'lucide-react'
 import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
 import CreateProjectModal from '../components/ui/CreateProjectModal'
 import ProjectIcon from '../components/ui/ProjectIcon'
 import { MaskedAvatars } from '../components/ui/MaskedAvatars'
 import { useCurrentUser } from '../hooks/useCurrentUser'
 import { useProjects, useCreateProject } from '../hooks/useProjects'
+import { useMyCategories } from '../hooks/categories/useMyCategories'
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -23,6 +24,7 @@ export default function ProfessionalDashboard() {
   const navigate = useNavigate()
   const { data: projects, isLoading } = useProjects()
   const { mutate: createProject, isPending: creating } = useCreateProject()
+  const { data: categories } = useMyCategories('professional')
   const [search, setSearch] = useState('')
   const [showCreate, setShowCreate] = useState(false)
 
@@ -35,6 +37,7 @@ export default function ProfessionalDashboard() {
     0,
   )
   const totalLinks = (projects ?? []).reduce((sum, p) => sum + (p.resourceCount ?? 0), 0)
+  const bookmarkFolders = (categories ?? []).filter((c) => c.description === 'Imported from bookmarks').length
   const firstName = user.name.split(' ')[0] || user.name
 
   function handleCreate(data: { name: string; description: string }) {
@@ -81,15 +84,17 @@ export default function ProfessionalDashboard() {
           />
 
           {/* Stats row */}
-          <div className="grid grid-cols-3 gap-4 mb-10">
+          <div className="grid grid-cols-4 gap-4 mb-10">
             {[
-              { icon: Briefcase, label: 'Active Projects', value: projects?.length ?? 0 },
-              { icon: Users, label: 'Collaborators', value: totalCollaborators },
-              { icon: Link2, label: 'Total Links', value: totalLinks },
-            ].map(({ icon: Icon, label, value }) => (
+              { icon: Briefcase, label: 'Active Projects', value: projects?.length ?? 0, to: '/professional-projects' },
+              { icon: Users, label: 'Collaborators', value: totalCollaborators, to: '/professional-collaborators' },
+              { icon: Link2, label: 'Total Links', value: totalLinks, to: '/professional-all-links' },
+              { icon: BookMarked, label: 'Bookmarks', value: bookmarkFolders, to: '/professional-bookmarks' },
+            ].map(({ icon: Icon, label, value, to }) => (
               <div
                 key={label}
-                className="flex items-center gap-4 px-6 py-5 bg-surface border border-border rounded-2xl"
+                onClick={() => navigate(to)}
+                className="flex items-center gap-4 px-6 py-5 bg-surface border border-border rounded-2xl cursor-pointer hover:border-primary/40 hover:bg-muted/30 transition-colors"
               >
                 <div className="size-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
                   <Icon className="size-5 text-muted-foreground" />

@@ -483,3 +483,30 @@ export const sendProjectMessage = async (req, res) => {
     return res.status(500).json({ success: false, data: null, message: 'Server error' });
   }
 };
+
+// GET /api/projects/unread-badges — latest message timestamp per project for the current user
+export const getProjectChatBadges = async (req, res) => {
+  try {
+    const myId = req.user.id;
+
+    const projects = await Project.find({
+      $or: [{ ownerId: myId }, { 'members.userId': myId }],
+    }).select('_id');
+
+    const projectIds = projects.map((p) => p._id);
+
+    const latestMessages = await ProjectMessage.aggregate([
+      { $match: { projectId: { $in: projectIds } } },
+      { $sort: { createdAt: -1 } },
+      { $group: { _id: '$projectId', latestAt: { $first: '$createdAt' } } },
+    ]);
+
+    const data = {};
+    latestMessages.forEach((m) => { data[m._id.toString()] = m.latestAt });
+
+    return res.json({ success: true, data, message: 'Badges fetched' });
+  } catch (err) {
+    console.error('getProjectChatBadges error:', err);
+    return res.status(500).json({ success: false, data: null, message: 'Server error' });
+  }
+};

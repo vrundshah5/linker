@@ -166,6 +166,14 @@ export function useUpdateProjectResource() {
   })
 }
 
+export function useProjectChatBadges() {
+  return useQuery({
+    queryKey: queryKeys.projects.chatBadges,
+    queryFn: projectService.getChatBadges,
+    refetchInterval: 30_000,
+  })
+}
+
 // --- Messages ---
 
 export function useProjectMessages(projectId: string | undefined) {

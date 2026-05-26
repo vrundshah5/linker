@@ -15,6 +15,7 @@ import {
   updateProjectResource,
   listProjectMessages,
   sendProjectMessage,
+  getProjectChatBadges,
 } from '../controllers/projectController.js';
 
 const router = Router();
@@ -22,6 +23,7 @@ const router = Router();
 router.use(requireAuth);
 
 router.get('/', listProjects);
+router.get('/unread-badges', getProjectChatBadges);
 router.post('/', createProject);
 router.patch('/:id', updateProject);
 router.delete('/:id', deleteProject);

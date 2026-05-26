@@ -47,6 +47,7 @@ export const queryKeys = {
     stats: (id: string) => ['projects', 'stats', id] as const,
     resources: (id: string) => ['projects', 'resources', id] as const,
     messages: (id: string) => ['projects', 'messages', id] as const,
+    chatBadges: ['projects', 'chatBadges'] as const,
   },
   support: {
     all: ['support'] as const,

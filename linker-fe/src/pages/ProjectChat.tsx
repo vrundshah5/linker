@@ -17,6 +17,8 @@ import WorkspaceLayout from '../components/layouts/WorkspaceLayout'
 import { useProject, useProjectMessages, useSendProjectMessage } from '../hooks/useProjects'
 import { useProfile } from '../hooks/useProfile'
 import { useSendBuzz } from '../hooks/useMentionBuzz'
+import { useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '../constants/queryKeys'
 
 export default function ProjectChat() {
   const { projectId } = useParams<{ projectId: string }>()
@@ -25,6 +27,7 @@ export default function ProjectChat() {
   const { data: messages, isLoading } = useProjectMessages(projectId)
   const { mutate: sendMessage, isPending: sending } = useSendProjectMessage()
   const sendBuzz = useSendBuzz()
+  const qc = useQueryClient()
   const [input, setInput] = useState('')
   const [showEmoji, setShowEmoji] = useState(false)
   const [showMembers, setShowMembers] = useState(false)
@@ -60,6 +63,13 @@ export default function ProjectChat() {
         u.name.toLowerCase().startsWith(mentionQuery.toLowerCase())
       )
     : []
+
+  // Mark this project's chat as seen — clears the sidebar unread dot
+  useEffect(() => {
+    if (!projectId) return
+    localStorage.setItem(`chat-seen-${projectId}`, new Date().toISOString())
+    qc.invalidateQueries({ queryKey: queryKeys.projects.chatBadges })
+  }, [projectId, messages?.length, qc])
 
   // Close emoji picker when clicking outside
   useEffect(() => {

@@ -3,7 +3,7 @@ import { NavLink, useParams } from 'react-router-dom'
 import { Link, LayoutDashboard, Users, Settings, ChevronDown, ChevronRight, BookMarked, MessageSquare, LifeBuoy, Download, ChevronsUpDown, Folder } from 'lucide-react'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import GlobalTopNav from '../ui/GlobalTopNav'
-import { useProjects } from '../../hooks/useProjects'
+import { useProjects, useProjectChatBadges } from '../../hooks/useProjects'
 import ProjectIcon from '../ui/ProjectIcon'
 
 const PROJECT_NAV = [
@@ -20,6 +20,7 @@ interface WorkspaceLayoutProps {
 export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
   const user = useCurrentUser()
   const { data: projects } = useProjects()
+  const { data: chatBadges = {} } = useProjectChatBadges()
   const { projectId: urlProjectId } = useParams<{ projectId: string }>()
 
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
@@ -130,6 +131,9 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
             {projects?.map((project) => {
               const isExpanded = expandedIds.has(project._id)
               const isOwner = project.ownerId?._id === user.id
+              const latestAt = chatBadges[project._id]
+              const seenAt = localStorage.getItem(`chat-seen-${project._id}`)
+              const hasUnread = !!latestAt && (!seenAt || new Date(latestAt) > new Date(seenAt))
 
               return (
                 <div key={project._id}>
@@ -152,6 +156,9 @@ export default function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
                     <span className="flex-1 min-w-0 text-sm font-bold text-foreground truncate">
                       {project.name}
                     </span>
+                    {hasUnread && (
+                      <span className="size-2 rounded-full bg-primary shrink-0" />
+                    )}
                   </button>
 
                   {/* Sub-nav items */}

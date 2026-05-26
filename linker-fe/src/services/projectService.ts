@@ -154,6 +154,11 @@ export const projectService = {
     return data.data
   },
 
+  getChatBadges: async (): Promise<Record<string, string>> => {
+    const { data } = await api.get<{ success: boolean; data: Record<string, string> }>('/projects/unread-badges')
+    return data.data
+  },
+
   // Messages
   listMessages: async (projectId: string): Promise<ProjectMessageItem[]> => {
     const { data } = await api.get<{ success: boolean; data: ProjectMessageItem[] }>(
