@@ -91,8 +91,7 @@ export const sendBuzz = async (req, res) => {
     await buzz.populate('fromUserId', 'name email');
 
     // Broadcast live buzz alert to recipient
-    await broadcastNotification(toUserId, {
-      event: 'new_buzz',
+    await broadcastNotification(`buzz-mention:${toUserId}`, 'new_buzz', {
       fromUserId: req.user.id.toString(),
     });
 

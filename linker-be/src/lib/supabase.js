@@ -12,10 +12,12 @@ export const supabase = supabaseUrl && supabaseServiceKey
   : null
 
 /**
- * Broadcast a notification event to a specific user's Realtime channel.
- * Uses the Supabase REST broadcast API (no WebSocket required on the server).
+ * Broadcast an event to a Supabase Realtime channel.
+ * @param {string} channel - Channel name (e.g. 'notifications:userId', 'buzz-mention:userId')
+ * @param {string} event   - Realtime event name (e.g. 'new_notification', 'new_buzz')
+ * @param {object} payload - Arbitrary payload sent with the event
  */
-export async function broadcastNotification(userId, payload) {
+export async function broadcastNotification(channel, event, payload = {}) {
   if (!supabase) return
   try {
     await fetch(`${supabaseUrl}/realtime/v1/api/broadcast`, {
@@ -28,8 +30,8 @@ export async function broadcastNotification(userId, payload) {
       body: JSON.stringify({
         messages: [
           {
-            topic: `realtime:notifications:${userId}`,
-            event: 'new_notification',
+            topic: `realtime:${channel}`,
+            event,
             payload,
           },
         ],

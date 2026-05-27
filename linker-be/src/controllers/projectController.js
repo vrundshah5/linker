@@ -450,19 +450,10 @@ export const sendProjectMessage = async (req, res) => {
     await message.populate('senderId', 'name email');
 
     // Broadcast live update to all project members
-    const allMemberIds = [
-      project.ownerId.toString(),
-      ...project.members.map((m) => m.userId.toString()),
-    ];
-    await Promise.all(
-      allMemberIds.map((uid) =>
-        broadcastNotification(uid, {
-          event: 'new_project_message',
-          projectId: req.params.id,
-          messageId: message._id.toString(),
-        }),
-      ),
-    );
+    await broadcastNotification(`project-chat:${req.params.id}`, 'new_project_message', {
+      projectId: req.params.id,
+      messageId: message._id.toString(),
+    });
 
     // Detect @mentions and create Mention records
     const mentionMatches = [...text.matchAll(/@(\w+)/g)].map((m) => m[1].toLowerCase());
@@ -492,8 +483,7 @@ export const sendProjectMessage = async (req, res) => {
           // Broadcast mention alerts
           await Promise.all(
             toCreate.map((m) =>
-              broadcastNotification(m.toUserId.toString(), {
-                event: 'new_mention',
+              broadcastNotification(`buzz-mention:${m.toUserId.toString()}`, 'new_mention', {
                 projectId: project._id.toString(),
               }),
             ),

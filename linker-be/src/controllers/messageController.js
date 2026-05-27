@@ -176,8 +176,7 @@ export const sendMessage = async (req, res) => {
     await message.populate('fromUserId', 'name email');
 
     // Broadcast live update to recipient
-    await broadcastNotification(userId, {
-      event: 'new_personal_message',
+    await broadcastNotification(`personal-chat:${userId}`, 'new_personal_message', {
       fromUserId: myId.toString(),
     });
 

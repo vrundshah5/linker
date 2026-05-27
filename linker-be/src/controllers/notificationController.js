@@ -65,7 +65,7 @@ export const deleteNotification = async (req, res) => {
 export const createNotification = async ({ userId, type, title, body, meta = {}, context = 'personal' }) => {
   const notification = await Notification.create({ userId, type, title, body, meta, context });
   // Push live update to the user's Realtime channel
-  await broadcastNotification(userId, {
+  await broadcastNotification(`notifications:${userId}`, 'new_notification', {
     id: notification._id.toString(),
     type,
     context,
