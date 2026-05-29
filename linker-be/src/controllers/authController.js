@@ -5,13 +5,11 @@ import nodemailer from 'nodemailer';
 import { Resend } from 'resend';
 import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User.js';
+import OtpCode from '../models/OtpCode.js';
 import { createNotification } from './notificationController.js';
 
 const SALT_ROUNDS = 12;
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
-// In-memory OTP store: email -> { otp, expiresAt }
-const otpStore = new Map();
 
 /**
  * Send an email.
@@ -73,14 +71,19 @@ export const sendOtp = async (req, res) => {
     return res.status(409).json({ success: false, data: null, message: 'Email already in use' });
   }
 
-  // Generate 6-digit OTP
+  // Generate 6-digit OTP and persist to MongoDB (survives server restarts)
   const otp = String(Math.floor(100000 + Math.random() * 900000));
-  otpStore.set(email.toLowerCase(), { otp, expiresAt: Date.now() + 10 * 60 * 1000 });
+  await OtpCode.findOneAndUpdate(
+    { email: email.toLowerCase() },
+    { otp, expiresAt: new Date(Date.now() + 10 * 60 * 1000) },
+    { upsert: true },
+  );
 
   try {
     await sendEmail({
       to: email.toLowerCase(),
       subject: 'Your Linker verification code',
+
       html: `
         <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#f9fafb;border-radius:12px">
           <h2 style="color:#1f2937;margin-bottom:8px">Verify your email</h2>
@@ -93,7 +96,7 @@ export const sendOtp = async (req, res) => {
       `,
     });
   } catch (emailErr) {
-    otpStore.delete(email.toLowerCase());
+    await OtpCode.deleteOne({ email: email.toLowerCase() });
     console.error('Email send error:', emailErr.message);
     return res.status(500).json({ success: false, data: null, message: `Failed to send verification email: ${emailErr.message}` });
   }
@@ -123,19 +126,19 @@ export const signup = async (req, res) => {
     return res.status(400).json({ success: false, data: null, message: 'Password must be at least 8 characters' });
   }
 
-  // Verify OTP
-  const stored = otpStore.get(email.toLowerCase());
+  // Verify OTP from MongoDB
+  const stored = await OtpCode.findOne({ email: email.toLowerCase() });
   if (!stored) {
     return res.status(400).json({ success: false, data: null, message: 'Please verify your email first' });
   }
-  if (Date.now() > stored.expiresAt) {
-    otpStore.delete(email.toLowerCase());
+  if (new Date() > stored.expiresAt) {
+    await OtpCode.deleteOne({ email: email.toLowerCase() });
     return res.status(400).json({ success: false, data: null, message: 'Verification code has expired. Please request a new one.' });
   }
   if (stored.otp !== String(otp)) {
     return res.status(400).json({ success: false, data: null, message: 'Invalid verification code' });
   }
-  otpStore.delete(email.toLowerCase());
+  await OtpCode.deleteOne({ email: email.toLowerCase() });
 
   const existing = await User.findOne({ email: email.toLowerCase() });
   if (existing) {
