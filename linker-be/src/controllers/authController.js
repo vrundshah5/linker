@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User.js';
 import { createNotification } from './notificationController.js';
@@ -13,10 +14,19 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const otpStore = new Map();
 
 /**
- * Send an email via Gmail SMTP (nodemailer).
- * Falls back to console log in dev if SMTP credentials are not set.
+ * Send an email.
+ * Priority: Resend API (works on cloud) → Gmail SMTP → console fallback (dev only)
  */
 const sendEmail = async ({ to, subject, html }) => {
+  // 1. Resend — preferred for production/cloud deployments
+  if (process.env.RESEND_API_KEY) {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const from = process.env.RESEND_FROM_EMAIL || 'Linker <onboarding@resend.dev>';
+    await resend.emails.send({ from, to, subject, html });
+    return;
+  }
+
+  // 2. Gmail SMTP via nodemailer — works locally, may be blocked on cloud
   if (process.env.SMTP_USER && process.env.SMTP_PASS) {
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
@@ -36,8 +46,8 @@ const sendEmail = async ({ to, subject, html }) => {
     return;
   }
 
-  // Dev console fallback
-  console.warn('\n⚠️  SMTP_USER/SMTP_PASS not set in .env — email was NOT sent.');
+  // 3. Dev console fallback — no email sent
+  console.warn('\n⚠️  No email provider configured (set RESEND_API_KEY or SMTP_USER/SMTP_PASS) — email was NOT sent.');
   const codeMatch = html.match(/\b(\d{6})\b/);
   if (codeMatch) console.log(`🔑 OTP for ${to}: ${codeMatch[1]}\n`);
 };

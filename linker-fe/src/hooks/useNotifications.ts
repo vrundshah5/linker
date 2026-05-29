@@ -13,17 +13,28 @@ export function useMarkAllRead() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (context?: NotificationContext) => notificationService.markAllRead(context),
-    onSuccess: (_data, context) => {
-      // Immediately update every cached notification list
+    onMutate: async (context) => {
+      // Cancel any in-flight refetches so they don't overwrite the optimistic update
+      await qc.cancelQueries({ queryKey: queryKeys.notifications.all })
+      // Snapshot current cache for rollback
+      const prev = qc.getQueriesData<AppNotification[]>({ queryKey: queryKeys.notifications.all })
+      // Optimistically mark all matching notifications as read
       qc.setQueriesData<AppNotification[]>(
         { queryKey: queryKeys.notifications.all },
         (old) => {
-          if (!old) return old
+          if (!Array.isArray(old)) return old
           return old.map((n) =>
-            !context || n.context === context ? { ...n, read: true } : n
+            !context || n.context === context ? { ...n, read: true } : n,
           )
         },
       )
+      return { prev }
+    },
+    onError: (_err, _vars, ctx) => {
+      // Roll back on failure
+      if (ctx?.prev) {
+        for (const [key, data] of ctx.prev) qc.setQueryData(key, data)
+      }
     },
     onSettled: () => qc.invalidateQueries({ queryKey: queryKeys.notifications.all }),
   })
