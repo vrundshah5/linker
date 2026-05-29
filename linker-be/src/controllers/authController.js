@@ -13,10 +13,38 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 /**
  * Send an email.
- * Priority: Resend API (works on cloud) → Gmail SMTP → console fallback (dev only)
+ * Priority:
+ *   1. Brevo HTTP API  — works on Render (no SMTP port blocking)
+ *   2. Resend HTTP API — alternative HTTP provider
+ *   3. SMTP (nodemailer) — works locally; blocked on most cloud hosts
+ *   4. Console fallback — dev only
  */
 const sendEmail = async ({ to, subject, html }) => {
-  // 1. Resend — preferred for production/cloud deployments
+  // 1. Brevo HTTP API — recommended for Render/cloud deployments
+  if (process.env.BREVO_API_KEY) {
+    const senderEmail = process.env.SMTP_USER?.trim() || 'noreply@linker.app';
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'api-key': process.env.BREVO_API_KEY,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        sender: { name: 'Linker', email: senderEmail },
+        to: [{ email: to }],
+        subject,
+        htmlContent: html,
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Brevo API error: ${err}`);
+    }
+    return;
+  }
+
+  // 2. Resend HTTP API
   if (process.env.RESEND_API_KEY) {
     const resend = new Resend(process.env.RESEND_API_KEY);
     const from = process.env.RESEND_FROM_EMAIL || 'Linker <onboarding@resend.dev>';
@@ -24,13 +52,13 @@ const sendEmail = async ({ to, subject, html }) => {
     return;
   }
 
-  // 2. SMTP via nodemailer (Brevo / Gmail / any SMTP)
+  // 3. SMTP via nodemailer — works locally, blocked on most cloud hosts
   if (process.env.SMTP_USER && process.env.SMTP_PASS) {
     const port = Number(process.env.SMTP_PORT) || 465;
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
       port,
-      secure: port === 465,          // true for SSL (465), false for STARTTLS (587/2525)
+      secure: port === 465,
       connectionTimeout: 10000,
       greetingTimeout: 10000,
       socketTimeout: 15000,
@@ -48,8 +76,8 @@ const sendEmail = async ({ to, subject, html }) => {
     return;
   }
 
-  // 3. Dev console fallback — no email sent
-  console.warn('\n⚠️  No email provider configured (set RESEND_API_KEY or SMTP_USER/SMTP_PASS) — email was NOT sent.');
+  // 4. Dev console fallback
+  console.warn('\n⚠️  No email provider configured — email was NOT sent.');
   const codeMatch = html.match(/\b(\d{6})\b/);
   if (codeMatch) console.log(`🔑 OTP for ${to}: ${codeMatch[1]}\n`);
 };
