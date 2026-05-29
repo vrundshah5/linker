@@ -26,15 +26,18 @@ const sendEmail = async ({ to, subject, html }) => {
     return;
   }
 
-  // 2. Gmail SMTP via nodemailer — works locally, may be blocked on cloud
+  // 2. SMTP via nodemailer (Brevo / Gmail / any SMTP)
   if (process.env.SMTP_USER && process.env.SMTP_PASS) {
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: Number(process.env.SMTP_PORT) || 587,
       secure: false,
+      connectionTimeout: 10000,  // 10s — fail fast instead of hanging
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
       auth: {
         user: process.env.SMTP_USER.trim(),
-        pass: process.env.SMTP_PASS.replace(/\s/g, ''), // strip spaces from App Password
+        pass: process.env.SMTP_PASS.replace(/\s/g, ''),
       },
     });
     await transporter.sendMail({
