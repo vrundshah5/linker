@@ -26,11 +26,12 @@ const sendEmail = async ({ to, subject, html }) => {
 
   // 2. SMTP via nodemailer (Brevo / Gmail / any SMTP)
   if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    const port = Number(process.env.SMTP_PORT) || 465;
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: false,
-      connectionTimeout: 10000,  // 10s — fail fast instead of hanging
+      host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
+      port,
+      secure: port === 465,          // true for SSL (465), false for STARTTLS (587/2525)
+      connectionTimeout: 10000,
       greetingTimeout: 10000,
       socketTimeout: 15000,
       auth: {
